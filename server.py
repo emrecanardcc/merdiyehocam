@@ -126,7 +126,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             return self._send_json_response(200, pdfs)
 
         # 2. Admin: Get Visitor Analytics
-        if clean_path == "/api/analytics":
+        if clean_path in ("/api/analytics", "/api/admin/analytics"):
             _init_analytics()
             stats = _read_json(ANALYTICS_FILE, {})
             # Enrich with dynamic active visitor simulation
