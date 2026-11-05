@@ -114,6 +114,18 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuestionsTable();
   }
 
+    // Event Delegation for Questions Table
+  const adminQuestionsTbody = document.getElementById("adminQuestionsTableBody");
+  if (adminQuestionsTbody) {
+    adminQuestionsTbody.addEventListener("click", (e) => {
+      const delBtn = e.target.closest(".delete-question-btn");
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        deleteQuestion(id);
+      }
+    });
+  }
+
   function renderQuestionsTable() {
     const tbody = document.getElementById("adminQuestionsTableBody");
     const countBadge = document.getElementById("totalQuestionCountBadge");
@@ -163,12 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }).join("");
 
-    tbody.querySelectorAll(".delete-question-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        deleteQuestion(id);
-      });
-    });
+    // Delete handled by event delegation on adminQuestionsTableBody
   }
 
   async function deleteQuestion(id) {
@@ -752,7 +759,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const dbPdfs = await window.MH_DB.getPdfs();
         if (Array.isArray(dbPdfs) && dbPdfs.length > 0) {
           pdfList = dbPdfs;
-          renderAdminPDFTable();
+          updatePdfMap();
+    renderAdminPDFTable();
           return;
         }
       }
@@ -762,7 +770,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/pdfs");
       if (res.ok) {
         pdfList = await res.json();
-        renderAdminPDFTable();
+        updatePdfMap();
+    renderAdminPDFTable();
         return;
       }
     } catch (e) {}
@@ -774,7 +783,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const jsonList = await resJson.json();
         if (Array.isArray(jsonList) && jsonList.length > 0) {
           pdfList = jsonList;
-          renderAdminPDFTable();
+          updatePdfMap();
+    renderAdminPDFTable();
           return;
         }
       }
@@ -785,7 +795,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (local) {
       try {
         pdfList = JSON.parse(local);
-        renderAdminPDFTable();
+        updatePdfMap();
+    renderAdminPDFTable();
         return;
       } catch (e) {}
     }
@@ -807,7 +818,51 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", badge: " EN ÇOK İNDİRİLEN" },
       { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", badge: " 2025/2026 PROVA" }
     ];
+    updatePdfMap();
     renderAdminPDFTable();
+  }
+
+    const pdfMap = new Map();
+  function updatePdfMap() {
+    pdfMap.clear();
+    for (let i = 0; i < pdfList.length; i++) {
+      pdfMap.set(String(pdfList[i].id), pdfList[i]);
+    }
+  }
+
+  // Event Delegation for Admin PDF Table
+  const adminPdfTableTbody = document.getElementById("adminPdfTableBody");
+  if (adminPdfTableTbody) {
+    adminPdfTableTbody.addEventListener("click", async (e) => {
+      const editBtn = e.target.closest(".edit-pdf-btn");
+      if (editBtn) {
+        const id = editBtn.dataset.id;
+        const item = pdfMap.get(String(id)) || pdfList.find(p => String(p.id) === String(id));
+        if (item) openPdfModal(item);
+        return;
+      }
+      const delBtn = e.target.closest(".delete-pdf-btn");
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        const item = pdfMap.get(String(id)) || pdfList.find(p => String(p.id) === String(id));
+        if (!confirm(`'${item?.title || id}' başlıklı PDF'i silmek istediğinizden emin misiniz?`)) return;
+        try {
+          if (window.MH_DB && typeof window.MH_DB.deletePdf === "function") {
+            await window.MH_DB.deletePdf(id);
+          } else {
+            await fetch(`/api/admin/pdfs?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+          }
+          showToast("PDF başarıyla silindi.", "success");
+        } catch (err) {
+          showToast("PDF yerel depodan silindi.", "info");
+        }
+        pdfList = pdfList.filter(p => String(p.id) !== String(id));
+        pdfMap.delete(String(id));
+        localStorage.setItem("merdiye_custom_pdfs", JSON.stringify(pdfList));
+        updatePdfMap();
+    renderAdminPDFTable();
+      }
+    });
   }
 
   function renderAdminPDFTable() {
@@ -858,45 +913,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </tr>
     `).join("");
 
-    attachAdminPdfActions();
-  }
-
-  function attachAdminPdfActions() {
-    // Düzenle
-    document.querySelectorAll(".edit-pdf-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        const item = pdfList.find(p => p.id === id);
-        if (!item) return;
-        openPdfModal(item);
-      });
-    });
-
-    // Sil
-    document.querySelectorAll(".delete-pdf-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        const item = pdfList.find(p => p.id === id);
-        if (!confirm(`'${item?.title || id}' başlıklı PDF'i silmek istediğinizden emin misiniz?`)) {
-          return;
-        }
-
-        try {
-          if (window.MH_DB && typeof window.MH_DB.deletePdf === "function") {
-            await window.MH_DB.deletePdf(id);
-          } else {
-            await fetch(`/api/admin/pdfs?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-          }
-          showToast("PDF başarıyla silindi.", "success");
-        } catch (e) {
-          showToast("PDF yerel depodan silindi.", "info");
-        }
-
-        pdfList = pdfList.filter(p => p.id !== id);
-        localStorage.setItem("merdiye_custom_pdfs", JSON.stringify(pdfList));
-        renderAdminPDFTable();
-      });
-    });
+    // Actions handled by Event Delegation
   }
 
   // PDF Modal Yönetimi
@@ -1124,7 +1141,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("merdiye_custom_pdfs", JSON.stringify(pdfList));
       adminPdfModal.classList.remove("active");
-      renderAdminPDFTable();
+      updatePdfMap();
+    renderAdminPDFTable();
     });
   }
 
@@ -1332,7 +1350,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     tbody.innerHTML = posts.map(p => {
-      const platformsStr = (p.platforms || []).map(pl => pl === "youtube" ? " YouTube" : " Instagram").join(" &bull; ");
+      const plArray = Array.isArray(p.platforms) ? p.platforms : [];
+      const hasYt = plArray.indexOf("youtube") !== -1;
+      const hasIg = plArray.indexOf("instagram") !== -1;
+      const platformsStr = plArray.map(pl => pl === "youtube" ? "YouTube" : "Instagram").join(" &bull; ");
       const ytUrl = p.results?.youtube?.url || p.results?.youtube?.short_url || "https://www.youtube.com/@MerdiyeHocam";
       const igUrl = p.results?.instagram?.instagram_reel_url || p.results?.instagram?.url || "https://www.instagram.com/merdiyehocam/";
 
@@ -1343,8 +1364,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <td><span class="pdf-badge">${platformsStr}</span></td>
           <td><span class="status-pill enrolled">Yayınlandı</span></td>
           <td>
-            ${p.platforms.includes("youtube") ? `<a href="${ytUrl}" target="_blank" style="color: #DC2626; font-weight: 700; margin-right: 8px;">Shorts ↗</a>` : ""}
-            ${p.platforms.includes("instagram") ? `<a href="${igUrl}" target="_blank" style="color: #DB2777; font-weight: 700;">Reels ↗</a>` : ""}
+            ${hasYt ? `<a href="${ytUrl}" target="_blank" style="color: #DC2626; font-weight: 700; margin-right: 8px;">Shorts ↗</a>` : ""}
+            ${hasIg ? `<a href="${igUrl}" target="_blank" style="color: #DB2777; font-weight: 700;">Reels ↗</a>` : ""}
           </td>
         </tr>
       `;
@@ -1444,15 +1465,100 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLeadsTable();
   }
 
+    // Event Delegation on adminLeadsTableBody (Eliminates O(2^N) recursive rebinding)
+  const adminLeadsTbody = document.getElementById("adminLeadsTableBody");
+  if (adminLeadsTbody) {
+    adminLeadsTbody.addEventListener("click", async (e) => {
+      // Toggle Status
+      const statusBtn = e.target.closest(".toggle-lead-status-btn");
+      if (statusBtn) {
+        const id = statusBtn.dataset.id;
+        const current = statusBtn.dataset.status;
+        const next = current === "Yeni" ? "Görüşüldü" : current === "Görüşüldü" ? "Kayıt Yapıldı" : "Yeni";
+
+        try {
+          if (window.MH_DB && typeof window.MH_DB.updateLead === "function") {
+            await window.MH_DB.updateLead(id, { status: next });
+          } else {
+            await fetch("/api/admin/inquiries", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id, status: next })
+            });
+          }
+        } catch (err) {}
+
+        const item = cachedLeads.find(l => String(l.id) === String(id));
+        if (item) item.status = next;
+        saveLeadsToStorage(cachedLeads);
+        showToast(`Durum güncellendi: ${next}`, "success");
+        renderLeadsTable();
+        return;
+      }
+
+      // Edit Note
+      const noteBtn = e.target.closest(".edit-lead-note-btn");
+      if (noteBtn) {
+        const id = noteBtn.dataset.id;
+        const currentNote = noteBtn.dataset.note || "";
+        const newNote = prompt("Öğretmen / Görüşme Notunu Giriniz:", currentNote);
+        if (newNote === null) return;
+
+        try {
+          if (window.MH_DB && typeof window.MH_DB.updateLead === "function") {
+            await window.MH_DB.updateLead(id, { admin_notes: newNote });
+          } else {
+            await fetch("/api/admin/inquiries", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id, admin_notes: newNote })
+            });
+          }
+        } catch (err) {}
+
+        const item = cachedLeads.find(l => String(l.id) === String(id));
+        if (item) item.admin_notes = newNote;
+        saveLeadsToStorage(cachedLeads);
+        showToast("Öğretmen notu kaydedildi!", "success");
+        renderLeadsTable();
+        return;
+      }
+
+      // Delete Lead
+      const delBtn = e.target.closest(".delete-lead-btn");
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        if (!confirm("Bu özel ders talebini silmek istediğinize emin misiniz?")) return;
+
+        try {
+          if (window.MH_DB && typeof window.MH_DB.deleteLead === "function") {
+            await window.MH_DB.deleteLead(id);
+          } else {
+            await fetch(`/api/admin/inquiries?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+          }
+        } catch (err) {}
+
+        cachedLeads = cachedLeads.filter(l => String(l.id) !== String(id));
+        saveLeadsToStorage(cachedLeads);
+        showToast("Talep başarıyla silindi.", "info");
+        renderLeadsTable();
+      }
+    });
+  }
+
   function renderLeadsTable() {
     const tbody = document.getElementById("adminLeadsTableBody");
     if (!tbody) return;
 
-    // Sayım rozetlerini güncelle
+    // Sayım rozetlerini güncelle - Strict O(N) single pass
     const countAll = cachedLeads.length;
-    const countNew = cachedLeads.filter(l => l.status === "Yeni").length;
-    const countContacted = cachedLeads.filter(l => l.status === "Görüşüldü").length;
-    const countEnrolled = cachedLeads.filter(l => l.status === "Kayıt Yapıldı").length;
+    let countNew = 0, countContacted = 0, countEnrolled = 0;
+    for (let i = 0; i < countAll; i++) {
+      const st = cachedLeads[i].status;
+      if (st === "Yeni") countNew++;
+      else if (st === "Görüşüldü") countContacted++;
+      else if (st === "Kayıt Yapıldı") countEnrolled++;
+    }
 
     const elAll = document.getElementById("leadCountAll");
     const elNew = document.getElementById("leadCountNew");
@@ -1512,83 +1618,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }).join("");
 
-    // Durum Değiştirme
-    tbody.querySelectorAll(".toggle-lead-status-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        const current = btn.dataset.status;
-        const next = current === "Yeni" ? "Görüşüldü" : current === "Görüşüldü" ? "Kayıt Yapıldı" : "Yeni";
-
-        try {
-          if (window.MH_DB && typeof window.MH_DB.updateLead === "function") {
-            await window.MH_DB.updateLead(id, { status: next });
-          } else {
-            await fetch("/api/admin/inquiries", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id, status: next })
-            });
-          }
-        } catch (e) {}
-
-        const item = cachedLeads.find(l => l.id === id);
-        if (item) item.status = next;
-        saveLeadsToStorage(cachedLeads);
-        showToast(`Durum güncellendi: ${next}`, "success");
-        renderLeadsTable();
-      });
-    });
-
-    // Not Ekleme / Düzenleme
-    tbody.querySelectorAll(".edit-lead-note-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        const currentNote = btn.dataset.note || "";
-        const newNote = prompt("Öğretmen / Görüşme Notunu Giriniz:", currentNote);
-        if (newNote === null) return;
-
-        try {
-          if (window.MH_DB && typeof window.MH_DB.updateLead === "function") {
-            await window.MH_DB.updateLead(id, { admin_notes: newNote });
-          } else {
-            await fetch("/api/admin/inquiries", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id, admin_notes: newNote })
-            });
-          }
-        } catch (e) {}
-
-        const item = cachedLeads.find(l => l.id === id);
-        if (item) item.admin_notes = newNote;
-        saveLeadsToStorage(cachedLeads);
-        showToast("Öğretmen notu kaydedildi!", "success");
-        renderLeadsTable();
-      });
-    });
-
-    // Silme
-    tbody.querySelectorAll(".delete-lead-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        if (!confirm("Bu özel ders talebini silmek istediğinize emin misiniz?")) return;
-
-        try {
-          if (window.MH_DB && typeof window.MH_DB.deleteLead === "function") {
-            await window.MH_DB.deleteLead(id);
-          } else {
-            await fetch(`/api/admin/inquiries?id=${encodeURIComponent(id)}`, {
-              method: "DELETE"
-            });
-          }
-        } catch (e) {}
-
-        cachedLeads = cachedLeads.filter(l => l.id !== id);
-        saveLeadsToStorage(cachedLeads);
-        showToast("Talep başarıyla silindi.", "info");
-        renderLeadsTable();
-      });
-    });
+    // Event listeners handled by event delegation on adminLeadsTableBody
   }
 
   function saveLeadsToStorage(leads) {

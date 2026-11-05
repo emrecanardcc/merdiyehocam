@@ -220,7 +220,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  let activeCatalog = [...PDF_CATALOG];
+  let activeCatalog = [];
+  const pdfMap = new Map();
+
+  function setCatalog(items) {
+    pdfMap.clear();
+    activeCatalog = (items || []).map(item => {
+      const topics = Array.isArray(item.topics) ? item.topics : [];
+      const topicsStr = topics.join(" ");
+      const searchCorpus = (
+        (item.title || "") + " " +
+        (item.subtitle || "") + " " +
+        (item.unit || "") + " " +
+        topicsStr
+      ).toLowerCase();
+
+      const isGold = String(item.badge || "").toLowerCase().indexOf("altın") !== -1;
+      const badgeClass = isGold ? "pdf-badge gold" : "pdf-badge";
+      const topicsHtml = topics.slice(0, 4).map(t => `<span class="pdf-tag">#${t}</span>`).join("");
+      const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
+      const prep = {
+        ...item,
+        fileUrl: fileLink,
+        fileSize: item.file_size || item.fileSize || "105 KB",
+        _searchCorpus: searchCorpus,
+        _badgeClass: badgeClass,
+        _topicsHtml: topicsHtml,
+        _fileLink: fileLink
+      };
+      if (prep.id) pdfMap.set(String(prep.id), prep);
+      return prep;
+    });
+    renderPDFs();
+  }
 
   // DOM Elements
   const pdfGrid = document.getElementById("pdfGrid");
@@ -293,8 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          activeCatalog = parsed;
-          renderPDFs();
+          setCatalog(parsed);
         }
       }
     } catch (e) {}
@@ -322,21 +353,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!pdfGrid) return;
 
     const query = searchQuery.trim().toLowerCase();
-    const filtered = activeCatalog.filter(item => {
-      const matchCat =
-        currentCategory === "all" ? true :
-        currentCategory === "popular" ? item.popular :
-        item.category === currentCategory;
+    const hasQuery = query.length > 0;
+    const isAll = currentCategory === "all";
+    const isPopular = currentCategory === "popular";
 
-      if (!matchCat) return false;
-
-      if (!query) return true;
-      const titleMatch = (item.title || "").toLowerCase().includes(query);
-      const subMatch = (item.subtitle || "").toLowerCase().includes(query);
-      const unitMatch = (item.unit || "").toLowerCase().includes(query);
-      const topicMatch = Array.isArray(item.topics) && item.topics.some(t => t.toLowerCase().includes(query));
-      return titleMatch || subMatch || unitMatch || topicMatch;
-    });
+    const filtered = [];
+    for (let i = 0; i < activeCatalog.length; i++) {
+      const item = activeCatalog[i];
+      const matchCat = isAll ? true : (isPopular ? item.popular : item.category === currentCategory);
+      if (!matchCat) continue;
+      if (hasQuery && item._searchCorpus.indexOf(query) === -1) continue;
+      filtered.push(item);
+    }
 
     if (pdfCountBadge) {
       pdfCountBadge.textContent = String(filtered.length);
@@ -364,17 +392,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    pdfGrid.innerHTML = filtered.map(item => {
-      const isGold = (item.badge || "").includes("") || (item.badge || "").includes("Altın") || (item.badge || "").includes("");
-      const badgeClass = isGold ? "pdf-badge gold" : "pdf-badge";
-      const topicsHtml = (item.topics || []).slice(0, 4).map(t => `<span class="pdf-tag">#${t}</span>`).join("");
-      const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
-
-      return `
+    const cardsHtml = [];
+    for (let i = 0; i < filtered.length; i++) {
+      const item = filtered[i];
+      cardsHtml.push(`
         <article class="pdf-card" data-id="${item.id}">
           <div>
             <div class="pdf-card-top">
-              <span class="${badgeClass}">${item.badge || "MEB Uyumlu"}</span>
+              <span class="${item._badgeClass}">${item.badge || "MEB Uyumlu"}</span>
               <span class="pdf-unit">${item.unit || "8. Sınıf"} &bull; ${item.term || "Dönem"}</span>
             </div>
 
@@ -382,68 +407,67 @@ document.addEventListener("DOMContentLoaded", () => {
             <p class="pdf-subtitle">${item.subtitle || ""}</p>
 
             <div class="pdf-meta">
-              ${topicsHtml}
+              ${item._topicsHtml}
             </div>
           </div>
 
           <div class="pdf-card-bottom">
             <div class="pdf-info-txt">
-              <span> ${item.pages || "1 Sayfa"}</span> &bull; 
-              <span> ${item.fileSize || item.file_size || "105 KB"}</span>
+              <span>${item.pages || "1 Sayfa"}</span> &bull; 
+              <span>${item.fileSize}</span>
             </div>
 
             <div class="pdf-btn-group">
               <button class="btn btn-secondary btn-sm preview-btn" data-id="${item.id}" title="Önizle ve Canlı İncele">
                 İncele
               </button>
-              <a href="mailto:?subject=${encodeURIComponent(item.title + ' - LGS Matematik Föyü')}&body=${encodeURIComponent('Merhaba, Merdiye Hocam LGS Matematik föyünü inceleyebilirsin: ' + new URL(fileLink, window.location.href).href)}" class="btn btn-secondary btn-sm" title="E-posta ile Paylaş" style="padding: 6px 10px; color: var(--primary); border-color: var(--primary-border);">
+              <a href="mailto:?subject=${encodeURIComponent(item.title + ' - LGS Matematik Föyü')}&body=${encodeURIComponent('Merhaba, Merdiye Hocam LGS Matematik föyünü inceleyebilirsin: ' + new URL(item._fileLink, window.location.href).href)}" class="btn btn-secondary btn-sm" title="E-posta ile Paylaş" style="padding: 6px 10px; color: var(--primary); border-color: var(--primary-border);">
                 E-posta
               </a>
-              <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm download-btn" data-id="${item.id}">
+              <a href="${item._fileLink}" download="${item.filename}" class="btn btn-primary btn-sm download-btn" data-id="${item.id}">
                 İndir
               </a>
             </div>
           </div>
         </article>
-      `;
-    }).join("");
+      `);
+    }
 
-    attachCardEvents();
+    pdfGrid.innerHTML = cardsHtml.join("");
   }
 
   // 5. Card Events & Modal
-  function attachCardEvents() {
-    const previewBtns = document.querySelectorAll(".preview-btn");
-    previewBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
+  // Event Delegation on pdfGrid attached once
+  if (pdfGrid) {
+    pdfGrid.addEventListener("click", (e) => {
+      const previewBtn = e.target.closest(".preview-btn");
+      if (previewBtn) {
+        const id = previewBtn.getAttribute("data-id");
         openPDFModal(id);
-      });
-    });
-
-    const downloadBtns = document.querySelectorAll(".download-btn");
-    downloadBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        showToast("PDF başarıyla indiriliyor! İyi çalışmalar dileriz ", "success");
+        return;
+      }
+      const dlBtn = e.target.closest(".download-btn");
+      if (dlBtn) {
+        const id = dlBtn.getAttribute("data-id");
+        showToast("PDF başarıyla indiriliyor! İyi çalışmalar dileriz", "success");
         try {
           if (window.MH_DB && typeof window.MH_DB.recordPdfDownload === "function") {
             window.MH_DB.recordPdfDownload(id);
           }
-        } catch (e) {}
+        } catch (err) {}
         try {
           fetch("/api/analytics/visit", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ is_download: true, pdf_id: id })
           }).catch(() => {});
-        } catch (e) {}
-      });
+        } catch (err) {}
+      }
     });
   }
 
   function openPDFModal(id) {
-    const item = activeCatalog.find(p => p.id === id);
+    const item = pdfMap.get(String(id)) || activeCatalog.find(p => String(p.id) === String(id));
     if (!item || !modalOverlay) return;
 
     const modalBody = document.getElementById("modalBody");
@@ -515,11 +539,14 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // Modal Sekme Geçişleri
-    const modalTabs = modalBody.querySelectorAll(".pdf-modal-tab");
-    modalTabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        modalTabs.forEach(t => t.classList.remove("active"));
+    // Modal Sekme Geçişleri - Event Delegation
+    const tabsContainer = modalBody.querySelector(".pdf-modal-tabs");
+    if (tabsContainer) {
+      tabsContainer.addEventListener("click", (e) => {
+        const tab = e.target.closest(".pdf-modal-tab");
+        if (!tab) return;
+        const allTabs = tabsContainer.querySelectorAll(".pdf-modal-tab");
+        for (let i = 0; i < allTabs.length; i++) allTabs[i].classList.remove("active");
         tab.classList.add("active");
         const target = tab.dataset.modaltab;
 
@@ -531,7 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (pTopics) pTopics.style.display = target === "topics" ? "block" : "none";
         if (pSample) pSample.style.display = target === "sample" ? "block" : "none";
       });
-    });
+    }
 
     modalOverlay.classList.add("active");
   }
@@ -796,14 +823,29 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    document.querySelectorAll(".school-filter-chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        document.querySelectorAll(".school-filter-chip").forEach(c => c.classList.remove("active"));
+    const schoolFilterWrap = document.querySelector(".school-filters-wrapper");
+    if (schoolFilterWrap) {
+      schoolFilterWrap.addEventListener("click", (e) => {
+        const chip = e.target.closest(".school-filter-chip");
+        if (!chip) return;
+        const allChips = schoolFilterWrap.querySelectorAll(".school-filter-chip");
+        for (let i = 0; i < allChips.length; i++) allChips[i].classList.remove("active");
         chip.classList.add("active");
         currentSchoolCity = chip.dataset.schoolCity || "all";
         renderSchoolSimulator(lastCalculatedNet);
       });
-    });
+    } else {
+      const allChips = document.querySelectorAll(".school-filter-chip");
+      for (let i = 0; i < allChips.length; i++) {
+        const chip = allChips[i];
+        chip.addEventListener("click", () => {
+          for (let k = 0; k < allChips.length; k++) allChips[k].classList.remove("active");
+          chip.classList.add("active");
+          currentSchoolCity = chip.dataset.schoolCity || "all";
+          renderSchoolSimulator(lastCalculatedNet);
+        });
+      }
+    }
 
     renderSchoolSimulator(15.0);
   }
@@ -878,6 +920,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const stepBtns = document.querySelectorAll(".quiz-step-btn");
 
     if (!questionText || !optionsGrid) return;
+
+    optionsGrid.addEventListener("click", (e) => {
+      const card = e.target.closest(".quiz-option-card");
+      if (!card || card.classList.contains("disabled")) return;
+      const allCards = optionsGrid.children;
+      for (let i = 0; i < allCards.length; i++) allCards[i].classList.remove("selected");
+      card.classList.add("selected");
+      selectedOptionIndex = parseInt(card.dataset.optindex, 10);
+      if (statusMsg) statusMsg.textContent = "Şıkkı işaretlediniz. 'Cevabı Kontrol Et' butonuna basınız.";
+    });
 
     // Günlük soruları dinamik olarak API'den veya Supabase'den çek
     try {
@@ -969,16 +1021,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       }).join("");
 
-      if (!isAlreadyAnswered) {
-        optionsGrid.querySelectorAll(".quiz-option-card").forEach(card => {
-          card.addEventListener("click", () => {
-            optionsGrid.querySelectorAll(".quiz-option-card").forEach(c => c.classList.remove("selected"));
-            card.classList.add("selected");
-            selectedOptionIndex = parseInt(card.dataset.optindex, 10);
-            if (statusMsg) statusMsg.textContent = "Şıkkı işaretlediniz. 'Cevabı Kontrol Et' butonuna basınız.";
-          });
-        });
-      }
+      // Option click handled by Event Delegation on optionsGrid
 
       if (isAlreadyAnswered) {
         const isCorr = userAnswers[idx].isCorrect;
@@ -1197,7 +1240,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cards.forEach(card => {
           const cardCat = card.dataset.category || "";
-          if (category === "all" || cardCat.includes(category)) {
+          if (category === "all" || cardCat === category) {
             card.style.display = "flex";
           } else {
             card.style.display = "none";
@@ -1278,17 +1321,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 10. FAQ Accordion Manager
   function initFAQ() {
-    const faqItems = document.querySelectorAll(".faq-item");
-    faqItems.forEach(item => {
-      const question = item.querySelector(".faq-question");
-      if (question) {
-        question.addEventListener("click", () => {
-          const isOpen = item.classList.contains("open");
-          faqItems.forEach(other => other.classList.remove("open"));
-          if (!isOpen) {
-            item.classList.add("open");
-          }
-        });
+    const faqContainer = document.querySelector(".faq-accordion") || document.querySelector(".faq-grid") || document.getElementById("faq");
+    if (!faqContainer) return;
+    faqContainer.addEventListener("click", (e) => {
+      const question = e.target.closest(".faq-question");
+      if (!question) return;
+      const item = question.closest(".faq-item");
+      if (!item) return;
+      const isOpen = item.classList.contains("open");
+      const allOpen = faqContainer.querySelectorAll(".faq-item.open");
+      for (let i = 0; i < allOpen.length; i++) allOpen[i].classList.remove("open");
+      if (!isOpen) {
+        item.classList.add("open");
       }
     });
   }
@@ -1325,7 +1369,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 13. Başlatma
-  renderPDFs();
+  setCatalog(PDF_CATALOG);
   syncCatalog();
   pingVisitor();
   initCountdown();
