@@ -192,6 +192,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (e) {}
 
+    // Fallback: GitHub Pages static JSON fetch
+    try {
+      const resJson = await fetch("assets/data/pdfs.json");
+      if (resJson.ok) {
+        const jsonList = await resJson.json();
+        if (Array.isArray(jsonList) && jsonList.length > 0) {
+          pdfList = jsonList;
+          renderAdminPDFTable();
+          return;
+        }
+      }
+    } catch (e) {}
+
     // Fallback Local Storage veya dahili liste
     const local = localStorage.getItem("merdiye_custom_pdfs");
     if (local) {
@@ -318,8 +331,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelPdfModalBtn = document.getElementById("cancelPdfModalBtn");
   const adminPdfForm = document.getElementById("adminPdfForm");
 
+  let selectedPdfBase64 = null;
+  const modalPdfFileInput = document.getElementById("modalPdfFileInput");
+
+  if (modalPdfFileInput) {
+    modalPdfFileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const filenameInput = document.getElementById("modalPdfFilename");
+      const sizeInput = document.getElementById("modalPdfSize");
+      const nameInput = document.getElementById("modalPdfName");
+
+      if (filenameInput) filenameInput.value = file.name;
+      const sizeKb = file.size / 1024;
+      const sizeStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${Math.round(sizeKb)} KB`;
+      if (sizeInput) sizeInput.value = sizeStr;
+
+      if (nameInput && !nameInput.value.trim()) {
+        const cleanTitle = file.name.replace(/\.pdf$/i, "").replace(/[_-]/g, " ");
+        nameInput.value = cleanTitle;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        selectedPdfBase64 = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   function openPdfModal(item = null) {
     if (!adminPdfModal) return;
+    selectedPdfBase64 = null;
+    if (modalPdfFileInput) modalPdfFileInput.value = "";
+
     const modalTitle = document.getElementById("modalPdfTitle");
     const editId = document.getElementById("pdfEditId");
     const nameIn = document.getElementById("modalPdfName");
@@ -369,9 +415,30 @@ document.addEventListener("DOMContentLoaded", () => {
       const difficulty = document.getElementById("modalPdfDifficulty").value.trim() || "LGS Seviyesi";
       const badge = document.getElementById("modalPdfBadge").value.trim() || "Yeni Föy";
       const filename = document.getElementById("modalPdfFilename").value.trim() || "01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf";
-      const file_size = document.getElementById("modalPdfSize").value.trim() || "105 KB";
+      let file_size = document.getElementById("modalPdfSize").value.trim() || "105 KB";
       const topicsStr = document.getElementById("modalPdfTopics").value.trim();
       const topics = topicsStr ? topicsStr.split(",").map(t => t.trim()) : [title];
+
+      let file_url = `assets/pdf/${filename}`;
+
+      // Physical PDF Upload via API if file selected
+      if (selectedPdfBase64) {
+        try {
+          const uploadRes = await fetch("/api/admin/upload-pdf", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename, content_base64: selectedPdfBase64 })
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            file_url = uploadData.file_url || file_url;
+            file_size = uploadData.file_size || file_size;
+          }
+        } catch (uploadErr) {
+          // If offline / GitHub Pages, keep data URL for local viewing
+          file_url = selectedPdfBase64;
+        }
+      }
 
       const pdfPayload = {
         id: id || `pdf-${Date.now()}`,
@@ -382,7 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitle,
         difficulty,
         filename,
-        file_url: `assets/pdf/${filename}`,
+        file_url,
         file_size,
         pages: "1 Sayfa (Özet & Soru)",
         badge,
@@ -533,6 +600,38 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Quick Dispatch Presets
+  document.querySelectorAll(".quick-pub-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const title = btn.dataset.title || "";
+      const desc = btn.dataset.desc || "";
+      const tags = btn.dataset.tags || "";
+
+      const titleInput = document.getElementById("pubTitle");
+      const descInput = document.getElementById("pubDesc");
+      if (titleInput) titleInput.value = title;
+      if (descInput) descInput.value = desc ? `${desc}\n\n${tags}` : tags;
+      showToast("Şablon yayın formuna aktarıldı!", "info");
+    });
+  });
+
+  // Video File Input Listener
+  const pubVideoFileInput = document.getElementById("pubVideoFileInput");
+  const pubVideoFileInfo = document.getElementById("pubVideoFileInfo");
+  if (pubVideoFileInput) {
+    pubVideoFileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const urlInput = document.getElementById("pubVideoUrl");
+      if (urlInput) urlInput.value = file.name;
+      const mbSize = (file.size / (1024 * 1024)).toFixed(1);
+      if (pubVideoFileInfo) {
+        pubVideoFileInfo.textContent = `Seçilen dosya: ${file.name} (${mbSize} MB) - Yayına hazır`;
+        pubVideoFileInfo.style.color = "var(--primary)";
+      }
+    });
+  }
+
   async function loadPublishedHistory() {
     let posts = [];
     try {
@@ -554,8 +653,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tbody.innerHTML = posts.map(p => {
       const platformsStr = (p.platforms || []).map(pl => pl === "youtube" ? "📺 YouTube" : "📸 Instagram").join(" &bull; ");
-      const ytUrl = p.results?.youtube?.url || "#";
-      const igUrl = p.results?.instagram?.instagram_reel_url || "#";
+      const ytUrl = p.results?.youtube?.url || p.results?.youtube?.short_url || "https://www.youtube.com/@MerdiyeHocam";
+      const igUrl = p.results?.instagram?.instagram_reel_url || p.results?.instagram?.url || "https://www.instagram.com/merdiyehocam/";
 
       return `
         <tr>

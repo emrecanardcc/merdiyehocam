@@ -256,6 +256,23 @@ document.addEventListener("DOMContentLoaded", () => {
       // Offline or static fallback
     }
 
+    // Static GitHub Pages fallback
+    try {
+      const resJson = await fetch("assets/data/pdfs.json");
+      if (resJson.ok) {
+        const data = await resJson.json();
+        if (Array.isArray(data) && data.length > 0) {
+          activeCatalog = data.map(item => ({
+            ...item,
+            fileUrl: item.file_url || item.fileUrl || `assets/pdf/${item.filename}`,
+            fileSize: item.file_size || item.fileSize || "105 KB"
+          }));
+          renderPDFs();
+          return;
+        }
+      }
+    } catch (e) {}
+
     try {
       const stored = localStorage.getItem("merdiye_custom_pdfs");
       if (stored) {

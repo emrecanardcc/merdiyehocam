@@ -457,8 +457,9 @@
       </ul>
 
       <div class="admin-sidebar-footer">
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
           Yönetici: <b>Merdiye Hocam</b><br>
+          ✉️ <a href="mailto:merdiyehocam@gmail.com" style="color: var(--primary); font-weight: 700;">merdiyehocam@gmail.com</a><br>
           <span id="serverModeStatus">🟢 Çevrimiçi Sunucu Aktif</span>
         </div>
         <a href="index.html" class="btn btn-secondary btn-sm" style="width: 100%;">
@@ -836,6 +837,10 @@
               <div class="form-group">
                 <label class="form-label" for="pubVideoUrl">Video Dosyası veya Bağlantısı</label>
                 <input type="text" id="pubVideoUrl" class="form-control" placeholder="Örn: output/shorts_ebob_final.mp4">
+                <input type="file" id="pubVideoFileInput" accept="video/mp4,video/*" class="form-control" style="margin-top: 8px;">
+                <small style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 3px;" id="pubVideoFileInfo">
+                  Bilgisayarınızdan video seçebilir veya yolunu belirtebilirsiniz.
+                </small>
               </div>
 
               <div class="form-group">
@@ -848,7 +853,14 @@
               </div>
             </div>
 
-            <div style="margin: 20px 0;">
+            <div style="margin: 12px 0 16px;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-right: 8px;">Hızlı Şablonlar:</span>
+              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="EBOB-EKOK 10 Saniyede Çözme Taktiği! ⚡" data-desc="LGS Matematik çarpanlar ve katlar ünitesinde zaman kazandıran altın kural! Profildeki linkten ücretsiz özet föyünü indirmeyi unutma." data-tags="#LGS2026 #Matematik #EBOB #Shorts #Reels">⚡ EBOB-EKOK</button>
+              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="Kareköklü Sayılarda Yaklaşık Değer Hatası! ❌" data-desc="MEB denemelerinde en çok soru kaçırılan yer: Kök dışına çıkarma ve sayı doğrusu tahmini. Dikkat et!" data-tags="#LGSMatematik #Karekok #LGS2026 #Shorts #Reels">❌ Karekök Tuzağı</button>
+              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="Pisagor 3-4-5 Katlama Sorusu MEB Favorisi 📐" data-desc="Geometri sorularında katlama ve benzerlik nasıl hızlı yakalanır? İncele ve kaydet." data-tags="#Pisagor #Geometri #LGS2026 #MerdiyeHocam">📐 Pisagor Katlama</button>
+            </div>
+
+            <div style="margin: 14px 0 20px;">
               <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-right: 8px;">Önerilen Etiketler:</span>
               <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#LGS2026">#LGS2026</button>
               <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#LGSMatematik">#LGSMatematik</button>
@@ -971,6 +983,14 @@
             <label class="form-label" for="modalPdfBadge">Rozet Metni</label>
             <input type="text" id="modalPdfBadge" class="form-control" placeholder="Örn: ⭐ YENİ FÖY">
           </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modalPdfFileInput">PDF Dosyası Yükle (.pdf)</label>
+          <input type="file" id="modalPdfFileInput" class="form-control" accept="application/pdf">
+          <small style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 3px;">
+            Dosya seçtiğinizde dosya adı ve boyutu otomatik algılanır; sunucuya kaydedilir.
+          </small>
         </div>
 
         <div class="form-row">
