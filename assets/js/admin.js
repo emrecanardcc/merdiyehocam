@@ -290,8 +290,10 @@ document.addEventListener("DOMContentLoaded", () => {
           const rect = svgChart.getBoundingClientRect();
           const cx = parseFloat(circle.getAttribute("cx"));
           const cy = parseFloat(circle.getAttribute("cy"));
-          chartTooltip.style.left = `${(cx / 600) * rect.width}px`;
-          chartTooltip.style.top = `${(cy / 160) * rect.height - 30}px`;
+          const rawLeft = (cx / 600) * rect.width;
+          const leftClamped = Math.max(70, Math.min(rect.width - 70, rawLeft));
+          chartTooltip.style.left = `${leftClamped}px`;
+          chartTooltip.style.top = `${Math.max(10, (cy / 160) * rect.height - 30)}px`;
         });
         circle.addEventListener("mouseleave", () => {
           if (chartTooltip) chartTooltip.style.opacity = "0";
@@ -1099,9 +1101,11 @@ document.addEventListener("DOMContentLoaded", () => {
     tbody.innerHTML = filtered.map(inq => {
       const dateStr = inq.timestamp ? new Date(inq.timestamp).toLocaleDateString("tr-TR") : "Bugün";
       const statusClass = inq.status === "Yeni" ? "new" : inq.status === "Kayıt Yapıldı" ? "enrolled" : "contacted";
-      const cleanPhone = (inq.phone || "").replace(/[^0-9]/g, "");
+      let phoneDigits = (inq.phone || "").replace(/\D/g, "");
+      if (phoneDigits.startsWith("90")) phoneDigits = phoneDigits.slice(2);
+      else if (phoneDigits.startsWith("0")) phoneDigits = phoneDigits.slice(1);
       const waText = encodeURIComponent(`Merhaba ${inq.name}, Merdiye Hocam LGS Matematik özel ders talebiniz hakkında iletişime geçiyorum.`);
-      const waLink = `https://wa.me/90${cleanPhone.startsWith("0") ? cleanPhone.slice(1) : cleanPhone}?text=${waText}`;
+      const waLink = `https://wa.me/90${phoneDigits}?text=${waText}`;
       const teacherNote = inq.admin_notes || inq.notes || "<span style='color: var(--text-dim);'>Not yok</span>";
 
       return `

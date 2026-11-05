@@ -40,6 +40,7 @@
           <li><a href="#social" class="nav-link">YouTube &amp; Reels</a></li>
           <li><a href="#testimonials" class="nav-link">Başarılar</a></li>
           <li><a href="#faq" class="nav-link">SSS</a></li>
+          <li><a href="admin.html" class="nav-link admin-nav-link" style="color: var(--primary); font-weight: 800;">🔐 Yönetim Paneli</a></li>
         </ul>
       </nav>
 
@@ -111,6 +112,17 @@
             </a>
             <a href="#tutoring" class="btn btn-secondary btn-lg">
               🎯 1'e 1 Özel Ders Başvurusu Yap
+            </a>
+          </div>
+
+          <div class="hero-whatsapp-trial-bar">
+            <a href="https://wa.me/905300000000?text=Merhaba%20Merdiye%20Hocam,%202026%20LGS%20Yeni%20Nesil%20Pro%20Deneme%20S%C4%B1nav%C4%B1%20f%C3%B6y%C3%BCn%C3%BC%20ve%20cevap%20anahtar%C4%B1n%C4%B1%20WhatsApp'tan%20alabilir%20miyim?" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="btn-whatsapp-instant" 
+               id="heroInstantTrialBtn">
+              <span>📲</span>
+              <span><b>WhatsApp'tan Anında Ücretsiz LGS Pro Deneme Föyü İste</b> (Cevap Anahtarlı)</span>
             </a>
           </div>
 
@@ -251,6 +263,57 @@
                 Dikdörtgen çevreye eşit aralık sorusu doğrudan EBOB'dur! Çevreyi bulup EBOB'a bölmek her zaman 10 saniyede net sonuç verir.
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Test Tamamlama & LGS Seviye Raporu Kartı -->
+        <div class="quiz-completion-card" id="quizCompletionCard" style="display: none;">
+          <div class="completion-header">
+            <span class="completion-icon" id="completionIcon">🏆</span>
+            <div>
+              <h3 id="completionTitle" style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px;">
+                Tebrikler! LGS Mini Denemesini Tamamladınız
+              </h3>
+              <p id="completionSubtitle" style="font-size: 0.92rem; color: var(--text-muted);">
+                5 Soruluk Seviye Tespit Sonucunuz ve Merdiye Hoca Değerlendirmesi
+              </p>
+            </div>
+          </div>
+
+          <div class="completion-stats-grid">
+            <div class="completion-stat-box">
+              <div class="stat-num" id="completionScoreVal">100 / 100</div>
+              <div class="stat-lbl">Toplam Puan</div>
+            </div>
+            <div class="completion-stat-box">
+              <div class="stat-num" id="completionCorrectVal">5 / 5</div>
+              <div class="stat-lbl">Doğru Soru</div>
+            </div>
+            <div class="completion-stat-box">
+              <div class="stat-num" id="completionLevelVal">Fen Lisesi</div>
+              <div class="stat-lbl">Tahmini Hedef</div>
+            </div>
+          </div>
+
+          <div class="completion-advice-box" id="completionAdviceBox">
+            <!-- JS ile dinamik oluşturulur -->
+          </div>
+
+          <div class="completion-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="quizApplyToSimBtn">
+              🏫 Liselerin Durumunu Simüle Et ➔
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="quizTransferToLeadBtn">
+              🎯 Bu Skorla Özel Ders Başvurusu Yap
+            </button>
+            <a href="https://wa.me/905300000000?text=Merhaba%20Merdiye%20Hocam,%20sitedeki%20LGS%20mini%20denemesini%20%C3%A7%C3%B6zd%C3%BCm.%20Sonu%C3%A7lar%C4%B1m%C4%B1%20de%C4%9Ferlendirebilir%20miyiz?" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="btn btn-secondary btn-sm" 
+               id="quizShareWhatsAppBtn"
+               style="color: #16A34A; border-color: #86EFAC;">
+              💬 Sonucumu WhatsApp'tan Danış
+            </a>
           </div>
         </div>
       </div>
@@ -461,6 +524,7 @@
               <button class="school-filter-chip" data-school-city="İstanbul">İstanbul</button>
               <button class="school-filter-chip" data-school-city="Ankara">Ankara</button>
               <button class="school-filter-chip" data-school-city="İzmir">İzmir</button>
+              <button class="school-filter-chip" data-school-city="Bursa">Bursa</button>
             </div>
           </div>
 

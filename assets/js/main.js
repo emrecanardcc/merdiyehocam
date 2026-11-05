@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <button class="btn btn-secondary btn-sm preview-btn" data-id="${item.id}" title="Önizle ve Canlı İncele">
                 👁️ İncele
               </button>
-              <a href="https://wa.me/?text=${encodeURIComponent('Merhaba! Merdiye Hocam\'ın ' + item.title + ' LGS Matematik föyünü inceleyebilirsin: ' + window.location.origin + '/website/' + fileLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="WhatsApp ile Paylaş" style="padding: 6px 10px; color: #16A34A; border-color: #86EFAC;">
+              <a href="https://wa.me/?text=${encodeURIComponent('Merhaba! Merdiye Hocam\'ın ' + item.title + ' LGS Matematik föyünü inceleyebilirsin: ' + new URL(fileLink, window.location.href).href)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="WhatsApp ile Paylaş" style="padding: 6px 10px; color: #16A34A; border-color: #86EFAC;">
                 💬
               </a>
               <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm download-btn" data-id="${item.id}">
@@ -423,7 +423,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalBody = document.getElementById("modalBody");
     const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
     const topicsList = (item.topics || []).map(t => `<li style="margin-bottom: 6px;">🔹 <b>${t}</b></li>`).join("");
-    const waShareUrl = `https://wa.me/?text=${encodeURIComponent('Merdiye Hocam LGS Matematik Föyü: ' + item.title + ' - ' + window.location.origin + '/website/' + fileLink)}`;
+    const fullFileUrl = new URL(fileLink, window.location.href).href;
+    const waShareUrl = `https://wa.me/?text=${encodeURIComponent('Merdiye Hocam LGS Matematik Föyü: ' + item.title + ' - ' + fullFileUrl)}`;
 
     modalBody.innerHTML = `
       <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
@@ -654,13 +655,21 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Kabataş Erkek Lisesi", city: "İstanbul", minScore: 494.8, percentile: "%0.12", badge: "Fen / Sosyal" },
     { name: "Ankara Fen Lisesi", city: "Ankara", minScore: 494.2, percentile: "%0.14", badge: "Fen Lisesi" },
     { name: "İzmir Fen Lisesi", city: "İzmir", minScore: 493.5, percentile: "%0.16", badge: "Fen Lisesi" },
+    { name: "Tofaş Fen Lisesi", city: "Bursa", minScore: 491.5, percentile: "%0.28", badge: "Fen Lisesi" },
     { name: "Cağaloğlu Anadolu Lisesi", city: "İstanbul", minScore: 488.4, percentile: "%0.45", badge: "Proje Okulu" },
     { name: "Kadıköy Anadolu Lisesi", city: "İstanbul", minScore: 484.2, percentile: "%0.78", badge: "Anadolu Lisesi" },
+    { name: "Bursa Nilüfer Borsa İst. Fen L.", city: "Bursa", minScore: 482.0, percentile: "%0.95", badge: "Fen Lisesi" },
     { name: "Hüseyin Avni Sözen Anadolu L.", city: "İstanbul", minScore: 481.5, percentile: "%1.10", badge: "Anadolu Lisesi" },
     { name: "Beşiktaş Sakıp Sabancı Anadolu", city: "İstanbul", minScore: 479.2, percentile: "%1.35", badge: "Anadolu Lisesi" },
     { name: "Bornova Anadolu Lisesi", city: "İzmir", minScore: 478.0, percentile: "%1.50", badge: "Anadolu Lisesi" },
     { name: "Gazi Anadolu Lisesi", city: "Ankara", minScore: 475.5, percentile: "%1.75", badge: "Anadolu Lisesi" },
-    { name: "Vefa Lisesi", city: "İstanbul", minScore: 474.0, percentile: "%1.90", badge: "Tarihi Lise" }
+    { name: "Vefa Lisesi", city: "İstanbul", minScore: 474.0, percentile: "%1.90", badge: "Tarihi Lise" },
+    { name: "Haydarpaşa Lisesi", city: "İstanbul", minScore: 469.0, percentile: "%2.40", badge: "Köklü Lise" },
+    { name: "Ankara Atatürk Anadolu Lisesi", city: "Ankara", minScore: 465.0, percentile: "%2.85", badge: "Anadolu Lisesi" },
+    { name: "Pertevniyal Lisesi", city: "İstanbul", minScore: 462.5, percentile: "%3.15", badge: "Proje Okulu" },
+    { name: "Şehremini Anadolu Lisesi", city: "İstanbul", minScore: 452.0, percentile: "%4.40", badge: "Anadolu Lisesi" },
+    { name: "İzmir Konak Anadolu Lisesi", city: "İzmir", minScore: 448.0, percentile: "%5.10", badge: "Anadolu Lisesi" },
+    { name: "Köy Hizmetleri Anadolu Lisesi", city: "İstanbul", minScore: 442.0, percentile: "%5.90", badge: "Anadolu Lisesi" }
   ];
 
   let currentSchoolCity = "all";
@@ -690,11 +699,11 @@ document.addEventListener("DOMContentLoaded", () => {
         statusClass = "qualified";
         statusText = "🟢 Kazanabilirsin! Puanın Yeterli";
       } else if (diff <= 12.0) {
-        const neededNet = Math.max(1, Math.ceil(diff / 4.3));
+        const neededNet = Math.max(1, Math.ceil(diff / 5.0));
         statusClass = "borderline";
         statusText = `🟡 Sınırda (${neededNet} Matematik Neti Daha Gerekli)`;
       } else {
-        const neededNet = Math.max(1, Math.ceil(diff / 4.3));
+        const neededNet = Math.max(1, Math.ceil(diff / 5.0));
         statusClass = "need-work";
         statusText = `🔴 +${neededNet} Matematik Neti Gelişim Şart`;
       }
@@ -789,8 +798,8 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 2,
       unit: "1. Ünite • Üslü İfadeler ve Bilimsel Gösterim",
       question: "Bir laboratuvar ortamında incelenen bir mikroorganizmanın kütlesi 0,00000325 gramdır. Bu mikroorganizmanın kütlesinin gram cinsinden bilimsel gösterimi aşağıdakilerden hangisidir?",
-      options: ["A) 32,5 × 10⁻⁷", "B) 3,25 × 10⁻⁶", "C) 3,25 × 10⁻⁵", "D) 0,325 × 10⁻⁵"],
-      correctIndex: 1,
+      options: ["A) 3,25 × 10⁻⁵", "B) 32,5 × 10⁻⁷", "C) 3,25 × 10⁻⁶", "D) 0,325 × 10⁻⁵"],
+      correctIndex: 2,
       solution: "1. Adım: Bilimsel gösterimde katsayı 'a' sayısı 1 ≤ |a| < 10 aralığında olmalıdır.<br>2. Adım: Virgülü 3'ün sağına almak için 6 basamak sağa kaydırırız.<br>3. Adım: Sayı büyüdükçe 10'un üssü küçülür, sonuç: <b>3,25 × 10⁻⁶</b> olur.",
       tactic: "Virgül sağa giderse üs küçülür (eksiye doğru gider). 1 ≤ a < 10 kuralını asla unutma!"
     },
@@ -798,8 +807,8 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 3,
       unit: "2. Ünite • Kareköklü İfadeler & Yaklaşık Değer",
       question: "Sayı doğrusu üzerinde işaretlenen √85 sayısına en yakın tam sayı aşağıdakilerden hangisidir?",
-      options: ["A) 8", "B) 9", "C) 10", "D) 11"],
-      correctIndex: 1,
+      options: ["A) 9", "B) 8", "C) 10", "D) 11"],
+      correctIndex: 0,
       solution: "1. Adım: 85 sayısı 81 (9²) ile 100 (10²) arasındadır: 9 < √85 < 10.<br>2. Adım: 85 - 81 = 4 birim, 100 - 85 = 15 birim uzaklıktadır.<br>3. Adım: 81'e (yani 9'a) çok daha yakın olduğu için en yakın tam sayı <b>9</b>'dur.",
       tactic: "Aralık belirle, tam karelere uzaklık farkına bak! 4 < 15 olduğu için cevap tereddütsüz 9!"
     },
@@ -807,8 +816,8 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 4,
       unit: "3. Ünite • Cebirsel İfadeler ve Özdeşlikler",
       question: "Bir kenar uzunluğu 2x cm olan kare şeklindeki bir kartonun 4 köşesinden bir kenarı y cm olan kare parçalar kesilip atılıyor. Kalan şeklin cm² cinsinden alanını veren cebirsel ifade hangisidir?",
-      options: ["A) (2x - y)²", "B) (2x - 2y)(2x + 2y)", "C) (2x - 4y)²", "D) 4(x - 2y)²"],
-      correctIndex: 1,
+      options: ["A) (2x - y)²", "B) (2x - 4y)²", "C) 4(x - 2y)²", "D) (2x - 2y)(2x + 2y)"],
+      correctIndex: 3,
       solution: "1. Adım: Kartonun başlangıç alanı: (2x)² = 4x².<br>2. Adım: Kesilen 4 adet küçük karenin alanı = 4 × y² = 4y².<br>3. Adım: Kalan Alan = 4x² - 4y² = <b>(2x - 2y)(2x + 2y)</b> iki kare farkı özdeşliğidir.",
       tactic: "Tüm alan - Atılan alan = 4x² - 4y² = (2x - 2y)(2x + 2y). MEB alan modelleme sorularının vazgeçilmezi!"
     },
@@ -816,8 +825,8 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 5,
       unit: "5. Ünite • Pisagor Bağıntısı ve Özel Üçgenler",
       question: "Düz bir duvara yaslanmış olan bir merdivenin ayağı duvardan 6 metre uzaktadır. Merdivenin duvara değdiği noktanın yerden yüksekliği 8 metre olduğuna göre, bu merdivenin boyu kaç metredir?",
-      options: ["A) 9 metre", "B) 10 metre", "C) 12 metre", "D) 14 metre"],
-      correctIndex: 1,
+      options: ["A) 9 metre", "B) 12 metre", "C) 10 metre", "D) 14 metre"],
+      correctIndex: 2,
       solution: "1. Adım: Duvar ve zemin birbirine diktir (90°). Merdiven hipotenüstür.<br>2. Adım: Pisagor: a² + b² = c² => 6² + 8² = 36 + 64 = 100 => c = √100 = <b>10 metre</b>.<br>Özel Üçgen Kuralı: 3-4-5 üçgeninin 2 katıdır (6 - 8 - 10).",
       tactic: "3-4-5, 5-12-13, 8-15-17 özel dik üçgen katlarını ezbere bil; formül yazmadan 3 saniyede çöz!"
     }
@@ -928,12 +937,135 @@ document.addEventListener("DOMContentLoaded", () => {
         if (statusMsg) {
           statusMsg.textContent = isCorr ? "Tebrikler! Doğru çözdünüz (+20 Puan)." : "Bu soruda takıldınız. Taktik notunu inceleyin.";
         }
+
+        const allDone = Object.keys(userAnswers).length === QUIZ_QUESTIONS.length;
+        if (allDone) {
+          renderQuizCompletion(score, correctCount);
+        }
       } else {
         if (solutionBox) solutionBox.style.display = "none";
         if (checkBtn) checkBtn.style.display = "inline-block";
         if (nextBtn) nextBtn.style.display = "none";
         if (statusMsg) statusMsg.textContent = "Bir şık seçin ve 'Cevabı Kontrol Et' butonuna tıklayın.";
       }
+    }
+
+    function renderQuizCompletion(score, correctCount) {
+      const completionCard = document.getElementById("quizCompletionCard");
+      if (!completionCard) return;
+
+      const scoreVal = document.getElementById("completionScoreVal");
+      const correctVal = document.getElementById("completionCorrectVal");
+      const levelVal = document.getElementById("completionLevelVal");
+      const iconEl = document.getElementById("completionIcon");
+      const titleEl = document.getElementById("completionTitle");
+      const adviceBox = document.getElementById("completionAdviceBox");
+      const waBtn = document.getElementById("quizShareWhatsAppBtn");
+
+      if (scoreVal) scoreVal.textContent = `${score} / 100`;
+      if (correctVal) correctVal.textContent = `${correctCount} / 5 Doğru`;
+
+      let levelText = "";
+      let adviceHtml = "";
+      let icon = "🏆";
+
+      if (score === 100) {
+        levelText = "Galatasaray & Fen Liseleri";
+        icon = "🏆";
+        adviceHtml = `
+          <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #065F46; line-height: 1.6;">
+            <b>Muhteşem Başarı! 5'te 5 Yaptınız (%100).</b><br>
+            Tüm temel ve yeni nesil MEB kazanımlarına tam hakimsiniz. LGS'de 20'de 20 için sınav anındaki süre turlamasını korumanız yeterli. Liselerinizin simülasyonunu aşağıdan inceleyebilirsiniz.
+          </div>
+        `;
+      } else if (score >= 80) {
+        levelText = "Nitelikli Fen Lisesi";
+        icon = "⭐";
+        adviceHtml = `
+          <div style="background: #FAF8FE; border: 1.5px solid var(--primary-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: var(--text-main); line-height: 1.6;">
+            <b>Tebrikler! Güçlü Bir Fen Lisesi Adayısınız (%${score}).</b><br>
+            Sadece 1 soruda küçük bir takılma yaşadınız. Taktik çözüm notlarını gözden geçirerek 20'de 20 seviyesine kolayca ulaşabilirsiniz.
+          </div>
+        `;
+      } else if (score >= 60) {
+        levelText = "Nitelikli Anadolu Lisesi";
+        icon = "📈";
+        adviceHtml = `
+          <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #92400E; line-height: 1.6;">
+            <b>İyi Bir Temeliniz Var, Gelişim Alanları Mevcut (%${score}).</b><br>
+            Yeni nesil modelleme ve şekil sorularında pratik eksikliği görünüyor. Düzenli soru föyü tekrarı ve soru çözüm koçluğu ile netlerinizi hızla 16-18 bandına çıkarabilirsiniz.
+          </div>
+        `;
+      } else {
+        levelText = "Gelişim Desteği Gerekli";
+        icon = "💪";
+        adviceHtml = `
+          <div style="background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #991B1B; line-height: 1.6;">
+            <b>Temel Konuları Güçlendirme Zamanı (%${score})!</b><br>
+            Bazı kazanımlarda açıklar görünüyor. Korkmayın; haftalık planlı 1'e 1 özel ders desteği ve özet föy çalışmaları ile 2 ayda 12-14 nete ulaşmak çok kolay.
+          </div>
+        `;
+      }
+
+      if (levelVal) levelVal.textContent = levelText;
+      if (iconEl) iconEl.textContent = icon;
+      if (titleEl) titleEl.textContent = `Tebrikler! Mini Deneme Tamamlandı: %${score} Başarı`;
+      if (adviceBox) adviceBox.innerHTML = adviceHtml;
+
+      if (waBtn) {
+        const text = encodeURIComponent(`Merhaba Merdiye Hocam, web sitenizdeki LGS mini denemesini çözdüm. Skorum: ${score}/100 (${correctCount}/5 Doğru). Eksik konularım ve 1'e 1 özel ders koçluğunuz hakkında bilgi alabilir miyim?`);
+        waBtn.href = `https://wa.me/905300000000?text=${text}`;
+      }
+
+      completionCard.style.display = "block";
+    }
+
+    const simBtn = document.getElementById("quizApplyToSimBtn");
+    if (simBtn) {
+      simBtn.addEventListener("click", () => {
+        const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
+        const projectedMathNet = Math.max(8.0, Math.min(20.0, parseFloat((correctCount * 3.8).toFixed(1))));
+        const correctInput = document.getElementById("calcCorrect");
+        const wrongInput = document.getElementById("calcWrong");
+        if (correctInput) correctInput.value = Math.round(projectedMathNet);
+        if (wrongInput) wrongInput.value = Math.max(0, 20 - Math.round(projectedMathNet));
+        
+        const tabSchool = document.getElementById("tabModeSchool");
+        const tabCalc = document.getElementById("tabModeCalc");
+        const calcView = document.getElementById("calcView");
+        const schoolView = document.getElementById("schoolView");
+        if (tabSchool && tabCalc && calcView && schoolView) {
+          tabSchool.classList.add("active");
+          tabCalc.classList.remove("active");
+          calcView.style.display = "none";
+          schoolView.style.display = "block";
+          renderSchoolSimulator(projectedMathNet);
+        }
+        document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
+        showToast(`Tahmini ${projectedMathNet} net ile liseler simüle edildi!`, "success");
+      });
+    }
+
+    const leadBtn = document.getElementById("quizTransferToLeadBtn");
+    if (leadBtn) {
+      leadBtn.addEventListener("click", () => {
+        const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
+        const score = correctCount * 20;
+        const notesEl = document.getElementById("formNotes");
+        if (notesEl) {
+          notesEl.value = `Mini LGS Deneme Skoru: ${score}/100 (${correctCount}/5 Doğru). Hedef kazanım analizi ve özel ders planı talep ediyorum.`;
+        }
+        const netEl = document.getElementById("formCurrentNet");
+        if (netEl) {
+          if (score >= 80) netEl.value = "17 - 20 Net";
+          else if (score >= 60) netEl.value = "12 - 16 Net";
+          else if (score >= 40) netEl.value = "6 - 11 Net";
+          else netEl.value = "0 - 5 Net";
+        }
+        document.getElementById("tutoring")?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById("formName")?.focus();
+        showToast("Mini deneme sonucunuz ön başvuru formuna aktarıldı!", "info");
+      });
     }
 
     if (checkBtn) {
@@ -968,6 +1100,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
         for (const k in userAnswers) delete userAnswers[k];
+        const completionCard = document.getElementById("quizCompletionCard");
+        if (completionCard) completionCard.style.display = "none";
         showToast("Test sıfırlandı. İyi denemeler!", "info");
         renderQuestion(0);
       });
@@ -1130,7 +1264,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 12. Başlatma
+  // 12. Hero Instant WhatsApp Trial Button
+  const heroInstantTrialBtn = document.getElementById("heroInstantTrialBtn");
+  if (heroInstantTrialBtn) {
+    heroInstantTrialBtn.addEventListener("click", () => {
+      showToast("LGS Pro Deneme Sınavı için WhatsApp açılıyor...", "success");
+      try {
+        fetch("/api/analytics/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ is_download: true, pdf_id: "pdf-14" })
+        }).catch(() => {});
+      } catch (e) {}
+    });
+  }
+
+  // 13. Başlatma
   renderPDFs();
   syncCatalog();
   pingVisitor();

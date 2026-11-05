@@ -147,6 +147,10 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
         # 3. Admin: Get Tutoring Inquiries (Leads)
         if clean_path == "/api/admin/inquiries":
             inquiries = _read_json(INQUIRIES_FILE, [])
+            query = urllib.parse.parse_qs(parsed.query)
+            status_filter = query.get("status", [None])[0]
+            if status_filter and status_filter.lower() != "all":
+                inquiries = [item for item in inquiries if item.get("status", "").lower() == status_filter.lower()]
             return self._send_json_response(200, inquiries)
 
         # 4. Admin: Get Social Media Analytics (YouTube & Instagram)
@@ -178,8 +182,8 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             phone = str(payload.get("phone", "")).strip()[:30]
             role = str(payload.get("role", "Öğrenci")).strip()[:30]
             city = str(payload.get("city", "")).strip()[:100]
-            current_net = str(payload.get("currentNet", "")).strip()[:50]
-            target_school = str(payload.get("targetSchool", "")).strip()[:100]
+            current_net = str(payload.get("currentNet") or payload.get("current_net", "")).strip()[:50]
+            target_school = str(payload.get("targetSchool") or payload.get("target_school", "")).strip()[:100]
             notes = str(payload.get("notes", "")).strip()[:500]
 
             if not name or not phone:
@@ -226,9 +230,9 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             today_str = date.today().isoformat()
             history = stats.get("history_7days", [])
             if history and history[-1].get("date") == today_str:
-                history[-1]["visits"] += 1
+                history[-1]["visits"] = history[-1].get("visits", 0) + 1
                 if is_download:
-                    history[-1]["downloads"] += 1
+                    history[-1]["downloads"] = history[-1].get("downloads", 0) + 1
             else:
                 history.append({"date": today_str, "visits": 1, "downloads": 1 if is_download else 0})
                 if len(history) > 7:
