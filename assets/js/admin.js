@@ -852,7 +852,7 @@ document.addEventListener("DOMContentLoaded", () => {
       serverModeStatus.style.color = "#D97706";
     }
     if (badge) {
-      badge.textContent = "⚪ Çevrimdışı / Yerel Mod";
+      badge.textContent = "Çevrimdışı / Yerel Mod";
       badge.className = "pdf-badge";
     }
   }
@@ -888,7 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
       syncAllToSupabaseBtn.textContent = "Eşitleniyor...";
       try {
         const res = await window.MH_DB.migrateLocalDataToSupabase();
-        const total = (res.pdfsMigrated || 0) + (res.leadsMigrated || 0) + (res.quizMigrated || 0);
+        const total = (res.pdfsMigrated || 0) + (res.leadsMigrated || 0) + (res.quizMigrated || 0) + (res.postsMigrated || 0);
         if (res.errors && res.errors.length > 0) {
           showToast(`Eşitleme: ${total} kayıt aktarıldı. Uyarı: ${res.errors[0]}`, "info");
         } else {

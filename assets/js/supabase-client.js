@@ -19,6 +19,19 @@
   const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0dGNpZnVnenl0bXZsd2hjeGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5MDIwMDUsImV4cCI6MjEwOTQ3ODAwNX0.xbN1g5P48EcwR1wREOVEFP7RoQxIfWnzLDredaKOviY";
   const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0OZjaL_v9Bx1jBs01Qf5kw_spqK3eVi";
 
+  // Eski veya test aşamasından kalma hatalı yapılandırmaları otomatik temizle
+  try {
+    const rawStored = localStorage.getItem(STORAGE_KEY_CONFIG);
+    if (rawStored) {
+      const parsed = JSON.parse(rawStored);
+      if (!parsed || !parsed.url || !parsed.url.includes("sttcifugzytmvlwhcxla")) {
+        localStorage.removeItem(STORAGE_KEY_CONFIG);
+      }
+    }
+  } catch (_) {
+    try { localStorage.removeItem(STORAGE_KEY_CONFIG); } catch (__) {}
+  }
+
   // Pre-seed window global config
   window.MH_SUPABASE_CONFIG = {
     url: DEFAULT_SUPABASE_URL,
@@ -59,13 +72,13 @@
         const stored = localStorage.getItem(STORAGE_KEY_CONFIG);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed && parsed.url && parsed.anonKey) {
+          if (parsed && parsed.url && parsed.url.includes("sttcifugzytmvlwhcxla") && parsed.anonKey) {
             return parsed;
           }
+          localStorage.removeItem(STORAGE_KEY_CONFIG);
         }
       } catch (e) {}
 
-      // Global window fallback if injected via script or environment
       if (window.MH_SUPABASE_CONFIG && window.MH_SUPABASE_CONFIG.url && window.MH_SUPABASE_CONFIG.anonKey) {
         return window.MH_SUPABASE_CONFIG;
       }
@@ -77,42 +90,65 @@
       };
     }
 
+    async ensureClient() {
+      if (this.client) return this.client;
+
+      // Supabase CDN betiğinin yüklenmesini bekle (3.5 saniyeye kadar)
+      for (let i = 0; i < 35; i++) {
+        if (window.supabase && typeof window.supabase.createClient === "function") break;
+        await new Promise(r => setTimeout(r, 100));
+      }
+
+      if (window.supabase && typeof window.supabase.createClient === "function") {
+        this.client = window.supabase.createClient(
+          this.config.url || DEFAULT_SUPABASE_URL,
+          this.config.anonKey || DEFAULT_SUPABASE_ANON_KEY
+        );
+        return this.client;
+      }
+      return null;
+    }
+
     async _init() {
-      if (this.config.url && this.config.anonKey && window.supabase && typeof window.supabase.createClient === "function") {
+      const client = await this.ensureClient();
+      if (!client) {
+        this.isOnline = false;
+        this.tablesOnline = false;
+        this.authOnline = false;
+        return false;
+      }
+
+      try {
+        // 1. Supabase Auth denetimi
         try {
-          this.client = window.supabase.createClient(this.config.url, this.config.anonKey);
-
-          // 1. Supabase Auth kullanılabilirlik testi
-          try {
-            await this.client.auth.getSession();
-            this.authOnline = true;
-          } catch (authErr) {
-            this.authOnline = false;
+          const { data } = await client.auth.getSession();
+          this.authOnline = true;
+          if (data && data.session) {
+            this.isOnline = true;
           }
-
-          // 2. PostgREST tablo erişim testi (mh_pdfs varlık sorgusu)
-          try {
-            const { error } = await Promise.race([
-              this.client.from("mh_pdfs").select("id").limit(1),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000))
-            ]);
-            if (!error) {
-              this.tablesOnline = true;
-              this.isOnline = true;
-            } else {
-              this.tablesOnline = false;
-              this.isOnline = false;
-            }
-          } catch (pingErr) {
-            this.tablesOnline = false;
-            this.isOnline = false;
-          }
-        } catch (err) {
-          console.warn("[MH_DB] Supabase init hatası:", err);
-          this.isOnline = false;
-          this.tablesOnline = false;
+        } catch (_) {
           this.authOnline = false;
         }
+
+        // 2. Tablo varlığı denetimi
+        try {
+          const { error } = await Promise.race([
+            client.from("mh_pdfs").select("id").limit(1),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 6000))
+          ]);
+          if (!error) {
+            this.tablesOnline = true;
+            this.isOnline = true;
+          } else {
+            this.tablesOnline = false;
+            this.isOnline = this.authOnline;
+          }
+        } catch (pingErr) {
+          this.tablesOnline = false;
+          this.isOnline = this.authOnline;
+        }
+      } catch (err) {
+        console.warn("[MH_DB] Supabase init uyarısı:", err);
       }
       return this.isOnline;
     }
@@ -158,7 +194,7 @@
 
     clearConfig() {
       localStorage.removeItem(STORAGE_KEY_CONFIG);
-      this.config = { url: "", anonKey: "" };
+      this.config = { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
       this.client = null;
       this.isOnline = false;
     }
@@ -171,16 +207,16 @@
         return { success: false, error: "URL ve Anon Key girilmedi." };
       }
 
-      if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      const client = await this.ensureClient();
+      if (!client) {
         return { success: false, error: "Supabase JS kütüphanesi yüklenemedi." };
       }
 
       try {
-        const testClient = window.supabase.createClient(url, key);
         const startTime = Date.now();
-        const { data, error, count } = await testClient
+        const { data, error } = await client
           .from("mh_pdfs")
-          .select("id", { count: "exact", head: false })
+          .select("id")
           .limit(1);
 
         const latency = Date.now() - startTime;
@@ -188,6 +224,9 @@
         if (error) {
           return { success: false, error: error.message };
         }
+
+        this.isOnline = true;
+        this.tablesOnline = true;
 
         return {
           success: true,
@@ -205,11 +244,12 @@
     // =========================================================================
     async getPdfs(options = {}) {
       await this.initPromise;
+      const client = await this.ensureClient();
 
-      // 1. Canlı Supabase Bağlantısı Varsa
-      if (this.client && this.isOnline) {
+      // 1. Canlı Supabase Bağlantısı
+      if (client) {
         try {
-          let query = this.client.from("mh_pdfs").select("*").order("id", { ascending: true });
+          let query = client.from("mh_pdfs").select("*").order("id", { ascending: true });
           if (options.category && options.category !== "all") {
             if (options.category === "popular") {
               query = query.eq("popular", true);
@@ -219,6 +259,8 @@
           }
           const { data, error } = await query;
           if (!error && Array.isArray(data) && data.length > 0) {
+            this.isOnline = true;
+            this.tablesOnline = true;
             return data.map(item => ({
               ...item,
               fileUrl: item.file_url || `assets/pdf/${item.filename}`,
@@ -275,6 +317,7 @@
 
     async addPdf(pdf) {
       await this.initPromise;
+      const client = await this.ensureClient();
       const formatted = {
         id: pdf.id || `pdf-${Date.now().toString().slice(-4)}`,
         unit: pdf.unit || "8. Sınıf",
@@ -293,10 +336,17 @@
         updated_at: new Date().toISOString()
       };
 
-      if (this.client && this.isOnline) {
-        const { data, error } = await this.client.from("mh_pdfs").insert([formatted]).select();
-        if (error) throw new Error(error.message);
-        return data ? data[0] : formatted;
+      if (client) {
+        try {
+          const { data, error } = await client.from("mh_pdfs").insert([formatted]).select();
+          if (!error) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return data ? data[0] : formatted;
+          }
+        } catch (e) {
+          console.warn("[MH_DB] addPdf Supabase hatası:", e);
+        }
       }
 
       // API veya Local Fallback
@@ -318,12 +368,20 @@
 
     async updatePdf(id, updates) {
       await this.initPromise;
+      const client = await this.ensureClient();
       const patch = { ...updates, updated_at: new Date().toISOString() };
 
-      if (this.client && this.isOnline) {
-        const { data, error } = await this.client.from("mh_pdfs").update(patch).eq("id", id).select();
-        if (error) throw new Error(error.message);
-        return data ? data[0] : patch;
+      if (client) {
+        try {
+          const { data, error } = await client.from("mh_pdfs").update(patch).eq("id", id).select();
+          if (!error) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return data ? data[0] : patch;
+          }
+        } catch (e) {
+          console.warn("[MH_DB] updatePdf Supabase hatası:", e);
+        }
       }
 
       try {
@@ -346,11 +404,19 @@
 
     async deletePdf(id) {
       await this.initPromise;
+      const client = await this.ensureClient();
 
-      if (this.client && this.isOnline) {
-        const { error } = await this.client.from("mh_pdfs").delete().eq("id", id);
-        if (error) throw new Error(error.message);
-        return true;
+      if (client) {
+        try {
+          const { error } = await client.from("mh_pdfs").delete().eq("id", id);
+          if (!error) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return true;
+          }
+        } catch (e) {
+          console.warn("[MH_DB] deletePdf Supabase hatası:", e);
+        }
       }
 
       try {
@@ -366,10 +432,10 @@
 
     async recordPdfDownload(pdfId) {
       try {
-        if (this.client && this.isOnline) {
-          // RPC veya event log
-          this.client.rpc("increment_pdf_downloads", { target_id: pdfId }).catch(() => {});
-          this.client.from("mh_analytics").insert([{
+        const client = await this.ensureClient();
+        if (client) {
+          client.rpc("increment_pdf_downloads", { target_id: pdfId }).catch(() => {});
+          client.from("mh_analytics").insert([{
             event_type: "pdf_download",
             pdf_id: pdfId,
             metadata: { timestamp: new Date().toISOString() }
@@ -409,10 +475,13 @@
       }
 
       // 1. Supabase Bulut Veritabanı
-      if (this.client && this.isOnline) {
+      const client = await this.ensureClient();
+      if (client) {
         try {
-          const { data, error } = await this.client.from("mh_leads").insert([record]).select();
+          const { data, error } = await client.from("mh_leads").insert([record]).select();
           if (!error && data && data.length > 0) {
+            this.isOnline = true;
+            this.tablesOnline = true;
             return { success: true, mode: "supabase", lead: data[0] };
           }
         } catch (err) {
@@ -452,15 +521,18 @@
 
     async getLeads(statusFilter = "all") {
       await this.initPromise;
+      const client = await this.ensureClient();
 
-      if (this.client && this.isOnline) {
+      if (client) {
         try {
-          let query = this.client.from("mh_leads").select("*").order("created_at", { ascending: false });
+          let query = client.from("mh_leads").select("*").order("created_at", { ascending: false });
           if (statusFilter && statusFilter !== "all") {
             query = query.eq("status", statusFilter);
           }
           const { data, error } = await query;
           if (!error && Array.isArray(data)) {
+            this.isOnline = true;
+            this.tablesOnline = true;
             return data.map(item => ({
               ...item,
               timestamp: item.created_at || item.timestamp
@@ -499,11 +571,19 @@
 
     async updateLead(id, updates) {
       await this.initPromise;
+      const client = await this.ensureClient();
 
-      if (this.client && this.isOnline) {
-        const { data, error } = await this.client.from("mh_leads").update(updates).eq("id", id).select();
-        if (error) throw new Error(error.message);
-        return data ? data[0] : updates;
+      if (client) {
+        try {
+          const { data, error } = await client.from("mh_leads").update(updates).eq("id", id).select();
+          if (!error) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return data ? data[0] : updates;
+          }
+        } catch (e) {
+          console.warn("[MH_DB] Supabase updateLead hatası:", e);
+        }
       }
 
       try {
@@ -526,11 +606,19 @@
 
     async deleteLead(id) {
       await this.initPromise;
+      const client = await this.ensureClient();
 
-      if (this.client && this.isOnline) {
-        const { error } = await this.client.from("mh_leads").delete().eq("id", id);
-        if (error) throw new Error(error.message);
-        return true;
+      if (client) {
+        try {
+          const { error } = await client.from("mh_leads").delete().eq("id", id);
+          if (!error) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return true;
+          }
+        } catch (e) {
+          console.warn("[MH_DB] Supabase deleteLead hatası:", e);
+        }
       }
 
       try {
@@ -549,16 +637,19 @@
     // =========================================================================
     async getQuizQuestions() {
       await this.initPromise;
+      const client = await this.ensureClient();
 
-      if (this.client && this.isOnline) {
+      if (client) {
         try {
-          const { data, error } = await this.client
+          const { data, error } = await client
             .from("mh_quiz_questions")
             .select("*")
             .eq("is_active", true)
             .order("id", { ascending: true });
 
           if (!error && Array.isArray(data) && data.length > 0) {
+            this.isOnline = true;
+            this.tablesOnline = true;
             return data.map(q => ({
               id: q.id,
               unit: q.unit,
@@ -626,6 +717,7 @@
 
     async addQuizQuestion(q) {
       await this.initPromise;
+      const client = await this.ensureClient();
       const formatted = {
         unit: q.unit || "LGS Matematik",
         question_text: q.question || q.question_text || "",
@@ -636,10 +728,14 @@
         is_active: true
       };
 
-      if (this.client && this.tablesOnline) {
+      if (client) {
         try {
-          const { data, error } = await this.client.from("mh_quiz_questions").insert([formatted]).select();
-          if (!error && data && data.length > 0) return data[0];
+          const { data, error } = await client.from("mh_quiz_questions").insert([formatted]).select();
+          if (!error && data && data.length > 0) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return data[0];
+          }
         } catch (e) {
           console.warn("[MH_DB] addQuizQuestion Supabase hatası:", e);
         }
@@ -659,12 +755,19 @@
 
     async deleteQuizQuestion(id) {
       await this.initPromise;
-      if (this.client && this.tablesOnline) {
+      const client = await this.ensureClient();
+
+      if (client) {
         try {
-          await this.client.from("mh_quiz_questions").delete().eq("id", id);
-          return true;
+          const { error } = await client.from("mh_quiz_questions").delete().eq("id", id);
+          if (!error) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return true;
+          }
         } catch (e) {}
       }
+
       try {
         const local = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
         const filtered = local.filter(q => String(q.id) !== String(id));
@@ -686,10 +789,15 @@
         is_active: true
       }));
 
-      if (this.client && this.tablesOnline) {
+      const client = await this.ensureClient();
+      if (client) {
         try {
-          const { data, error } = await this.client.from("mh_quiz_questions").insert(rows).select();
-          if (!error && data) return data;
+          const { data, error } = await client.from("mh_quiz_questions").insert(rows).select();
+          if (!error && data) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return data;
+          }
         } catch (e) {}
       }
 
@@ -709,10 +817,14 @@
     // =========================================================================
     async getPosts() {
       await this.initPromise;
-      if (this.client && this.tablesOnline) {
+      const client = await this.ensureClient();
+
+      if (client) {
         try {
-          const { data, error } = await this.client.from("mh_posts").select("*").order("created_at", { ascending: false });
+          const { data, error } = await client.from("mh_posts").select("*").order("created_at", { ascending: false });
           if (!error && Array.isArray(data) && data.length > 0) {
+            this.isOnline = true;
+            this.tablesOnline = true;
             return data.map(p => ({
               ...p,
               timestamp: p.created_at || new Date().toISOString()
@@ -750,10 +862,15 @@
         results: post.results || {}
       };
 
-      if (this.client && this.tablesOnline) {
+      const client = await this.ensureClient();
+      if (client) {
         try {
-          const { data, error } = await this.client.from("mh_posts").insert([row]).select();
-          if (!error && data && data.length > 0) return data[0];
+          const { data, error } = await client.from("mh_posts").insert([row]).select();
+          if (!error && data && data.length > 0) {
+            this.isOnline = true;
+            this.tablesOnline = true;
+            return data[0];
+          }
         } catch (e) {}
       }
 
@@ -772,16 +889,16 @@
     // =========================================================================
     // 4. ZİYARETÇİ VE İNDİRME ANALİTİĞİ
     // =========================================================================
-    async recordVisit(metadata = {}) {
+    async trackPageView(page = "index") {
       try {
-        if (this.client && this.isOnline) {
-          this.client.from("mh_analytics").insert([{
+        const client = await this.ensureClient();
+        if (client) {
+          client.from("mh_analytics").insert([{
             event_type: "page_view",
-            page: window.location.pathname,
+            page: page,
             metadata: {
-              ...metadata,
-              referrer: document.referrer || null,
-              userAgent: navigator.userAgent.slice(0, 200),
+              referrer: document.referrer || "direct",
+              userAgent: navigator.userAgent.slice(0, 150),
               timestamp: new Date().toISOString()
             }
           }]).catch(() => {});
@@ -792,20 +909,24 @@
         fetch("/api/analytics/visit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ page: window.location.pathname, referrer: document.referrer })
+          body: JSON.stringify({ page: page })
         }).catch(() => {});
       } catch (e) {}
     }
 
     async getAnalytics() {
       await this.initPromise;
+      const client = await this.ensureClient();
 
       // Supabase'den canlı sayımlar
-      if (this.client && this.isOnline) {
+      if (client) {
         try {
-          const { count: leadCount } = await this.client.from("mh_leads").select("id", { count: "exact", head: true });
-          const { count: pdfCount } = await this.client.from("mh_pdfs").select("id", { count: "exact", head: true });
-          const { count: visitCount } = await this.client.from("mh_analytics").select("id", { count: "exact", head: true });
+          const { count: leadCount } = await client.from("mh_leads").select("id", { count: "exact", head: true });
+          const { count: pdfCount } = await client.from("mh_pdfs").select("id", { count: "exact", head: true });
+          const { count: visitCount } = await client.from("mh_analytics").select("id", { count: "exact", head: true });
+
+          this.isOnline = true;
+          this.tablesOnline = true;
 
           // Sunucu analitiği ile zenginleştir
           let serverStats = {};
@@ -864,14 +985,16 @@
     // =========================================================================
     async migrateLocalDataToSupabase() {
       await this.initPromise;
-      if (!this.client || !this.isOnline) {
-        throw new Error("Supabase veritabanına bağlı değilsiniz. Lütfen önce geçerli bir URL ve Anon Key giriniz.");
+      const client = await this.ensureClient();
+      if (!client) {
+        throw new Error("Supabase kütüphanesi henüz yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyiniz.");
       }
 
       const results = {
         pdfsMigrated: 0,
         leadsMigrated: 0,
         quizMigrated: 0,
+        postsMigrated: 0,
         errors: []
       };
 
@@ -896,12 +1019,12 @@
             topics: Array.isArray(pdf.topics) ? pdf.topics : [pdf.title],
             updated_at: new Date().toISOString()
           };
-          const { error } = await this.client.from("mh_pdfs").upsert(row);
+          const { error } = await client.from("mh_pdfs").upsert(row);
           if (error) results.errors.push(`PDF ${pdf.id}: ${error.message}`);
           else results.pdfsMigrated++;
         }
       } catch (e) {
-        results.errors.push(`PDF göç hatası: ${e.message}`);
+        results.errors.push(`PDF aktarım hatası: ${e.message}`);
       }
 
       // 2. Lead'leri yükle
@@ -919,12 +1042,12 @@
             admin_notes: lead.admin_notes || "",
             status: lead.status || "Yeni"
           };
-          const { error } = await this.client.from("mh_leads").insert([leadRow]);
-          if (error) results.errors.push(`Lead ${lead.name}: ${error.message}`);
+          const { error } = await client.from("mh_leads").insert([leadRow]);
+          if (error) results.errors.push(`Başvuru ${lead.name}: ${error.message}`);
           else results.leadsMigrated++;
         }
       } catch (e) {
-        results.errors.push(`Lead göç hatası: ${e.message}`);
+        results.errors.push(`Başvuru aktarım hatası: ${e.message}`);
       }
 
       // 3. Quiz sorularını yükle
@@ -940,8 +1063,9 @@
             difficulty: q.difficulty || "LGS Ayarı",
             is_active: true
           };
-          const { error } = await this.client.from("mh_quiz_questions").insert([qRow]);
+          const { error } = await client.from("mh_quiz_questions").insert([qRow]);
           if (!error) results.quizMigrated++;
+          else results.errors.push(`Soru #${q.id}: ${error.message}`);
         }
       } catch (e) {}
 
@@ -958,10 +1082,19 @@
             privacy: post.privacy || "public",
             results: post.results || {}
           };
-          const { error } = await this.client.from("mh_posts").upsert(postRow);
-          if (!error) results.postsMigrated = (results.postsMigrated || 0) + 1;
+          const { error } = await client.from("mh_posts").upsert(postRow);
+          if (!error) results.postsMigrated++;
         }
       } catch (e) {}
+
+      if (results.pdfsMigrated > 0 || results.leadsMigrated > 0 || results.quizMigrated > 0 || results.postsMigrated > 0) {
+        this.isOnline = true;
+        this.tablesOnline = true;
+      }
+
+      if (results.errors.length > 0 && (results.pdfsMigrated + results.leadsMigrated + results.quizMigrated + results.postsMigrated) === 0) {
+        throw new Error(results.errors[0]);
+      }
 
       return results;
     }
@@ -971,7 +1104,8 @@
     // =========================================================================
     async adminLogin(usernameOrEmail, password) {
       await this.initPromise;
-      if (!this.client || !this.client.auth) {
+      const client = await this.ensureClient();
+      if (!client || !client.auth) {
         throw new Error("Supabase kimlik doğrulama servisi hazır değil.");
       }
 
@@ -980,7 +1114,7 @@
         email = "admin@merdiyehocam.com";
       }
 
-      const { data, error } = await this.client.auth.signInWithPassword({
+      const { data, error } = await client.auth.signInWithPassword({
         email: email,
         password: String(password || "").trim()
       });
@@ -988,6 +1122,9 @@
       if (error) {
         throw new Error(error.message || "Giriş başarısız. Lütfen bilgilerinizi kontrol ediniz.");
       }
+
+      this.authOnline = true;
+      this.isOnline = true;
 
       return {
         user: data.user,
@@ -997,19 +1134,23 @@
     }
 
     async adminLogout() {
-      if (this.client && this.client.auth) {
+      const client = await this.ensureClient();
+      if (client && client.auth) {
         try {
-          await this.client.auth.signOut();
+          await client.auth.signOut();
         } catch (e) {}
       }
     }
 
     async checkAdminSession() {
       await this.initPromise;
-      if (this.client && this.client.auth) {
+      const client = await this.ensureClient();
+      if (client && client.auth) {
         try {
-          const { data, error } = await this.client.auth.getSession();
+          const { data, error } = await client.auth.getSession();
           if (!error && data && data.session) {
+            this.authOnline = true;
+            this.isOnline = true;
             return data.session;
           }
         } catch (e) {}

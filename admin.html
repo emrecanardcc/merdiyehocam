@@ -1303,6 +1303,11 @@
 
   <!-- Supabase & Admin Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (!window.supabase) {
+      document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+    }
+  </script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/admin.js"></script>
 </body>
