@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 400" width="540" height="400">
+  <defs>
+    <linearGradient id="cardGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    <linearGradient id="cardGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="cardGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#EF4444" />
+    </linearGradient>
+    <filter id="floatShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Central Geometry Canvas -->
+  <g transform="translate(40, 20)">
+    <!-- Main Floating Card: 20 Net LGS Hedefi -->
+    <rect x="70" y="50" width="320" height="200" rx="20" fill="#1E1B4B" stroke="#4338CA" stroke-width="2" filter="url(#floatShadow)" />
+    
+    <!-- Top Bar of Card -->
+    <rect x="70" y="50" width="320" height="42" rx="20" fill="url(#cardGrad1)" />
+    <circle cx="95" cy="71" r="5" fill="#EF4444" />
+    <circle cx="110" cy="71" r="5" fill="#F59E0B" />
+    <circle cx="125" cy="71" r="5" fill="#10B981" />
+    <text x="145" y="76" font-family="'Segoe UI', sans-serif" font-weight="700" font-size="12" fill="#FFFFFF">
+      LGS MATEMATİK KAZANIM RAPORU
+    </text>
+
+    <!-- Stat Circles -->
+    <g transform="translate(110, 140)">
+      <circle cx="0" cy="0" r="32" fill="#0F172A" stroke="#06B6D4" stroke-width="4" />
+      <text x="0" y="6" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="18" fill="#38BDF8">20/20</text>
+      <text x="0" y="48" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="10" fill="#94A3B8">Net Hedefi</text>
+    </g>
+
+    <g transform="translate(210, 140)">
+      <circle cx="0" cy="0" r="32" fill="#0F172A" stroke="#10B981" stroke-width="4" />
+      <text x="0" y="6" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="18" fill="#34D399">%100</text>
+      <text x="0" y="48" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="10" fill="#94A3B8">MEB Uyum</text>
+    </g>
+
+    <g transform="translate(310, 140)">
+      <circle cx="0" cy="0" r="32" fill="#0F172A" stroke="#F59E0B" stroke-width="4" />
+      <text x="0" y="6" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="18" fill="#FBBF24">14</text>
+      <text x="0" y="48" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="10" fill="#94A3B8">Föy & PDF</text>
+    </g>
+
+    <rect x="95" y="215" width="270" height="22" rx="11" fill="#312E81" />
+    <text x="230" y="230" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="700" font-size="10" fill="#C7D2FE">
+      ⚡ MERDİYE HOCA İLE YENİ NESİL ÇÖZÜMLER
+    </text>
+
+    <!-- Floating Badge 1: Ücretsiz PDF İndir -->
+    <g transform="translate(20, 180)" filter="url(#floatShadow)">
+      <rect x="0" y="0" width="160" height="60" rx="14" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5" />
+      <circle cx="28" cy="30" r="16" fill="url(#cardGrad2)" />
+      <text x="28" y="36" text-anchor="middle" font-size="16" fill="#FFFFFF">📥</text>
+      <text x="54" y="26" font-family="'Segoe UI', sans-serif" font-weight="800" font-size="12" fill="#FFFFFF">Ücretsiz PDF'ler</text>
+      <text x="54" y="44" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="10" fill="#38BDF8">Tüm Konular Hazır</text>
+    </g>
+
+    <!-- Floating Badge 2: Birebir Özel Ders -->
+    <g transform="translate(280, 20)" filter="url(#floatShadow)">
+      <rect x="0" y="0" width="170" height="60" rx="14" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5" />
+      <circle cx="28" cy="30" r="16" fill="url(#cardGrad3)" />
+      <text x="28" y="36" text-anchor="middle" font-size="16" fill="#FFFFFF">⭐</text>
+      <text x="54" y="26" font-family="'Segoe UI', sans-serif" font-weight="800" font-size="12" fill="#FFFFFF">1'e 1 Özel Ders</text>
+      <text x="54" y="44" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="10" fill="#FBBF24">Online & Yüz Yüze</text>
+    </g>
+
+    <!-- Floating Badge 3: YouTube & Instagram -->
+    <g transform="translate(270, 275)" filter="url(#floatShadow)">
+      <rect x="0" y="0" width="180" height="58" rx="14" fill="#0F172A" stroke="#EC4899" stroke-width="1.5" />
+      <circle cx="26" cy="29" r="16" fill="#BE185D" />
+      <text x="26" y="35" text-anchor="middle" font-size="16" fill="#FFFFFF">▶</text>
+      <text x="52" y="24" font-family="'Segoe UI', sans-serif" font-weight="800" font-size="11" fill="#FFFFFF">@MerdiyeHocam</text>
+      <text x="52" y="42" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="10" fill="#F472B6">YouTube & Instagram</text>
+    </g>
+  </g>
+</svg>
