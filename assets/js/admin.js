@@ -212,6 +212,93 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dlEl) dlEl.textContent = Number(stats.pdf_downloads || 1450).toLocaleString();
     if (activeEl) activeEl.textContent = `Şu an Sitede: ${stats.active_visitors_now || 7} Kişi`;
 
+    // İnteraktif SVG Trend Çizimi (Ziyaret & İndirme İkili Çizgi)
+    const svgChart = document.getElementById("svgTrendChart");
+    const chartTooltip = document.getElementById("chartTooltip");
+    const history = Array.isArray(stats.history_7days) ? stats.history_7days : [];
+
+    if (svgChart && history.length > 0) {
+      const w = 600;
+      const h = 160;
+      const padX = 40;
+      const padY = 20;
+      const chartW = w - padX * 2;
+      const chartH = h - padY * 2;
+
+      const maxVisits = Math.max(...history.map(h => h.visits || 0), 500);
+      const stepX = chartW / (history.length - 1 || 1);
+
+      const visitPoints = history.map((item, idx) => {
+        const x = padX + idx * stepX;
+        const y = padY + chartH - ((item.visits || 0) / maxVisits) * chartH;
+        return { x, y, item };
+      });
+
+      const dlPoints = history.map((item, idx) => {
+        const x = padX + idx * stepX;
+        const dl = item.downloads || Math.round((item.visits || 0) * 0.4);
+        const y = padY + chartH - (dl / maxVisits) * chartH;
+        return { x, y, dl, item };
+      });
+
+      const visitPolyline = visitPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      const dlPolyline = dlPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+      let circlesHtml = "";
+      visitPoints.forEach(p => {
+        circlesHtml += `
+          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2" class="svg-point" data-type="visit" data-date="${p.item.date}" data-val="${p.item.visits} Ziyaret" style="cursor: pointer;" />
+        `;
+      });
+      dlPoints.forEach(p => {
+        circlesHtml += `
+          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2" class="svg-point" data-type="dl" data-date="${p.item.date}" data-val="${p.dl} İndirme" style="cursor: pointer;" />
+        `;
+      });
+
+      svgChart.innerHTML = `
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+        <!-- Yatay Izgara Çizgileri -->
+        <line x1="${padX}" y1="${padY}" x2="${w - padX}" y2="${padY}" stroke="#E2E8F0" stroke-dasharray="3" />
+        <line x1="${padX}" y1="${padY + chartH/2}" x2="${w - padX}" y2="${padY + chartH/2}" stroke="#E2E8F0" stroke-dasharray="3" />
+        <line x1="${padX}" y1="${padY + chartH}" x2="${w - padX}" y2="${padY + chartH}" stroke="#CBD5E1" />
+        
+        <!-- Ziyaret Alanı & Çizgisi -->
+        <polygon points="${padX},${padY + chartH} ${visitPolyline} ${w - padX},${padY + chartH}" fill="url(#chartGrad)" />
+        <polyline fill="none" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${visitPolyline}" />
+        
+        <!-- İndirme Çizgisi -->
+        <polyline fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-dasharray="5 3" stroke-linecap="round" points="${dlPolyline}" />
+        
+        <!-- Veri Noktaları -->
+        ${circlesHtml}
+      `;
+
+      // Tooltip etkileşimi
+      svgChart.querySelectorAll(".svg-point").forEach(circle => {
+        circle.addEventListener("mouseenter", (e) => {
+          if (!chartTooltip) return;
+          const val = circle.dataset.val;
+          const date = circle.dataset.date;
+          chartTooltip.innerHTML = `<b>${date}</b>: ${val}`;
+          chartTooltip.style.opacity = "1";
+          const rect = svgChart.getBoundingClientRect();
+          const cx = parseFloat(circle.getAttribute("cx"));
+          const cy = parseFloat(circle.getAttribute("cy"));
+          chartTooltip.style.left = `${(cx / 600) * rect.width}px`;
+          chartTooltip.style.top = `${(cy / 160) * rect.height - 30}px`;
+        });
+        circle.addEventListener("mouseleave", () => {
+          if (chartTooltip) chartTooltip.style.opacity = "0";
+        });
+      });
+    }
+
     // 7 Günlük Bar Grafik Çizimi
     const barChart = document.getElementById("visitBarChart");
     if (barChart && Array.isArray(stats.history_7days)) {
@@ -243,6 +330,28 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="source-progress-fill" style="width: ${pct}%;"></div>
           </div>
         </div>
+      `).join("");
+    }
+
+    // En Çok İndirilen Föyler Tablosunu İndirme Verileriyle Güncelle
+    const topPdfsTableBody = document.getElementById("topPdfsTableBody");
+    const downloadsById = stats.pdf_downloads_by_id || {};
+    if (topPdfsTableBody && Object.keys(downloadsById).length > 0) {
+      const topEntries = [
+        { title: "LGS Matematik Altın Formüller Kitapçığı", cat: "Özet", isGold: true, count: downloadsById["pdf-13"] || 420 },
+        { title: "LGS Yeni Nesil Pro Deneme - 1", cat: "Deneme", isGold: true, count: downloadsById["pdf-14"] || 310 },
+        { title: "Çarpanlar ve Katlar & EBOB-EKOK", cat: "1. Dönem", isGold: false, count: downloadsById["pdf-01"] || 265 },
+        { title: "Kareköklü İfadeler Yeni Nesil", cat: "1. Dönem", isGold: false, count: downloadsById["pdf-03"] || 215 },
+        { title: "Cebirsel İfadeler ve Özdeşlikler", cat: "1. Dönem", isGold: false, count: downloadsById["pdf-06"] || 195 }
+      ];
+      const totalDl = stats.pdf_downloads || 1450;
+      topPdfsTableBody.innerHTML = topEntries.map(e => `
+        <tr>
+          <td><b>${e.title}</b></td>
+          <td><span class="${e.isGold ? 'pdf-badge gold' : 'pdf-badge'}">${e.cat}</span></td>
+          <td><b>${e.count} İndirme</b></td>
+          <td>%${Math.round((e.count / totalDl) * 100)}</td>
+        </tr>
       `).join("");
     }
   }
@@ -906,7 +1015,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 8. Özel Ders Talepleri (Leads)
+  // 8. Özel Ders Talepleri (Leads) Motoru
+  let currentLeadFilter = "all";
+  let cachedLeads = [];
+
   async function loadLeads() {
     let inquiries = [];
     try {
@@ -929,6 +1041,8 @@ document.addEventListener("DOMContentLoaded", () => {
           city: "İstanbul / Beşiktaş",
           current_net: "12 - 16 Net",
           target_school: "Kabataş Erkek Lisesi",
+          notes: "Geometri ve Pisagor konularında takviye istiyor.",
+          admin_notes: "Veli ile görüşüldü, haftalık 2 saat online ders planlanacak.",
           status: "Yeni"
         },
         {
@@ -940,20 +1054,55 @@ document.addEventListener("DOMContentLoaded", () => {
           city: "Ankara / Çankaya",
           current_net: "6 - 11 Net",
           target_school: "Ankara Fen Lisesi",
+          notes: "Denemelerde süre yetiştiremiyor.",
+          admin_notes: "Seviye tespit testi gönderildi.",
           status: "Görüşüldü"
         }
       ];
     }
 
+    cachedLeads = inquiries;
+    renderLeadsTable();
+  }
+
+  function renderLeadsTable() {
     const tbody = document.getElementById("adminLeadsTableBody");
     if (!tbody) return;
 
-    tbody.innerHTML = inquiries.map(inq => {
+    // Sayım rozetlerini güncelle
+    const countAll = cachedLeads.length;
+    const countNew = cachedLeads.filter(l => l.status === "Yeni").length;
+    const countContacted = cachedLeads.filter(l => l.status === "Görüşüldü").length;
+    const countEnrolled = cachedLeads.filter(l => l.status === "Kayıt Yapıldı").length;
+
+    const elAll = document.getElementById("leadCountAll");
+    const elNew = document.getElementById("leadCountNew");
+    const elContacted = document.getElementById("leadCountContacted");
+    const elEnrolled = document.getElementById("leadCountEnrolled");
+
+    if (elAll) elAll.textContent = String(countAll);
+    if (elNew) elNew.textContent = String(countNew);
+    if (elContacted) elContacted.textContent = String(countContacted);
+    if (elEnrolled) elEnrolled.textContent = String(countEnrolled);
+
+    // Filtreleme
+    const filtered = cachedLeads.filter(inq => {
+      if (currentLeadFilter === "all") return true;
+      return inq.status === currentLeadFilter;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 28px; color: var(--text-muted);">Bu filtreye uygun başvuru bulunmuyor.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(inq => {
       const dateStr = inq.timestamp ? new Date(inq.timestamp).toLocaleDateString("tr-TR") : "Bugün";
       const statusClass = inq.status === "Yeni" ? "new" : inq.status === "Kayıt Yapıldı" ? "enrolled" : "contacted";
       const cleanPhone = (inq.phone || "").replace(/[^0-9]/g, "");
       const waText = encodeURIComponent(`Merhaba ${inq.name}, Merdiye Hocam LGS Matematik özel ders talebiniz hakkında iletişime geçiyorum.`);
       const waLink = `https://wa.me/90${cleanPhone.startsWith("0") ? cleanPhone.slice(1) : cleanPhone}?text=${waText}`;
+      const teacherNote = inq.admin_notes || inq.notes || "<span style='color: var(--text-dim);'>Not yok</span>";
 
       return `
         <tr>
@@ -964,22 +1113,31 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${inq.city || "-"}</td>
           <td><b>${inq.current_net || inq.currentNet || "-"}</b></td>
           <td>${inq.target_school || inq.targetSchool || "-"}</td>
+          <td style="max-width: 160px; font-size: 0.82rem; line-height: 1.4;">${teacherNote}</td>
           <td>
             <button class="status-pill ${statusClass} toggle-lead-status-btn" data-id="${inq.id}" data-status="${inq.status || "Yeni"}" title="Durumu Değiştir">
               ${inq.status || "Yeni"}
             </button>
           </td>
           <td>
-            <a href="${waLink}" target="_blank" class="btn btn-secondary btn-sm" style="color: #16A34A; border-color: #86EFAC;">
-              💬 WhatsApp
-            </a>
+            <div style="display: flex; gap: 6px;">
+              <a href="${waLink}" target="_blank" class="btn btn-secondary btn-sm" style="color: #16A34A; border-color: #86EFAC; padding: 4px 8px;" title="WhatsApp ile Yaz">
+                💬
+              </a>
+              <button type="button" class="btn btn-secondary btn-sm edit-lead-note-btn" data-id="${inq.id}" data-note="${inq.admin_notes || inq.notes || ''}" style="padding: 4px 8px;" title="Öğretmen Notu Ekle">
+                📝
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm delete-lead-btn" data-id="${inq.id}" style="color: #DC2626; border-color: #FECACA; padding: 4px 8px;" title="Talebi Sil">
+                🗑️
+              </button>
+            </div>
           </td>
         </tr>
       `;
     }).join("");
 
     // Durum Değiştirme
-    document.querySelectorAll(".toggle-lead-status-btn").forEach(btn => {
+    tbody.querySelectorAll(".toggle-lead-status-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
         const current = btn.dataset.status;
@@ -993,11 +1151,73 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         } catch (e) {}
 
+        const item = cachedLeads.find(l => l.id === id);
+        if (item) item.status = next;
+        saveLeadsToStorage(cachedLeads);
         showToast(`Durum güncellendi: ${next}`, "success");
-        loadLeads();
+        renderLeadsTable();
+      });
+    });
+
+    // Not Ekleme / Düzenleme
+    tbody.querySelectorAll(".edit-lead-note-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const currentNote = btn.dataset.note || "";
+        const newNote = prompt("Öğretmen / Görüşme Notunu Giriniz:", currentNote);
+        if (newNote === null) return;
+
+        try {
+          await fetch("/api/admin/inquiries", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, admin_notes: newNote })
+          });
+        } catch (e) {}
+
+        const item = cachedLeads.find(l => l.id === id);
+        if (item) item.admin_notes = newNote;
+        saveLeadsToStorage(cachedLeads);
+        showToast("Öğretmen notu kaydedildi!", "success");
+        renderLeadsTable();
+      });
+    });
+
+    // Silme
+    tbody.querySelectorAll(".delete-lead-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        if (!confirm("Bu özel ders talebini silmek istediğinize emin misiniz?")) return;
+
+        try {
+          await fetch(`/api/admin/inquiries?id=${encodeURIComponent(id)}`, {
+            method: "DELETE"
+          });
+        } catch (e) {}
+
+        cachedLeads = cachedLeads.filter(l => l.id !== id);
+        saveLeadsToStorage(cachedLeads);
+        showToast("Talep başarıyla silindi.", "info");
+        renderLeadsTable();
       });
     });
   }
+
+  function saveLeadsToStorage(leads) {
+    try {
+      localStorage.setItem("merdiye_leads", JSON.stringify(leads));
+    } catch (e) {}
+  }
+
+  // Filtre Butonları Dinleyicisi
+  document.querySelectorAll(".lead-filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".lead-filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentLeadFilter = btn.dataset.leadFilter || "all";
+      renderLeadsTable();
+    });
+  });
 
   document.getElementById("refreshLeadsBtn")?.addEventListener("click", () => {
     loadLeads();

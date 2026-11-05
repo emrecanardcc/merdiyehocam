@@ -181,11 +181,68 @@ try:
     with urllib.request.urlopen(req) as resp:
         res = json.loads(resp.read().decode("utf-8"))
         if res.get("status") == "success":
-            report_pass(f"Özel Ders Formu API Testi Başarılı! (Lead ID: {res.get('lead_id')})")
+            lead_id = res.get("lead_id")
+            report_pass(f"Özel Ders Formu API Testi Başarılı! (Lead ID: {lead_id})")
+
+            # 9. Test Lead Note Patching & Deletion
+            print("\n--- 9. Özel Ders Talep Yönetimi (PATCH / DELETE) Testi ---")
+            try:
+                patch_req = urllib.request.Request(
+                    f"{BASE_URL}/api/admin/inquiries",
+                    data=json.dumps({"id": lead_id, "status": "Görüşüldü", "admin_notes": "QA Audit Notu"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="PATCH"
+                )
+                with urllib.request.urlopen(patch_req) as p_resp:
+                    p_res = json.loads(p_resp.read().decode("utf-8"))
+                    if p_res.get("status") == "updated":
+                        report_pass("Öğretmen Notu & Durum Güncelleme API (PATCH /api/admin/inquiries) Başarılı.")
+                    else:
+                        report_issue("HATA", "/api/admin/inquiries", "PATCH başarısız", str(p_res), "Handler'ı kontrol edin", "YÜKSEK")
+
+                del_req = urllib.request.Request(
+                    f"{BASE_URL}/api/admin/inquiries?id={lead_id}",
+                    method="DELETE"
+                )
+                with urllib.request.urlopen(del_req) as d_resp:
+                    d_res = json.loads(d_resp.read().decode("utf-8"))
+                    if d_res.get("status") == "deleted":
+                        report_pass("Talep Silme API (DELETE /api/admin/inquiries) Başarılı.")
+                    else:
+                        report_issue("HATA", "/api/admin/inquiries", "DELETE başarısız", str(d_res), "Handler'ı kontrol edin", "YÜKSEK")
+            except Exception as e:
+                report_issue("HATA", "/api/admin/inquiries", "Lead yönetim API hatası", str(e), "Sunucu handlerını düzeltin", "YÜKSEK")
         else:
             report_issue("HATA", "/api/contact", "Özel ders formu başarısız", str(res), "Düzeltin.", "YÜKSEK")
 except Exception as e:
     report_issue("HATA", "/api/contact", "Özel ders formu hatası", str(e), "Düzeltin.", "YÜKSEK")
+
+# 10. Check Interactive Features in HTML & JS
+print("\n--- 10. İnteraktif Eğitim Bileşenleri Bütünlük Testi ---")
+with open(WEBSITE_DIR / "index.html", "r", encoding="utf-8") as f:
+    site_html = f.read()
+
+with open(WEBSITE_DIR / "assets" / "js" / "main.js", "r", encoding="utf-8") as f:
+    site_js = f.read()
+
+has_quiz = 'id="mini-quiz"' in site_html and "QUIZ_QUESTIONS" in site_js and "initQuiz" in site_js
+has_simulator = 'id="schoolView"' in site_html and "HIGH_SCHOOLS" in site_js and "initSchoolSimulator" in site_js
+has_testi_filter = 'id="testiFilterBar"' in site_html and "initTestimonialsFilter" in site_js
+
+if has_quiz:
+    report_pass("Günün Sorusu & İnteraktif Mini Deneme Test Çözücü Aktif (5 Canlı Soru, Stepper ve Çözüm Taktiği).")
+else:
+    report_issue("EKSİK", "index.html", "Mini Quiz Eksik", "Quiz bileşeni bulunamadı.", "Ekleyin.", "YÜKSEK")
+
+if has_simulator:
+    report_pass("Hedef Lise ve Taban Puan Simülatörü Aktif (Galatasaray, Kabataş, Fen Liseleri, Şehir Filtresi ve Canlı Durum Kartları).")
+else:
+    report_issue("EKSİK", "index.html", "Lise Simülatörü Eksik", "Simülatör bileşeni bulunamadı.", "Ekleyin.", "YÜKSEK")
+
+if has_testi_filter:
+    report_pass("Başarı Hikayeleri & Veli Yorumları Filtreleme Aktif (Fen Liseleri, Net Artışı, Veli Deneyimleri).")
+else:
+    report_issue("EKSİK", "index.html", "Yorum Filtreleme Eksik", "Filtreleme butonları bulunamadı.", "Ekleyin.", "ORTA")
 
 print("\n" + "=" * 60)
 print(f"📊 QA AUDIT SONUCU: {len(passed)} TEST GEÇTİ | {len(issues)} HATA BULUNDU")

@@ -579,8 +579,15 @@
         <div class="chart-grid">
           <div class="chart-card">
             <div class="chart-card-header">
-              <h3 class="chart-card-title">Son 7 Günlük Ziyaretçi Trendi</h3>
-              <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700;">Günlük Tekil Ziyaret</span>
+              <h3 class="chart-card-title">Son 7 Günlük Ziyaretçi &amp; İndirme Trendi</h3>
+              <div style="display: flex; gap: 8px;">
+                <span class="pdf-badge" style="background: var(--primary-soft); color: var(--primary);">● Ziyaret</span>
+                <span class="pdf-badge gold">● İndirme</span>
+              </div>
+            </div>
+            <div id="visitChartContainer" style="position: relative; width: 100%; height: 180px; margin-bottom: 12px;">
+              <svg class="svg-trend-chart" id="svgTrendChart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
+              <div class="chart-tooltip" id="chartTooltip"></div>
             </div>
             <div class="bar-chart" id="visitBarChart">
               <!-- JS ile çizilir -->
@@ -966,6 +973,14 @@
             <button id="refreshLeadsBtn" class="btn btn-secondary btn-sm">🔄 Talepleri Yenile</button>
           </div>
 
+          <!-- Lead Durum Filtre Butonları -->
+          <div class="lead-filter-bar">
+            <button class="lead-filter-btn active" data-lead-filter="all">Tüm Başvurular (<span id="leadCountAll">0</span>)</button>
+            <button class="lead-filter-btn" data-lead-filter="Yeni">🟡 Yeni (<span id="leadCountNew">0</span>)</button>
+            <button class="lead-filter-btn" data-lead-filter="Görüşüldü">🔵 Görüşüldü (<span id="leadCountContacted">0</span>)</button>
+            <button class="lead-filter-btn" data-lead-filter="Kayıt Yapıldı">🟢 Kayıt Yapıldı (<span id="leadCountEnrolled">0</span>)</button>
+          </div>
+
           <div class="table-responsive">
             <table class="admin-table">
               <thead>
@@ -977,6 +992,7 @@
                   <th>Şehir</th>
                   <th>Net Seviyesi</th>
                   <th>Hedef Lise</th>
+                  <th>Öğretmen Notu</th>
                   <th>Durum</th>
                   <th>İşlemler</th>
                 </tr>

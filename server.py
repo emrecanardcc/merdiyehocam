@@ -89,6 +89,15 @@ def _init_analytics():
                 "Masaüstü": 27,
                 "Tablet": 5
             },
+            "pdf_downloads_by_id": {
+                "pdf-13": 420,
+                "pdf-14": 310,
+                "pdf-01": 265,
+                "pdf-03": 215,
+                "pdf-06": 195,
+                "pdf-02": 180,
+                "pdf-10": 175
+            },
             "recent_events": []
         }
         _write_json(ANALYTICS_FILE, initial)
@@ -208,6 +217,10 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             is_download = payload.get("is_download", False)
             if is_download:
                 stats["pdf_downloads"] = stats.get("pdf_downloads", 1450) + 1
+                pdf_id = payload.get("pdf_id")
+                if pdf_id:
+                    downloads_by_id = stats.setdefault("pdf_downloads_by_id", {})
+                    downloads_by_id[pdf_id] = downloads_by_id.get(pdf_id, 0) + 1
 
             # Update today's entry
             today_str = date.today().isoformat()
@@ -345,7 +358,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         clean_path = parsed.path
 
-        # Admin: Update Lead / Inquiry Status
+        # Admin: Update Lead / Inquiry Status or Notes
         if clean_path == "/api/admin/inquiries":
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
@@ -355,22 +368,62 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 return self._send_json_response(400, {"error": "Geçersiz JSON"})
 
             target_id = payload.get("id")
-            new_status = payload.get("status", "Görüşüldü")
+            if not target_id:
+                return self._send_json_response(400, {"error": "İstek 'id' alanı içermelidir"})
 
             inquiries = _read_json(INQUIRIES_FILE, [])
+            found = False
+            updated_item = None
             for inq in inquiries:
                 if inq.get("id") == target_id:
-                    inq["status"] = new_status
+                    if "status" in payload:
+                        inq["status"] = str(payload["status"]).strip()
+                    if "admin_notes" in payload:
+                        inq["admin_notes"] = str(payload["admin_notes"]).strip()
+                    if "notes" in payload and "admin_notes" not in payload:
+                        inq["admin_notes"] = str(payload["notes"]).strip()
+                    found = True
+                    updated_item = inq
                     break
 
+            if not found:
+                return self._send_json_response(404, {"error": "Talep bulunamadı"})
+
             _write_json(INQUIRIES_FILE, inquiries)
-            return self._send_json_response(200, {"status": "updated", "id": target_id, "new_status": new_status})
+            return self._send_json_response(200, {"status": "updated", "inquiry": updated_item})
 
         self._send_json_response(404, {"error": "API endpoint not found"})
 
     def do_DELETE(self):
         parsed = urllib.parse.urlparse(self.path)
         clean_path = parsed.path
+
+        # Admin: Delete Lead / Inquiry
+        if clean_path == "/api/admin/inquiries":
+            query = urllib.parse.parse_qs(parsed.query)
+            target_id = query.get("id", [None])[0]
+
+            if not target_id:
+                content_length = int(self.headers.get("Content-Length", 0))
+                if content_length > 0:
+                    try:
+                        body = self.rfile.read(content_length).decode("utf-8")
+                        target_id = json.loads(body).get("id")
+                    except Exception:
+                        pass
+
+            if not target_id:
+                return self._send_json_response(400, {"error": "Silinecek talep id'si belirtilmelidir"})
+
+            inquiries = _read_json(INQUIRIES_FILE, [])
+            initial_count = len(inquiries)
+            inquiries = [item for item in inquiries if item.get("id") != target_id]
+
+            if len(inquiries) == initial_count:
+                return self._send_json_response(404, {"error": "Silinecek talep bulunamadı"})
+
+            _write_json(INQUIRIES_FILE, inquiries)
+            return self._send_json_response(200, {"status": "deleted", "id": target_id, "remaining": len(inquiries)})
 
         # Admin: Delete PDF
         if clean_path == "/api/admin/pdfs":

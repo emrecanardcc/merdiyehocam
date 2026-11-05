@@ -1448,3 +1448,498 @@ button, input, select, textarea {
   font-size: 1.8rem;
   border: 2px solid var(--primary-border);
 }
+
+/* ==================== 1. MINI LGS QUIZ / GÜNÜN SORUSU ==================== */
+.quiz-section {
+  background: var(--bg-surface);
+  position: relative;
+  overflow: hidden;
+}
+
+.quiz-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--bg-white);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 36px;
+  box-shadow: var(--shadow-md);
+}
+
+.quiz-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.quiz-step-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 14px;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.quiz-step-btn:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.quiz-step-btn.active {
+  background: var(--gradient-brand);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+}
+
+.quiz-step-btn.correct {
+  background: #ECFDF5;
+  color: #059669;
+  border-color: #A7F3D0;
+}
+
+.quiz-step-btn.wrong {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+.quiz-header-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.quiz-topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--primary-border);
+}
+
+.quiz-score-badge {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.quiz-question-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.quiz-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.quiz-option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.quiz-option-card:hover:not(.disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-2px);
+}
+
+.quiz-option-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.quiz-option-card.correct-answer {
+  border-color: #10B981 !important;
+  background: #ECFDF5 !important;
+  color: #065F46 !important;
+}
+
+.quiz-option-card.wrong-answer {
+  border-color: #EF4444 !important;
+  background: #FEF2F2 !important;
+  color: #991B1B !important;
+}
+
+.quiz-option-letter {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  border: 1.5px solid var(--primary-border);
+}
+
+.quiz-option-card.selected .quiz-option-letter {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.quiz-option-card.correct-answer .quiz-option-letter {
+  background: #10B981;
+  color: #FFFFFF;
+  border-color: #059669;
+}
+
+.quiz-option-card.wrong-answer .quiz-option-letter {
+  background: #EF4444;
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
+
+.quiz-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.quiz-solution-box {
+  background: #FAF8FE;
+  border: 1.5px solid var(--primary-border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  margin-top: 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+.quiz-tactic-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-top: 16px;
+  color: #92400E;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+/* ==================== 2. HEDEF LİSE VE TABAN PUAN SİMÜLATÖRÜ ==================== */
+.sim-mode-tabs {
+  display: flex;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  margin-bottom: 24px;
+  max-width: 460px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sim-mode-tab {
+  flex: 1;
+  padding: 10px 18px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sim-mode-tab.active {
+  background: var(--bg-white);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.school-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.school-filter-chip {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.school-filter-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.school-filter-chip.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+.school-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.school-card {
+  background: var(--bg-white);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all var(--transition-fast);
+}
+
+.school-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.school-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.school-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.school-city-badge {
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.school-meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.school-status-banner {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.school-status-banner.qualified {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+.school-status-banner.borderline {
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+}
+
+.school-status-banner.need-work {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+/* ==================== 3. PDF İÇİ CANLI ÖNİZLEME MODAL ==================== */
+.pdf-modal-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1.5px solid var(--border-color);
+  margin-bottom: 18px;
+  padding-bottom: 2px;
+}
+
+.pdf-modal-tab {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-bottom: 2.5px solid transparent;
+}
+
+.pdf-modal-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.pdf-embed-wrapper {
+  width: 100%;
+  height: 440px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #F8FAFC;
+  margin-bottom: 18px;
+}
+
+.pdf-embed-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ==================== 4. TESTIMONIAL FILTER TABS ==================== */
+.testi-filter-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.testi-filter-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.testi-filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.testi-filter-btn.active {
+  background: var(--gradient-brand);
+  color: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.testi-card-badge {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-gold-soft);
+  color: #B45309;
+  border: 1px solid #FCD34D;
+  margin-bottom: 8px;
+}
+
+/* ==================== 5. ADMIN LEAD FILTERS & SVG CHART ==================== */
+.lead-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.lead-filter-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.lead-filter-btn.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+.svg-trend-chart {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+.chart-tooltip {
+  position: absolute;
+  background: var(--text-main);
+  color: #FFF;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 800;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  white-space: nowrap;
+}
+

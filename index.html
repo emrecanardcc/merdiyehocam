@@ -34,8 +34,9 @@
         <ul class="nav-menu" id="navMenu">
           <li><a href="#hero" class="nav-link active">Ana Sayfa</a></li>
           <li><a href="#pdf-portal" class="nav-link">LGS Föyleri</a></li>
+          <li><a href="#mini-quiz" class="nav-link">🎯 Canlı Test</a></li>
+          <li><a href="#calculator" class="nav-link">Lise Simülatörü</a></li>
           <li><a href="#tutoring" class="nav-link">1'e 1 Özel Ders</a></li>
-          <li><a href="#calculator" class="nav-link">Net Hesaplama</a></li>
           <li><a href="#social" class="nav-link">YouTube &amp; Reels</a></li>
           <li><a href="#testimonials" class="nav-link">Başarılar</a></li>
           <li><a href="#faq" class="nav-link">SSS</a></li>
@@ -170,6 +171,92 @@
     </div>
   </section>
 
+  <!-- ==================== GÜNÜN SORUSU & İNTERAKTİF MİNİ LGS DENEME ==================== -->
+  <section class="section quiz-section" id="mini-quiz">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">CANLI TEST &amp; ANINDA ÇÖZÜM</span>
+        <h2 class="section-title">Günün LGS Sorusu &amp; İnteraktif Mini Deneme</h2>
+        <p class="section-desc">
+          MEB beceri temelli sınav formatındaki 5 soruyla anında seviyeni test et, Merdiye Hoca'dan adım adım video ve taktik çözümünü gör!
+        </p>
+      </div>
+
+      <div class="quiz-wrapper">
+        <!-- Soru İlerleme Adımları -->
+        <div class="quiz-stepper" id="quizStepper">
+          <button class="quiz-step-btn active" data-qindex="0">Soru 1 <span>⚪</span></button>
+          <button class="quiz-step-btn" data-qindex="1">Soru 2 <span>⚪</span></button>
+          <button class="quiz-step-btn" data-qindex="2">Soru 3 <span>⚪</span></button>
+          <button class="quiz-step-btn" data-qindex="3">Soru 4 <span>⚪</span></button>
+          <button class="quiz-step-btn" data-qindex="4">Soru 5 <span>⚪</span></button>
+        </div>
+
+        <div class="quiz-header-meta">
+          <div class="quiz-topic-badge" id="quizTopicBadge">
+            📐 1. Ünite • Çarpanlar ve Katlar &amp; EBOB
+          </div>
+          <div class="quiz-score-badge" id="quizScoreBadge">
+            Puan: <b style="color: var(--primary);">0 / 100</b> &bull; Başarı: <b>%0</b>
+          </div>
+        </div>
+
+        <!-- Soru Metni -->
+        <div class="quiz-question-text" id="quizQuestionText">
+          Kenar uzunlukları 48 metre ve 72 metre olan dikdörtgen şeklindeki bir bahçenin etrafına, köşelerine de dikilmek şartıyla eşit aralıklarla fidan dikilecektir. Bu iş için en az kaç fidana ihtiyaç vardır?
+        </div>
+
+        <!-- Şıklar -->
+        <div class="quiz-options-grid" id="quizOptionsGrid">
+          <!-- JS ile dinamik oluşturulur -->
+        </div>
+
+        <!-- Aksiyon Çubuğu -->
+        <div class="quiz-action-bar">
+          <div style="font-size: 0.88rem; color: var(--text-muted); font-weight: 700;" id="quizStatusMsg">
+            Bir şık seçin ve "Cevabı Kontrol Et" butonuna tıklayın.
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="quizResetBtn" title="Testi Yeniden Başlat">
+              🔄 Baştan Başla
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="quizCheckBtn">
+              ✓ Cevabı Kontrol Et
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="quizNextBtn" style="display: none;">
+              Sonraki Soru ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- Çözüm & Merdiye Hoca Taktiği Kutusu -->
+        <div class="quiz-solution-box" id="quizSolutionBox" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main);" id="quizResultHeading">
+              💡 Çözüm ve Taktik Analizi
+            </h4>
+            <span id="quizResultPill" class="pdf-badge gold">Doğru Şık: B</span>
+          </div>
+
+          <div id="quizSolutionText" style="font-size: 0.94rem; line-height: 1.7; color: var(--text-secondary);">
+            <!-- JS ile doldurulur -->
+          </div>
+
+          <div class="quiz-tactic-banner" id="quizTacticBanner">
+            <span style="font-size: 1.3rem;">⚡</span>
+            <div>
+              <b style="color: #B45309;">Merdiye Hoca Sınav Taktiği:</b>
+              <div id="quizTacticText" style="margin-top: 3px;">
+                Dikdörtgen çevreye eşit aralık sorusu doğrudan EBOB'dur! Çevreyi bulup EBOB'a bölmek her zaman 10 saniyede net sonuç verir.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ==================== 1'E 1 ÖZEL DERS ==================== -->
   <section class="section" id="tutoring">
     <div class="container">
@@ -300,44 +387,86 @@
     </div>
   </section>
 
-  <!-- ==================== LGS NET HESAPLAYICI ==================== -->
+  <!-- ==================== LGS NET HESAPLAYICI & HEDEF LİSE SİMÜLATÖRÜ ==================== -->
   <section class="section section-alt" id="calculator">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">ANLIK ANALİZ ARACI</span>
-        <h2 class="section-title">LGS Matematik Net &amp; Puan Hesaplayıcı</h2>
+        <span class="section-tag">ANLIK ANALİZ &amp; HEDEF BELİRLEME</span>
+        <h2 class="section-title">LGS Net Hesaplayıcı &amp; Hedef Lise Simülatörü</h2>
         <p class="section-desc">
-          Doğru ve yanlış sayılarını girerek netini öğren, seviyene uygun önerilen PDF föyünü keşfet. (3 Yanlış 1 Doğruyu Götürür)
+          Doğru ve yanlış sayılarını girerek netini öğren, 2025/2026 taban puanlarına göre kazanabileceğin liseleri canlı simüle et! (3 Yanlış 1 Doğruyu Götürür)
         </p>
       </div>
 
-      <div class="calc-wrapper">
-        <div class="calc-grid">
-          <div class="calc-input-box">
-            <label for="calcCorrect">Doğru Sayısı (0 - 20)</label>
-            <input type="number" id="calcCorrect" class="calc-number-input" min="0" max="20" value="16">
+      <!-- Simülatör Mod Sekmeleri -->
+      <div class="sim-mode-tabs">
+        <div class="sim-mode-tab active" id="tabModeCalc" data-tab-target="calcView">
+          📊 Net &amp; Puan Analizi
+        </div>
+        <div class="sim-mode-tab" id="tabModeSchool" data-tab-target="schoolView">
+          🏫 Hedef Lise Simülatörü
+        </div>
+      </div>
+
+      <!-- Mod 1: Net Hesaplayıcı Görünümü -->
+      <div id="calcView">
+        <div class="calc-wrapper">
+          <div class="calc-grid">
+            <div class="calc-input-box">
+              <label for="calcCorrect">Doğru Sayısı (0 - 20)</label>
+              <input type="number" id="calcCorrect" class="calc-number-input" min="0" max="20" value="16">
+            </div>
+
+            <div class="calc-input-box">
+              <label for="calcWrong">Yanlış Sayısı (0 - 20)</label>
+              <input type="number" id="calcWrong" class="calc-number-input" min="0" max="20" value="3">
+            </div>
           </div>
 
-          <div class="calc-input-box">
-            <label for="calcWrong">Yanlış Sayısı (0 - 20)</label>
-            <input type="number" id="calcWrong" class="calc-number-input" min="0" max="20" value="3">
+          <div class="calc-result-box">
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+              Hesaplanan LGS Matematik Neti
+            </div>
+            <div class="calc-net-number" id="calcNetDisplay">15.00</div>
+            <div class="calc-score-sub" id="calcScoreDisplay">+64.5 Puan LGS Etkisi</div>
+
+            <div class="calc-feedback">
+              <div id="calcAdvice" style="margin-bottom: 8px;">
+                ⭐ Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına odaklan.
+              </div>
+              <div id="calcRecommendation" style="font-weight: 700;">
+                🎯 Önerilen Föy: Cebirsel İfadeler ve Özdeşlikler Föyü
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="calc-result-box">
-          <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-            Hesaplanan LGS Matematik Neti
+      <!-- Mod 2: Hedef Lise Simülatörü Görünümü -->
+      <div id="schoolView" style="display: none;">
+        <div style="background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-sm); max-width: 1000px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+            <div>
+              <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text-main);">
+                Mevcut Netine Göre Liselerin Durumu
+              </h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                Hesaplanan Matematik Neti: <b id="simNetHighlight" style="color: var(--primary);">15.00 Net</b> (Tahmini Genel LGS Puanı: <b id="simScoreHighlight" style="color: var(--primary);">482.5</b>)
+              </p>
+            </div>
+
+            <!-- Şehir Filtresi -->
+            <div class="school-filter-bar" style="margin-bottom: 0;">
+              <button class="school-filter-chip active" data-school-city="all">Tüm Şehirler</button>
+              <button class="school-filter-chip" data-school-city="İstanbul">İstanbul</button>
+              <button class="school-filter-chip" data-school-city="Ankara">Ankara</button>
+              <button class="school-filter-chip" data-school-city="İzmir">İzmir</button>
+            </div>
           </div>
-          <div class="calc-net-number" id="calcNetDisplay">15.00</div>
-          <div class="calc-score-sub" id="calcScoreDisplay">+64.5 Puan LGS Etkisi</div>
 
-          <div class="calc-feedback">
-            <div id="calcAdvice" style="margin-bottom: 8px;">
-              ⭐ Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına odaklan.
-            </div>
-            <div id="calcRecommendation" style="font-weight: 700;">
-              🎯 Önerilen Föy: Cebirsel İfadeler ve Özdeşlikler Föyü
-            </div>
+          <!-- Canlı Lise Kartları Izgarası -->
+          <div class="school-grid" id="schoolGrid">
+            <!-- JS ile dinamik oluşturulur -->
           </div>
         </div>
       </div>
@@ -434,9 +563,17 @@
         </p>
       </div>
 
-      <div class="testimonials-grid">
-        <div class="testi-card">
+      <div class="testi-filter-bar" id="testiFilterBar">
+        <button class="testi-filter-btn active" data-testi-cat="all">Tüm Yorumlar (6)</button>
+        <button class="testi-filter-btn" data-testi-cat="fen">🏆 Fen Lisesi Kazananlar</button>
+        <button class="testi-filter-btn" data-testi-cat="net">📈 Netini 2'ye Katlayanlar</button>
+        <button class="testi-filter-btn" data-testi-cat="veli">👨‍👩‍👧 Veli Deneyimleri</button>
+      </div>
+
+      <div class="testimonials-grid" id="testiGrid">
+        <div class="testi-card" data-category="fen net">
           <div>
+            <span class="testi-card-badge">🏆 Fen Lisesi &bull; +11 Net Artışı</span>
             <div class="testi-stars">★★★★★</div>
             <p class="testi-quote">
               "LGS seneme 8 netle başlamıştım. Paragraf tipi matematik sorularında çok panik yapıyordum. Merdiye Hocam'ın taktikleri ve ödev disiplini sayesinde LGS'de 19 doğru yaptım! Kabataş Erkek Lisesi'ndeyim."
@@ -451,11 +588,12 @@
           </div>
         </div>
 
-        <div class="testi-card">
+        <div class="testi-card" data-category="veli">
           <div>
+            <span class="testi-card-badge">👨‍👩‍👧 Veli Deneyimi &bull; Ankara Fen</span>
             <div class="testi-stars">★★★★★</div>
             <p class="testi-quote">
-              "Bir veli olarak en çok takdir ettiğim şey hocamızın düzenli geri bildirimleri ve oğlumun motivasyonunu sürekli yüksek tutması oldu. PDF föyleri de konu tekrarlarında harika bir kaynak."
+              "Bir veli olarak en çok takdir ettiğim şey hocamızın düzenli haftalık geri bildirimleri ve oğlumun motivasyonunu sürekli yüksek tutması oldu. PDF föyleri de konu tekrarlarında harika bir kaynak."
             </p>
           </div>
           <div class="testi-author">
@@ -467,11 +605,12 @@
           </div>
         </div>
 
-        <div class="testi-card">
+        <div class="testi-card" data-category="fen">
           <div>
+            <span class="testi-card-badge">🏆 20'de 20 Tam Net</span>
             <div class="testi-stars">★★★★★</div>
             <p class="testi-quote">
-              "Cebirsel ifadeler ve Pisagor sorularında sürekli zaman kaybediyordum. Merdiye Hocam'ın YouTube videoları ve föyleriyle soruya bakış açım tamamen değişti. Kesinlikle herkese tavsiye ediyorum!"
+              "Cebirsel ifadeler ve Pisagor sorularında sürekli zaman kaybediyordum. Merdiye Hocam'ın YouTube videoları ve föyleriyle soruya bakış açım tamamen değişti. LGS'de 20'de 20 yaptım!"
             </p>
           </div>
           <div class="testi-author">
@@ -479,6 +618,57 @@
             <div class="testi-info">
               <h5>Burak D.</h5>
               <p>İzmir Fen Lisesi Öğrencisi</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card" data-category="fen net">
+          <div>
+            <span class="testi-card-badge">🏆 500 Tam Puan &bull; Türkiye Derecesi</span>
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">
+              "Sınav anında zamanı doğru kullanma ve turlama tekniğini Merdiye Hocam sayesinde kazandım. Son 3 ay çözdüğümüz Pro Denemeler sınavdaki soru tipleriyle birebir örtüştü."
+            </p>
+          </div>
+          <div class="testi-author">
+            <div class="testi-avatar">DA</div>
+            <div class="testi-info">
+              <h5>Defne Aksoy</h5>
+              <p>Galatasaray Lisesi Kazanıldı</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card" data-category="veli">
+          <div>
+            <span class="testi-card-badge">👨‍👩‍👧 Veli Deneyimi &bull; Birebir Takip</span>
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">
+              "Kızımızın matematikten korkusunu 2 ayda aştık. 7/24 WhatsApp soru çözüm hattı ve eksik kazanım odaklı özel ders programı gerçekten profesyonelce düşünülmüş."
+            </p>
+          </div>
+          <div class="testi-author">
+            <div class="testi-avatar">MA</div>
+            <div class="testi-info">
+              <h5>Murat Arslan (Veli)</h5>
+              <p>Kadıköy Anadolu Lisesi Velisi</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card" data-category="net">
+          <div>
+            <span class="testi-card-badge">📈 11 Netten 18 Nete Yükseliş</span>
+            <div class="testi-stars">★★★★★</div>
+            <p class="testi-quote">
+              "Yeni nesil sorularda şekil okuma ve modelleme taktikleri hayat kurtardı. Merdiye Hocam'ın 'şekli denklemleştir' kuralı sayesinde Cağaloğlu Anadolu Lisesi'ni kazandım."
+            </p>
+          </div>
+          <div class="testi-author">
+            <div class="testi-avatar">YÇ</div>
+            <div class="testi-info">
+              <h5>Yağız Çetin</h5>
+              <p>Cağaloğlu Anadolu Lisesi</p>
             </div>
           </div>
         </div>
