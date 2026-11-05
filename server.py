@@ -162,6 +162,17 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             posts = _read_json(POSTS_FILE, [])
             return self._send_json_response(200, posts)
 
+        # 6. Supabase Status & Config Check
+        if clean_path in ("/api/supabase/status", "/api/supabase/config"):
+            sb_url = os.getenv("SUPABASE_URL", "")
+            has_key = bool(os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY"))
+            return self._send_json_response(200, {
+                "configured": bool(sb_url and has_key),
+                "url": sb_url,
+                "mode": "supabase_cloud" if (sb_url and has_key) else "local_fallback",
+                "timestamp": datetime.now().isoformat()
+            })
+
         # Default static file handling (HTML, CSS, JS, PDF, SVG)
         return super().do_GET()
 

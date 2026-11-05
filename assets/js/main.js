@@ -236,8 +236,23 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentCategory = "all";
   let searchQuery = "";
 
-  // 2. Dynamic Fetch & Sync with Server or LocalStorage
+  // 2. Dynamic Fetch & Sync with Server, Supabase or LocalStorage
   async function syncCatalog() {
+    try {
+      if (window.MH_DB && typeof window.MH_DB.getPdfs === "function") {
+        const dbCatalog = await window.MH_DB.getPdfs();
+        if (Array.isArray(dbCatalog) && dbCatalog.length > 0) {
+          activeCatalog = dbCatalog.map(item => ({
+            ...item,
+            fileUrl: item.file_url || item.fileUrl || `assets/pdf/${item.filename}`,
+            fileSize: item.file_size || item.fileSize || "105 KB"
+          }));
+          renderPDFs();
+          return;
+        }
+      }
+    } catch (e) {}
+
     try {
       const res = await fetch("/api/pdfs");
       if (res.ok) {
@@ -287,6 +302,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 3. Visitor Ping
   function pingVisitor() {
+    try {
+      if (window.MH_DB && typeof window.MH_DB.recordVisit === "function") {
+        window.MH_DB.recordVisit();
+      }
+    } catch (e) {}
+
     try {
       fetch("/api/analytics/visit", {
         method: "POST",
@@ -405,6 +426,11 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-id");
         showToast("PDF başarıyla indiriliyor! İyi çalışmalar dileriz 🚀", "success");
+        try {
+          if (window.MH_DB && typeof window.MH_DB.recordPdfDownload === "function") {
+            window.MH_DB.recordPdfDownload(id);
+          }
+        } catch (e) {}
         try {
           fetch("/api/analytics/visit", {
             method: "POST",
@@ -834,8 +860,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentQuizIndex = 0;
   const userAnswers = {};
+  let activeQuizList = [...QUIZ_QUESTIONS];
 
-  function initQuiz() {
+  async function initQuiz() {
     const topicBadge = document.getElementById("quizTopicBadge");
     const scoreBadge = document.getElementById("quizScoreBadge");
     const questionText = document.getElementById("quizQuestionText");
@@ -853,11 +880,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!questionText || !optionsGrid) return;
 
+    // Supabase'den soruları çek
+    try {
+      if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
+        const dbQuestions = await window.MH_DB.getQuizQuestions();
+        if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
+          activeQuizList = dbQuestions.map((q, idx) => ({
+            id: q.id || idx + 1,
+            unit: q.unit || `Soru ${idx + 1}`,
+            question: q.question,
+            options: q.options,
+            correctIndex: q.correctIndex,
+            solution: q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
+            tactic: "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda altını çizerek belirleyin!"
+          }));
+        }
+      }
+    } catch (e) {}
+
     let selectedOptionIndex = null;
 
     function renderQuestion(idx) {
       currentQuizIndex = idx;
-      const q = QUIZ_QUESTIONS[idx];
+      const q = activeQuizList[idx] || QUIZ_QUESTIONS[idx];
       selectedOptionIndex = userAnswers[idx]?.selectedIndex ?? null;
 
       stepBtns.forEach((btn, bIdx) => {
@@ -932,13 +977,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (checkBtn) checkBtn.style.display = "none";
         if (nextBtn) {
-          nextBtn.style.display = idx < QUIZ_QUESTIONS.length - 1 ? "inline-block" : "none";
+          nextBtn.style.display = idx < activeQuizList.length - 1 ? "inline-block" : "none";
         }
         if (statusMsg) {
           statusMsg.textContent = isCorr ? "Tebrikler! Doğru çözdünüz (+20 Puan)." : "Bu soruda takıldınız. Taktik notunu inceleyin.";
         }
 
-        const allDone = Object.keys(userAnswers).length === QUIZ_QUESTIONS.length;
+        const allDone = Object.keys(userAnswers).length === activeQuizList.length;
         if (allDone) {
           renderQuizCompletion(score, correctCount);
         }
@@ -1075,7 +1120,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        const q = QUIZ_QUESTIONS[currentQuizIndex];
+        const q = activeQuizList[currentQuizIndex] || QUIZ_QUESTIONS[currentQuizIndex];
         const isCorrect = selectedOptionIndex === q.correctIndex;
         userAnswers[currentQuizIndex] = { selectedIndex: selectedOptionIndex, isCorrect };
 
@@ -1091,7 +1136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (nextBtn) {
       nextBtn.addEventListener("click", () => {
-        if (currentQuizIndex < QUIZ_QUESTIONS.length - 1) {
+        if (currentQuizIndex < activeQuizList.length - 1) {
           renderQuestion(currentQuizIndex + 1);
         }
       });
@@ -1201,6 +1246,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
+          if (window.MH_DB && typeof window.MH_DB.createLead === "function") {
+            const res = await window.MH_DB.createLead(data);
+            if (res && res.success) {
+              const msg = res.mode === "supabase"
+                ? "Başvurunuz Merdiye Hoca veritabanına başarıyla kaydedildi! En kısa sürede aranacaksınız."
+                : "Başvurunuz başarıyla iletildi! En kısa sürede aranacaksınız.";
+              showToast(msg, "success");
+              form.reset();
+              return;
+            }
+          }
+
           const response = await fetch("/api/contact", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

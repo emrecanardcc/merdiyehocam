@@ -499,6 +499,9 @@
         <li class="admin-nav-item" data-tab="leadsTab">
           <button>💬 Özel Ders Talepleri</button>
         </li>
+        <li class="admin-nav-item" data-tab="supabaseTab">
+          <button>⚙️ Supabase Veritabanı</button>
+        </li>
       </ul>
 
       <div class="admin-sidebar-footer">
@@ -1004,6 +1007,131 @@
           </div>
         </div>
       </section>
+
+      <!-- ==================== TAB 7: SUPABASE VERİTABANI ENTEGRASYONU ==================== -->
+      <section id="supabaseTab" class="tab-panel">
+        <div class="data-card">
+          <div class="chart-card-header">
+            <div>
+              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">⚙️ Supabase PostgreSQL Bulut Veritabanı</h2>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">Platform verilerini (LGS föyleri, öğrenci/veli başvuruları, analitik sayaçları) Supabase bulut veritabanına bağlayın.</p>
+            </div>
+            <div id="sbConnectionBadge" class="status-pill" style="background: #F3F4F6; color: #4B5563; font-size: 0.85rem; padding: 6px 14px;">
+              ⚪ Yerel Mod (Bağlı Değil)
+            </div>
+          </div>
+
+          <!-- Canlı Durum Kartı -->
+          <div id="sbBanner" style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px 22px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main); margin-bottom: 4px;" id="sbBannerTitle">
+                Çift Modlu Çalışma Aktif (Dual-Mode Guarantee)
+              </div>
+              <div style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5;" id="sbBannerDesc">
+                Supabase anahtarları girildiğinde doğrudan canlı bulut veritabanına bağlanılır. Girilmediğinde platform sıfır kesintiyle yerel depolama moduyla çalışır.
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span id="sbLatencyBadge" style="font-size: 0.82rem; font-weight: 800; color: var(--primary); background: #FFF; padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid var(--border-color);">
+                Gecikme: -- ms
+              </span>
+            </div>
+          </div>
+
+          <!-- Canlı Tablo İstatistik Kartları -->
+          <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 28px;">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">LGS Föyleri (mh_pdfs)</span>
+                <span class="stat-icon">📄</span>
+              </div>
+              <div class="stat-value" id="sbStatPdfs">14</div>
+              <div class="stat-change positive">Müfredat föyleri</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Başvurular (mh_leads)</span>
+                <span class="stat-icon">💬</span>
+              </div>
+              <div class="stat-value" id="sbStatLeads">0</div>
+              <div class="stat-change positive">Kayıtlı veli/öğrenci</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Ziyaret Kayıtları (mh_analytics)</span>
+                <span class="stat-icon">📈</span>
+              </div>
+              <div class="stat-value" id="sbStatAnalytics">3,840+</div>
+              <div class="stat-change positive">Sayfa & indirme pingleri</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Quiz Soruları (mh_quiz)</span>
+                <span class="stat-icon">🎯</span>
+              </div>
+              <div class="stat-value" id="sbStatQuiz">5</div>
+              <div class="stat-change positive">Aktif soru havuzu</div>
+            </div>
+          </div>
+
+          <!-- Konfigürasyon Formu -->
+          <form id="supabaseConfigForm" style="background: #FAFAFD; border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">
+              🔑 Supabase API Bağlantı Parametreleri
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label" for="sbUrlInput">
+                Supabase Project URL *
+                <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-dim); margin-left: 8px;">(Örn: https://your-project.supabase.co)</span>
+              </label>
+              <input type="url" id="sbUrlInput" class="form-control" placeholder="https://xxxxxxxxxxxxxxxxxxxx.supabase.co" autocomplete="off" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sbKeyInput">
+                Supabase Anon Public Key *
+                <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-dim); margin-left: 8px;">(Project Settings > API > anon / public)</span>
+              </label>
+              <input type="password" id="sbKeyInput" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" required>
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
+              <button type="submit" id="sbSaveBtn" class="btn btn-primary btn-sm">
+                🔌 Bağlantıyı Test Et &amp; Kaydet
+              </button>
+              <button type="button" id="sbMigrateBtn" class="btn btn-secondary btn-sm" style="color: #7C3AED; border-color: #DDD6FE;">
+                ☁️ Mevcut Verileri Supabase'e Aktar (Migrate)
+              </button>
+              <button type="button" id="sbClearBtn" class="btn btn-secondary btn-sm" style="color: #EF4444; border-color: #FECACA;">
+                🗑️ Bağlantıyı Sıfırla (Yerel Moda Dön)
+              </button>
+            </div>
+          </form>
+
+          <!-- SQL Şema Rehber Kutusu -->
+          <div style="background: #FFF; border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="font-size: 1rem; font-weight: 800; color: var(--text-main);">
+                📋 Supabase SQL Şeması Kurulum Adımları
+              </h4>
+              <a href="supabase_schema.sql" target="_blank" download="supabase_schema.sql" class="btn btn-secondary btn-sm">
+                📥 supabase_schema.sql İndir
+              </a>
+            </div>
+            <ol style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; padding-left: 20px;">
+              <li><a href="https://supabase.com" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 700;">supabase.com</a> adresinde ücretsiz bir hesap veya yeni bir proje oluşturun.</li>
+              <li>Sol menüden <b>SQL Editor</b> sekmesini açın.</li>
+              <li>Projedeki <code>supabase_schema.sql</code> dosyasının içeriğini yapıştırıp <b>Run</b> butonuna basın.</li>
+              <li>Tüm tablolar (<code>mh_pdfs</code>, <code>mh_leads</code>, <code>mh_analytics</code>, <code>mh_quiz_questions</code>) ve 14 başlangıç föyü saniyeler içinde oluşturulacaktır.</li>
+              <li><b>Project Settings &gt; API</b> bölümündeki <i>URL</i> ve <i>anon key</i> değerlerini yukarıdaki kutulara girip <b>"Bağlantıyı Test Et &amp; Kaydet"</b> butonuna tıklayın.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -1099,7 +1227,9 @@
   <!-- Toast Bildirimleri -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Admin Script -->
+  <!-- Supabase & Admin Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/admin.js"></script>
 </body>
 </html>
