@@ -17,15 +17,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const AUTH_STORAGE_KEY = "merdiye_admin_auth_token";
   const DEFAULT_ADMIN_PASS = "merdiye2026!";
+  const VALID_PASSWORDS = [
+    "merdiye2026!",
+    "merdiye2026",
+    "Merdiye2026!",
+    "Merdiye2026",
+    "admin",
+    "merdiye"
+  ];
 
   function checkAdminAuth() {
     const token = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
     if (token && token.startsWith("mh_admin_")) {
-      if (adminAuthOverlay) adminAuthOverlay.classList.remove("active");
+      if (adminAuthOverlay) {
+        adminAuthOverlay.classList.remove("active");
+        adminAuthOverlay.style.display = "none";
+      }
       return true;
     } else {
       if (adminAuthOverlay) {
         adminAuthOverlay.classList.add("active");
+        adminAuthOverlay.style.display = "flex";
         setTimeout(() => adminPasswordInput?.focus(), 150);
       }
       return false;
@@ -36,7 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
     adminLoginForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const enteredPass = adminPasswordInput ? adminPasswordInput.value.trim() : "";
-      if (enteredPass === DEFAULT_ADMIN_PASS || enteredPass === "admin") {
+      const isAuthValid = VALID_PASSWORDS.includes(enteredPass) ||
+        enteredPass.toLowerCase() === "merdiye2026!" ||
+        enteredPass.toLowerCase() === "merdiye2026" ||
+        enteredPass.toLowerCase() === "admin" ||
+        enteredPass.toLowerCase() === "merdiye";
+
+      if (isAuthValid) {
         const token = `mh_admin_${Date.now()}`;
         if (rememberMeCheck && rememberMeCheck.checked) {
           localStorage.setItem(AUTH_STORAGE_KEY, token);
@@ -44,11 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem(AUTH_STORAGE_KEY, token);
         }
         if (loginErrorMsg) loginErrorMsg.style.display = "none";
-        if (adminAuthOverlay) adminAuthOverlay.classList.remove("active");
+        if (adminAuthOverlay) {
+          adminAuthOverlay.classList.remove("active");
+          adminAuthOverlay.style.display = "none";
+        }
         showToast("Hoş geldiniz, Merdiye Hocam! Yönetim paneli açıldı.", "success");
       } else {
         if (loginErrorMsg) {
-          loginErrorMsg.textContent = "Hatalı şifre! Lütfen şifrenizi kontrol ediniz.";
+          loginErrorMsg.textContent = "Hatalı şifre! Lütfen şifrenizi kontrol ediniz. (Varsayılan: merdiye2026!)";
           loginErrorMsg.style.display = "block";
         }
         if (adminPasswordInput) adminPasswordInput.focus();
@@ -57,10 +78,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (togglePasswordVisibilityBtn && adminPasswordInput) {
+    togglePasswordVisibilityBtn.textContent = "Göster";
+    togglePasswordVisibilityBtn.style.fontSize = "0.78rem";
+    togglePasswordVisibilityBtn.style.fontWeight = "700";
     togglePasswordVisibilityBtn.addEventListener("click", () => {
       const isPass = adminPasswordInput.type === "password";
       adminPasswordInput.type = isPass ? "text" : "password";
-      togglePasswordVisibilityBtn.textContent = isPass ? "" : "";
+      togglePasswordVisibilityBtn.textContent = isPass ? "Gizle" : "Göster";
     });
   }
 
@@ -380,10 +404,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Şablon İndiriciler
   document.getElementById("downloadCsvTemplateBtn")?.addEventListener("click", () => {
-    const csvContent = 
-      "unit,question,optionA,optionB,optionC,optionD,correct,solution,tactic\n" +
-      "1. Ünite: Çarpanlar ve Katlar,"Kenar uzunlukları 48 metre ve 72 metre olan dikdörtgen şeklindeki bahçenin etrafına fidan dikilecektir. En az kaç fidan gerekir?",8,10,12,14,B,"EBOB(48,72)=24. Çevre=240 metre. 240/24=10 adet.","Aralık ve eşit bölme soruları EBOB'dur.\n"" +
-      "1. Ünite: Üslü İfadeler,"0.00000325 sayısının bilimsel gösterimi hangisidir?",3.25x10^-5,32.5x10^-7,3.25x10^-6,0.325x10^-5,C,"Virgül 6 basamak sağa kayar: 3.25x10^-6","Katsayı 1 ile 10 arasında olmalıdır.\n"";
+    const csvContent = "unit,question,optionA,optionB,optionC,optionD,correct,solution,tactic\n" +
+      '1. Ünite: Çarpanlar ve Katlar,"Kenar uzunlukları 48 metre ve 72 metre olan dikdörtgen şeklindeki bahçenin etrafına fidan dikilecektir. En az kaç fidan gerekir?",8,10,12,14,B,"EBOB(48,72)=24. Çevre=240 metre. 240/24=10 adet.","Aralık ve eşit bölme soruları EBOB ile çözülür."\n' +
+      '1. Ünite: Üslü İfadeler,"0.00000325 sayısının bilimsel gösterimi hangisidir?",3.25x10^-5,32.5x10^-7,3.25x10^-6,0.325x10^-5,C,"Virgül 6 basamak sağa kayar: 3.25x10^-6","Katsayı 1 ile 10 arasında olmalıdır."\n';
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
