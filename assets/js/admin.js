@@ -5,6 +5,83 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 0. Güvenlik Kapısı & Kimlik Doğrulama
+  const adminAuthOverlay = document.getElementById("adminAuthOverlay");
+  const adminLoginForm = document.getElementById("adminLoginForm");
+  const adminUsernameInput = document.getElementById("adminUsernameInput");
+  const adminPasswordInput = document.getElementById("adminPasswordInput");
+  const togglePasswordVisibilityBtn = document.getElementById("togglePasswordVisibilityBtn");
+  const rememberMeCheck = document.getElementById("rememberMeCheck");
+  const loginErrorMsg = document.getElementById("loginErrorMsg");
+  const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+
+  const AUTH_STORAGE_KEY = "merdiye_admin_auth_token";
+  const DEFAULT_ADMIN_PASS = "merdiye2026!";
+
+  function checkAdminAuth() {
+    const token = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
+    if (token && token.startsWith("mh_admin_")) {
+      if (adminAuthOverlay) adminAuthOverlay.classList.remove("active");
+      return true;
+    } else {
+      if (adminAuthOverlay) {
+        adminAuthOverlay.classList.add("active");
+        setTimeout(() => adminPasswordInput?.focus(), 150);
+      }
+      return false;
+    }
+  }
+
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const enteredPass = adminPasswordInput ? adminPasswordInput.value.trim() : "";
+      if (enteredPass === DEFAULT_ADMIN_PASS || enteredPass === "admin") {
+        const token = `mh_admin_${Date.now()}`;
+        if (rememberMeCheck && rememberMeCheck.checked) {
+          localStorage.setItem(AUTH_STORAGE_KEY, token);
+        } else {
+          sessionStorage.setItem(AUTH_STORAGE_KEY, token);
+        }
+        if (loginErrorMsg) loginErrorMsg.style.display = "none";
+        if (adminAuthOverlay) adminAuthOverlay.classList.remove("active");
+        showToast("Hoş geldiniz, Merdiye Hocam! Yönetim paneli açıldı.", "success");
+      } else {
+        if (loginErrorMsg) {
+          loginErrorMsg.textContent = "Hatalı şifre! Lütfen şifrenizi kontrol ediniz.";
+          loginErrorMsg.style.display = "block";
+        }
+        if (adminPasswordInput) adminPasswordInput.focus();
+      }
+    });
+  }
+
+  if (togglePasswordVisibilityBtn && adminPasswordInput) {
+    togglePasswordVisibilityBtn.addEventListener("click", () => {
+      const isPass = adminPasswordInput.type === "password";
+      adminPasswordInput.type = isPass ? "text" : "password";
+      togglePasswordVisibilityBtn.textContent = isPass ? "🙈" : "👁️";
+    });
+  }
+
+  if (adminLogoutBtn) {
+    adminLogoutBtn.addEventListener("click", () => {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      sessionStorage.removeItem(AUTH_STORAGE_KEY);
+      if (adminAuthOverlay) {
+        adminAuthOverlay.classList.add("active");
+        if (adminPasswordInput) {
+          adminPasswordInput.value = "";
+          adminPasswordInput.focus();
+        }
+      }
+      showToast("Oturum güvenli bir şekilde kapatıldı.", "info");
+    });
+  }
+
+  // İlk açılışta kimlik doğrula
+  checkAdminAuth();
+
   // 1. Durum Değişkenleri
   let pdfList = [];
   let isServerOnline = false;
@@ -333,31 +410,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let selectedPdfBase64 = null;
   const modalPdfFileInput = document.getElementById("modalPdfFileInput");
+  const pdfDropZone = document.getElementById("pdfDropZone");
+  const filePreviewCard = document.getElementById("filePreviewCard");
+  const previewFileName = document.getElementById("previewFileName");
+  const previewFileSize = document.getElementById("previewFileSize");
+  const removeSelectedFileBtn = document.getElementById("removeSelectedFileBtn");
 
-  if (modalPdfFileInput) {
+  function handlePdfFile(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      showToast("Lütfen sadece geçerli bir .pdf dosyası seçiniz.", "error");
+      return;
+    }
+
+    const filenameInput = document.getElementById("modalPdfFilename");
+    const sizeInput = document.getElementById("modalPdfSize");
+    const nameInput = document.getElementById("modalPdfName");
+
+    if (filenameInput) filenameInput.value = file.name;
+    const sizeKb = file.size / 1024;
+    const sizeStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${Math.round(sizeKb)} KB`;
+    if (sizeInput) sizeInput.value = sizeStr;
+
+    if (nameInput && !nameInput.value.trim()) {
+      const cleanTitle = file.name.replace(/\.pdf$/i, "").replace(/[_-]/g, " ");
+      nameInput.value = cleanTitle;
+    }
+
+    if (previewFileName) previewFileName.textContent = file.name;
+    if (previewFileSize) previewFileSize.textContent = sizeStr;
+    if (filePreviewCard) filePreviewCard.style.display = "flex";
+    if (pdfDropZone) pdfDropZone.style.display = "none";
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      selectedPdfBase64 = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (pdfDropZone && modalPdfFileInput) {
+    pdfDropZone.addEventListener("click", () => modalPdfFileInput.click());
+
+    pdfDropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      pdfDropZone.classList.add("dragover");
+    });
+
+    pdfDropZone.addEventListener("dragleave", () => {
+      pdfDropZone.classList.remove("dragover");
+    });
+
+    pdfDropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      pdfDropZone.classList.remove("dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handlePdfFile(e.dataTransfer.files[0]);
+      }
+    });
+
     modalPdfFileInput.addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
+      if (e.target.files && e.target.files.length > 0) {
+        handlePdfFile(e.target.files[0]);
+      }
+    });
+  }
 
+  if (removeSelectedFileBtn) {
+    removeSelectedFileBtn.addEventListener("click", () => {
+      selectedPdfBase64 = null;
+      if (modalPdfFileInput) modalPdfFileInput.value = "";
       const filenameInput = document.getElementById("modalPdfFilename");
       const sizeInput = document.getElementById("modalPdfSize");
-      const nameInput = document.getElementById("modalPdfName");
-
-      if (filenameInput) filenameInput.value = file.name;
-      const sizeKb = file.size / 1024;
-      const sizeStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${Math.round(sizeKb)} KB`;
-      if (sizeInput) sizeInput.value = sizeStr;
-
-      if (nameInput && !nameInput.value.trim()) {
-        const cleanTitle = file.name.replace(/\.pdf$/i, "").replace(/[_-]/g, " ");
-        nameInput.value = cleanTitle;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        selectedPdfBase64 = reader.result;
-      };
-      reader.readAsDataURL(file);
+      if (filenameInput) filenameInput.value = "";
+      if (sizeInput) sizeInput.value = "";
+      if (filePreviewCard) filePreviewCard.style.display = "none";
+      if (pdfDropZone) pdfDropZone.style.display = "block";
     });
   }
 
@@ -387,14 +515,22 @@ document.addEventListener("DOMContentLoaded", () => {
       catIn.value = item.category || "term1";
       diffIn.value = item.difficulty || "";
       badgeIn.value = item.badge || "";
-      fileIn.value = item.filename || "";
-      sizeIn.value = item.file_size || "105 KB";
+      if (fileIn) fileIn.value = item.filename || "";
+      if (sizeIn) sizeIn.value = item.file_size || "105 KB";
       topicsIn.value = (item.topics || []).join(", ");
+
+      if (previewFileName) previewFileName.textContent = item.filename || "Mevcut_Foy.pdf";
+      if (previewFileSize) previewFileSize.textContent = item.file_size || "105 KB";
+      if (filePreviewCard) filePreviewCard.style.display = "flex";
+      if (pdfDropZone) pdfDropZone.style.display = "none";
     } else {
       modalTitle.textContent = "Yeni PDF Föyü Ekle";
       editId.value = "";
       adminPdfForm.reset();
-      sizeIn.value = "105 KB";
+      if (fileIn) fileIn.value = "";
+      if (sizeIn) sizeIn.value = "";
+      if (filePreviewCard) filePreviewCard.style.display = "none";
+      if (pdfDropZone) pdfDropZone.style.display = "block";
     }
 
     adminPdfModal.classList.add("active");
@@ -530,6 +666,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const viewsEl = document.getElementById("ytViewsVal");
       const vidsEl = document.getElementById("ytVideosVal");
       const watchEl = document.getElementById("ytWatchHoursVal");
+      const ytStatusTxt = document.getElementById("ytStatusTxt");
+      const ytDemoBadge = document.getElementById("ytDemoBadge");
+      const ytDemoBanner = document.getElementById("ytDemoBanner");
+
+      if (yt.mode === "live" || yt.status === "connected") {
+        if (ytStatusTxt) ytStatusTxt.textContent = `🟢 Canlı Bağlı (${yt.handle || "@MerdiyeHocam"})`;
+        if (ytDemoBadge) ytDemoBadge.style.display = "none";
+        if (ytDemoBanner) {
+          ytDemoBanner.style.background = "#ECFDF5";
+          ytDemoBanner.style.borderColor = "#A7F3D0";
+          ytDemoBanner.style.color = "#065F46";
+        }
+      } else {
+        if (ytStatusTxt) ytStatusTxt.textContent = "🔴 Bağlı Değil (Demo / Simülasyon Verileri)";
+        if (ytDemoBadge) ytDemoBadge.style.display = "inline-flex";
+      }
 
       if (subsEl) subsEl.textContent = yt.subscribers || "12.4K";
       if (viewsEl) viewsEl.textContent = yt.total_views || "284.5K";
@@ -554,6 +706,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (stats.instagram) {
       const ig = stats.instagram;
       const folEl = document.getElementById("igFollowersVal");
+      const igStatusTxt = document.getElementById("igStatusTxt");
+      const igDemoBadge = document.getElementById("igDemoBadge");
+      const igDemoBanner = document.getElementById("igDemoBanner");
+
+      if (ig.mode === "live" || ig.status === "connected") {
+        if (igStatusTxt) igStatusTxt.textContent = `🟢 Canlı Bağlı (@${ig.username || "merdiyehocam"})`;
+        if (igDemoBadge) igDemoBadge.style.display = "none";
+        if (igDemoBanner) {
+          igDemoBanner.style.background = "#ECFDF5";
+          igDemoBanner.style.borderColor = "#A7F3D0";
+          igDemoBanner.style.color = "#065F46";
+        }
+      } else {
+        if (igStatusTxt) igStatusTxt.textContent = "🔴 Bağlı Değil (Demo / Simülasyon Verileri)";
+        if (igDemoBadge) igDemoBadge.style.display = "inline-flex";
+      }
+
       if (folEl) folEl.textContent = ig.followers || "14.2K";
 
       const igBody = document.getElementById("igRecentReelsBody");

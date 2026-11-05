@@ -38,7 +38,7 @@
     }
 
     .admin-brand img {
-      height: 42px;
+      height: 52px;
       width: auto;
     }
 
@@ -426,6 +426,51 @@
 </head>
 <body>
 
+  <!-- ==================== GÜVENLİK KAPISI / ADMIN GİRİŞ EKRANI ==================== -->
+  <div class="admin-auth-overlay active" id="adminAuthOverlay">
+    <div class="auth-card">
+      <div class="auth-lock-icon">🔐</div>
+      <img src="assets/images/logo.svg" alt="Merdiye Hocam Logo" style="height: 52px; margin-bottom: 16px;">
+      <h2 style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 6px;">
+        Yönetim Paneli Girişi
+      </h2>
+      <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 24px;">
+        Merdiye Hocam LGS Platformu güvenli yönetim oturumu.
+      </p>
+
+      <form id="adminLoginForm">
+        <div class="form-group" style="text-align: left; margin-bottom: 16px;">
+          <label class="form-label" for="adminUsernameInput">Kullanıcı Adı</label>
+          <input type="text" id="adminUsernameInput" class="form-control" placeholder="admin" value="admin" required autocomplete="username">
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 18px;">
+          <label class="form-label" for="adminPasswordInput">Yönetici Şifresi</label>
+          <div style="position: relative;">
+            <input type="password" id="adminPasswordInput" class="form-control" placeholder="Şifrenizi girin..." required autocomplete="current-password" style="padding-right: 42px;">
+            <button type="button" id="togglePasswordVisibilityBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted);">👁️</button>
+          </div>
+          <small style="display: block; font-size: 0.76rem; color: var(--text-dim); margin-top: 4px;">
+            Varsayılan şifre: <code>merdiye2026!</code>
+          </small>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; font-size: 0.85rem;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
+            <input type="checkbox" id="rememberMeCheck" checked> Beni Hatırla
+          </label>
+          <a href="index.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">← Siteye Dön</a>
+        </div>
+
+        <div id="loginErrorMsg" style="display: none; background: #FEE2E2; color: #DC2626; padding: 10px; border-radius: var(--radius-sm); font-size: 0.84rem; font-weight: 700; margin-bottom: 16px;"></div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 0.96rem; font-weight: 800;">
+          🚀 Giriş Yap ve Paneli Aç
+        </button>
+      </form>
+    </div>
+  </div>
+
   <div class="admin-layout">
     <!-- ==================== SIDEBAR ==================== -->
     <aside class="admin-sidebar">
@@ -484,6 +529,9 @@
           </span>
           <button id="refreshDataBtn" class="btn btn-secondary btn-sm" title="Verileri Güncelle">
             🔄 Yenile
+          </button>
+          <button id="adminLogoutBtn" class="btn btn-secondary btn-sm" title="Güvenli Çıkış" style="color: #DC2626; border-color: #FECACA; background: #FEF2F2;">
+            🔒 Çıkış Yap
           </button>
         </div>
       </header>
@@ -666,6 +714,10 @@
 
       <!-- ==================== TAB 3: YOUTUBE ANALİZ ==================== -->
       <section id="youtubeTab" class="tab-panel">
+        <div class="demo-banner" id="ytDemoBanner">
+          <span>⚡ <b>YouTube Kanal Bağlantı Durumu:</b> <span id="ytStatusTxt" style="font-weight: 700;">Demo / Simülasyon Modu</span> — YouTube Data API v3 bağlandığında canlı veriler buraya yansır.</span>
+          <span class="demo-badge" id="ytDemoBadge">Demo Veri</span>
+        </div>
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-card-top">
@@ -731,6 +783,10 @@
 
       <!-- ==================== TAB 4: INSTAGRAM ANALİZ ==================== -->
       <section id="instagramTab" class="tab-panel">
+        <div class="demo-banner" id="igDemoBanner">
+          <span>⚡ <b>Instagram Hesap Bağlantı Durumu:</b> <span id="igStatusTxt" style="font-weight: 700;">Demo / Simülasyon Modu</span> — Meta Graph API bağlandığında canlı Reels verileri buraya yansır.</span>
+          <span class="demo-badge" id="igDemoBadge">Demo Veri</span>
+        </div>
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-card-top">
@@ -985,24 +1041,30 @@
           </div>
         </div>
 
+        <!-- Otomatik Sürükle-Bırak Dosya Yükleme Alanı -->
         <div class="form-group">
-          <label class="form-label" for="modalPdfFileInput">PDF Dosyası Yükle (.pdf)</label>
-          <input type="file" id="modalPdfFileInput" class="form-control" accept="application/pdf">
-          <small style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 3px;">
-            Dosya seçtiğinizde dosya adı ve boyutu otomatik algılanır; sunucuya kaydedilir.
-          </small>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="modalPdfFilename">Dosya Adı (.pdf)</label>
-            <input type="text" id="modalPdfFilename" class="form-control" placeholder="Örn: 15_LGS_Hacim_ve_Prizmalar.pdf">
+          <label class="form-label">PDF Föy Dosyası (.pdf) *</label>
+          <div class="pdf-drop-zone" id="pdfDropZone">
+            <input type="file" id="modalPdfFileInput" accept="application/pdf" style="display: none;">
+            <div class="dropzone-icon">📥</div>
+            <div class="dropzone-text">PDF dosyasını buraya sürükleyin veya tıklayıp seçin</div>
+            <div class="dropzone-sub">Maksimum 25 MB • Otomatik boyut ve sayfa analizi</div>
+          </div>
+          
+          <div class="file-preview-card" id="filePreviewCard" style="display: none;">
+            <div class="file-preview-left">
+              <span class="file-preview-icon">📄</span>
+              <div>
+                <span class="file-preview-name" id="previewFileName">dosya.pdf</span>
+                <span class="file-preview-size" id="previewFileSize">0 KB</span>
+              </div>
+            </div>
+            <button type="button" id="removeSelectedFileBtn" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.76rem;">✕ Değiştir</button>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="modalPdfSize">Boyut</label>
-            <input type="text" id="modalPdfSize" class="form-control" value="105 KB">
-          </div>
+          <!-- Otomatik JS Tarafından Yönetilen Gizli Alanlar -->
+          <input type="hidden" id="modalPdfFilename" value="">
+          <input type="hidden" id="modalPdfSize" value="">
         </div>
 
         <div class="form-group">

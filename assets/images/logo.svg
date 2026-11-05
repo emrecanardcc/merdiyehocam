@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" width="340" height="80">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 84" width="360" height="84">
   <defs>
-    <!-- Lila & Violet Gradients -->
+    <!-- Lila & Violet Luxury Gradients -->
     <linearGradient id="mhIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="0%" stop-color="#9061F9" />
       <stop offset="50%" stop-color="#7C3AED" />
-      <stop offset="100%" stop-color="#6D28D9" />
+      <stop offset="100%" stop-color="#5B21B6" />
     </linearGradient>
 
     <linearGradient id="mhMonogramGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -13,7 +13,7 @@
     </linearGradient>
 
     <linearGradient id="goldSparkle" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="0%" stop-color="#FDE047" />
       <stop offset="100%" stop-color="#F59E0B" />
     </linearGradient>
 
@@ -30,58 +30,58 @@
   </defs>
 
   <!-- ==================== MH ICON CONTAINER ==================== -->
-  <g transform="translate(8, 9)">
+  <g transform="translate(10, 8)">
     <!-- Soft Outer Shadow/Glow -->
-    <rect x="0" y="0" width="62" height="62" rx="18" fill="#7C3AED" opacity="0.22" filter="url(#lilaGlow)" />
+    <rect x="0" y="0" width="68" height="68" rx="20" fill="#7C3AED" opacity="0.25" filter="url(#lilaGlow)" />
     <!-- Gradient Background -->
-    <rect x="0" y="0" width="62" height="62" rx="18" fill="url(#mhIconGrad)" stroke="#C4B5FD" stroke-width="1.5" />
+    <rect x="0" y="0" width="68" height="68" rx="20" fill="url(#mhIconGrad)" stroke="#DDD6FE" stroke-width="1.8" />
 
-    <!-- Subtle Geometric Math Grid in Icon -->
-    <circle cx="31" cy="31" r="23" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1" stroke-dasharray="2,3" />
+    <!-- Subtle Geometric Math Orbit in Icon -->
+    <circle cx="34" cy="34" r="26" fill="none" stroke="rgba(255, 255, 255, 0.18)" stroke-width="1.2" stroke-dasharray="3,3" />
 
-    <!-- ==================== MH LUXURY MONOGRAM ==================== -->
+    <!-- ==================== MH MONOGRAM ==================== -->
     <!-- 'M' Left Wing & Center V-Apex -->
-    <path d="M 16 46 L 16 19 L 26 33 L 34 22 L 34 46" 
+    <path d="M 18 51 L 18 20 L 29 36 L 38 24 L 38 51" 
           fill="none" 
           stroke="url(#mhMonogramGrad)" 
-          stroke-width="3.5" 
+          stroke-width="3.8" 
           stroke-linecap="round" 
           stroke-linejoin="round" />
 
     <!-- 'H' Right Wing -->
-    <path d="M 46 19 L 46 46" 
+    <path d="M 50 20 L 50 51" 
           fill="none" 
           stroke="url(#mhMonogramGrad)" 
-          stroke-width="3.5" 
+          stroke-width="3.8" 
           stroke-linecap="round" />
 
-    <!-- Intertwined Math Symbol Crossbar: Integral & Infinity bridge linking M and H -->
-    <path d="M 28 32 C 32 27, 36 37, 46 32" 
+    <!-- Intertwined Math Infinity Bridge linking M and H -->
+    <path d="M 32 35 C 37 29, 41 41, 50 35" 
           fill="none" 
-          stroke="#FDE047" 
-          stroke-width="2.5" 
+          stroke="url(#goldSparkle)" 
+          stroke-width="3" 
           stroke-linecap="round" />
 
-    <!-- Mathematical Infinity Accent Node (Left loop of crossbar) -->
-    <circle cx="30" cy="32" r="2.2" fill="url(#goldSparkle)" />
+    <!-- Mathematical Accent Node -->
+    <circle cx="35" cy="35" r="2.4" fill="url(#goldSparkle)" />
 
-    <!-- Mathematical Square Root & Integral Curve Accent -->
-    <path d="M 12 40 L 15 44 L 18 36" 
+    <!-- Golden Square Root Accent -->
+    <path d="M 13 44 L 16 49 L 20 40" 
           fill="none" 
           stroke="#FCD34D" 
-          stroke-width="2" 
+          stroke-width="2.2" 
           stroke-linecap="round" 
           stroke-linejoin="round" />
 
-    <!-- Golden Ratio Sparkle Star (Top Right) -->
-    <circle cx="48" cy="16" r="2" fill="url(#goldSparkle)" />
+    <!-- Sparkle Node (Top Right) -->
+    <circle cx="53" cy="17" r="2.2" fill="url(#goldSparkle)" />
   </g>
 
   <!-- ==================== BRAND TYPOGRAPHY ==================== -->
-  <g transform="translate(84, 38)">
+  <g transform="translate(94, 40)">
     <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
-          font-weight="800" 
-          font-size="25" 
+          font-weight="900" 
+          font-size="28" 
           fill="#1E1B4B" 
           letter-spacing="-0.5">
       Merdiye<tspan fill="url(#textVioletGrad)">Hocam</tspan>
@@ -89,13 +89,13 @@
   </g>
 
   <!-- ==================== SUBTITLE BADGE ==================== -->
-  <g transform="translate(84, 48)">
-    <rect x="0" y="0" width="176" height="20" rx="7" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1" />
-    <circle cx="10" cy="10" r="3" fill="#8B5CF6" />
-    <text x="20" y="14" 
+  <g transform="translate(94, 52)">
+    <rect x="0" y="0" width="190" height="22" rx="7" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1.2" />
+    <circle cx="11" cy="11" r="3.2" fill="#7C3AED" />
+    <text x="22" y="15" 
           font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
-          font-weight="700" 
-          font-size="9.5" 
+          font-weight="800" 
+          font-size="10.5" 
           fill="#6D28D9" 
           letter-spacing="0.8">
       LGS MATEMATİK AKADEMİSİ

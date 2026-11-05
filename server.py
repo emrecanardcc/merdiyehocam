@@ -440,7 +440,8 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             "video_count": video_count,
             "watch_hours": "3,420 saat",
             "avg_retention": "%84.2",
-            "status": "connected",
+            "status": "connected" if is_yt_connected else "disconnected",
+            "mode": "live" if is_yt_connected else "demo",
             "top_shorts": [
                 {
                     "title": "EBOB-EKOK 10 Saniyede Çözme Taktiği! ⚡",
@@ -494,7 +495,8 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             "total_posts": 94,
             "monthly_reach": "142,800",
             "story_views": "2,850",
-            "status": "connected",
+            "status": "connected" if is_ig_connected else "disconnected",
+            "mode": "live" if is_ig_connected else "demo",
             "recent_reels": [
                 {
                     "title": "Cebirsel İfadeler Model Sorusu Taktikleri 🎯",

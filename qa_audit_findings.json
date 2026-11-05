@@ -1,0 +1,27 @@
+{
+  "passed": [
+    "Ana Sayfa (/): 200 OK (28510 bayt)",
+    "Admin Paneli (/admin.html): 200 OK (40762 bayt)",
+    "CSS Dosyası (/assets/css/style.css): 200 OK (28546 bayt)",
+    "Ana Script (/assets/js/main.js): 200 OK (29402 bayt)",
+    "Admin Script (/assets/js/admin.js): 200 OK (42177 bayt)",
+    "Logo SVG (/assets/images/logo.svg): 200 OK (3957 bayt)",
+    "Logo İkon (/assets/images/logo-icon.svg): 200 OK (2366 bayt)",
+    "PDFs Verisi (/assets/data/pdfs.json): 200 OK (10025 bayt)",
+    "PDF Listesi API (/api/pdfs): 200 OK (8342 bayt)",
+    "Analitik API (/api/admin/analytics): 200 OK (769 bayt)",
+    "Gelen Talepler API (/api/admin/inquiries): 200 OK (5743 bayt)",
+    "Sosyal Medya API (/api/admin/social): 200 OK (1719 bayt)",
+    "Yayın Geçmişi API (/api/admin/posts): 200 OK (8920 bayt)",
+    "Admin Güvenlik Kapısı Aktif: Şifresiz giriş engellendi, oturum denetimi ve güvenli çıkış mevcut.",
+    "Otomatik PDF Sürükle-Bırak Yükleyici Aktif: Elle boyut girme kaldırıldı, dosya seçildiğinde otomatik hesaplanıyor.",
+    "Logo SVG UTF-8 Türkçe Karakter Desteği Kusursuz ('LGS MATEMATİK AKADEMİSİ').",
+    "Header Logo Boyutu 56px Olarak Optimize Edildi (Büyük, Okunaklı ve Prestijli).",
+    "Sosyal Medya Şeffaflığı Sağlandı: Bağlantısız hesaplar sahte bağlı gibi gösterilmiyor, [DEMO VERİ] olarak etiketleniyor.",
+    "Responsive Header Düzeni: 1024px tablet/laptop ekranlarında menü kayması engellendi, hamburger menüye bağlandı.",
+    "Admin Tabloları Koruma Altında: .table-responsive ile sütunların daralması engellendi (min-width: 680px).",
+    "Tüm 14 LGS Matematik PDF Föyü Fiziksel Olarak Diskte Mevcut ve Doğrulandı!",
+    "Özel Ders Formu API Testi Başarılı! (Lead ID: lead_1793896698842)"
+  ],
+  "issues": []
+}

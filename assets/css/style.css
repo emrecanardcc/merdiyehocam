@@ -203,24 +203,30 @@ button, input, select, textarea {
 }
 
 .logo-img {
-  height: 48px;
+  height: 56px;
   width: auto;
+  transition: transform var(--transition-fast);
+}
+
+.logo-img:hover {
+  transform: scale(1.02);
 }
 
 .nav-menu {
   display: flex;
   list-style: none;
-  gap: 24px;
+  gap: 16px;
   align-items: center;
 }
 
 .nav-link {
-  font-size: 0.94rem;
-  font-weight: 600;
+  font-size: 0.90rem;
+  font-weight: 700;
   color: var(--text-secondary);
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .nav-link:hover, .nav-link.active {
@@ -1203,6 +1209,32 @@ button, input, select, textarea {
 
 /* ==================== RESPONSIVE DESIGN ==================== */
 @media (max-width: 1024px) {
+  .header .nav-menu {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background: var(--bg-white);
+    flex-direction: column;
+    padding: 24px;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    display: none;
+    gap: 8px;
+  }
+  .header .nav-menu.open {
+    display: flex;
+  }
+  .mobile-toggle {
+    display: block;
+  }
+  .nav-actions {
+    gap: 8px;
+  }
+  .nav-actions .btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
   .hero-grid {
     grid-template-columns: 1fr;
     text-align: center;
@@ -1228,23 +1260,8 @@ button, input, select, textarea {
 }
 
 @media (max-width: 768px) {
-  .header .nav-menu {
-    position: fixed;
-    top: 80px;
-    left: 0;
-    right: 0;
-    background: var(--bg-white);
-    flex-direction: column;
-    padding: 24px;
-    border-bottom: 2px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
-    display: none;
-  }
-  .header .nav-menu.open {
-    display: flex;
-  }
-  .mobile-toggle {
-    display: block;
+  .logo-img {
+    height: 46px;
   }
   .nav-actions .btn {
     display: none;
@@ -1265,4 +1282,169 @@ button, input, select, textarea {
     padding: 14px;
     border-radius: 50%;
   }
+}
+
+/* ==================== PDF UPLOAD & DROPZONE STYLES ==================== */
+.pdf-drop-zone {
+  border: 2px dashed var(--primary-border);
+  background: var(--bg-soft);
+  border-radius: var(--radius-lg);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.pdf-drop-zone:hover, .pdf-drop-zone.dragover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.dropzone-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+
+.dropzone-text {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.dropzone-sub {
+  font-size: 0.80rem;
+  color: var(--text-muted);
+}
+
+.file-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-white);
+  border: 1.5px solid var(--primary-border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  margin-top: 14px;
+  animation: slideInRight 0.25s ease;
+}
+
+.file-preview-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-preview-icon {
+  font-size: 1.6rem;
+}
+
+.file-preview-name {
+  font-size: 0.90rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.file-preview-size {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary);
+  margin-left: 6px;
+}
+
+/* ==================== DEMO BADGES & LABELS ==================== */
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.70rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FCD34D;
+  letter-spacing: 0.3px;
+}
+
+.demo-banner {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: #92400E;
+}
+
+/* ==================== TABLE RESPONSIVE WRAPPER ==================== */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+  border-radius: var(--radius-md);
+}
+
+.table-responsive table {
+  min-width: 680px;
+}
+
+/* ==================== ADMIN AUTH MODAL / LOCK SCREEN ==================== */
+.admin-auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.70);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.admin-auth-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.auth-card {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  max-width: 440px;
+  width: 100%;
+  padding: 40px 32px;
+  box-shadow: 0 25px 50px -12px rgba(124, 58, 237, 0.25);
+  text-align: center;
+  position: relative;
+  animation: slideInRight 0.3s ease;
+}
+
+.auth-lock-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  border: 2px solid var(--primary-border);
 }
