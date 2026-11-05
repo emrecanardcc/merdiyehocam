@@ -13,7 +13,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "MEB Kazanım Uyumlu",
     "popular": true,
-    "topics": ["Asal Çarpanlar", "EBOB", "EKOK", "Aralarında Asal", "Bölünebilme"]
+    "topics": [
+      "Asal Çarpanlar",
+      "EBOB",
+      "EKOK",
+      "Aralarında Asal",
+      "Bölünebilme"
+    ]
   },
   {
     "id": "pdf-02",
@@ -29,7 +35,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "Çok Çıkan Konu",
     "popular": true,
-    "topics": ["Negatif Üs", "Üssün Üssü", "Çözümleme", "Bilimsel Gösterim", "Basamak Sayısı"]
+    "topics": [
+      "Negatif Üs",
+      "Üssün Üssü",
+      "Çözümleme",
+      "Bilimsel Gösterim",
+      "Basamak Sayısı"
+    ]
   },
   {
     "id": "pdf-03",
@@ -45,7 +57,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "LGS Banko 3 Soru",
     "popular": true,
-    "topics": ["Tam Kare Sayılar", "Yaklaşık Değer", "a√b Yazımı", "Kökten Kurtarma", "Gerçek Sayılar"]
+    "topics": [
+      "Tam Kare Sayılar",
+      "Yaklaşık Değer",
+      "a√b Yazımı",
+      "Kökten Kurtarma",
+      "Gerçek Sayılar"
+    ]
   },
   {
     "id": "pdf-04",
@@ -61,7 +79,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "Kolay Net Fırsatı",
     "popular": false,
-    "topics": ["Daire Grafiği", "Sütun Grafiği", "Çizgi Grafiği", "Merkez Açı", "Oran-Orantı"]
+    "topics": [
+      "Daire Grafiği",
+      "Sütun Grafiği",
+      "Çizgi Grafiği",
+      "Merkez Açı",
+      "Oran-Orantı"
+    ]
   },
   {
     "id": "pdf-05",
@@ -77,7 +101,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "MEB Soru Formatı",
     "popular": false,
-    "topics": ["Olası Durumlar", "İstenen Olay", "Kesin Olay", "İmkansız Olay", "Eş Olasılık"]
+    "topics": [
+      "Olası Durumlar",
+      "İstenen Olay",
+      "Kesin Olay",
+      "İmkansız Olay",
+      "Eş Olasılık"
+    ]
   },
   {
     "id": "pdf-06",
@@ -93,7 +123,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "Altın Konu",
     "popular": true,
-    "topics": ["(a+b)²", "(a-b)²", "a²-b²", "Ortak Çarpan", "Geometrik Modelleme"]
+    "topics": [
+      "(a+b)²",
+      "(a-b)²",
+      "a²-b²",
+      "Ortak Çarpan",
+      "Geometrik Modelleme"
+    ]
   },
   {
     "id": "pdf-07",
@@ -109,7 +145,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "LGS 2. Dönem",
     "popular": true,
-    "topics": ["Koordinat Sistemi", "Doğru Grafiği", "Eğim Hesabı", "Rampa Soruları", "Doğrusal İlişki"]
+    "topics": [
+      "Koordinat Sistemi",
+      "Doğru Grafiği",
+      "Eğim Hesabı",
+      "Rampa Soruları",
+      "Doğrusal İlişki"
+    ]
   },
   {
     "id": "pdf-08",
@@ -125,7 +167,12 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "Tuzak Sorular",
     "popular": false,
-    "topics": ["Eşitsizlik Sembolleri", "Negatif Çarpım Kuralı", "Sayı Doğrusu", "Tarife Problemleri"]
+    "topics": [
+      "Eşitsizlik Sembolleri",
+      "Negatif Çarpım Kuralı",
+      "Sayı Doğrusu",
+      "Tarife Problemleri"
+    ]
   },
   {
     "id": "pdf-09",
@@ -141,7 +188,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "Geometri Temeli",
     "popular": false,
-    "topics": ["Kenarortay", "Açıortay", "Yükseklik", "Üçgen Eşitsizliği", "Açı-Kenar İlişkisi"]
+    "topics": [
+      "Kenarortay",
+      "Açıortay",
+      "Yükseklik",
+      "Üçgen Eşitsizliği",
+      "Açı-Kenar İlişkisi"
+    ]
   },
   {
     "id": "pdf-10",
@@ -157,7 +210,14 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "En Çok Soru Çıkan",
     "popular": true,
-    "topics": ["Pisagor Bağıntısı", "3-4-5 Üçgeni", "5-12-13", "8-15-17", "7-24-25", "Merdiven Soruları"]
+    "topics": [
+      "Pisagor Bağıntısı",
+      "3-4-5 Üçgeni",
+      "5-12-13",
+      "8-15-17",
+      "7-24-25",
+      "Merdiven Soruları"
+    ]
   },
   {
     "id": "pdf-11",
@@ -173,7 +233,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "Şekil Yorumlama",
     "popular": false,
-    "topics": ["Eşlik Sembolü", "Benzerlik Oranı k", "Çevre Oranı", "Alan Oranı k²", "Ölçek"]
+    "topics": [
+      "Eşlik Sembolü",
+      "Benzerlik Oranı k",
+      "Çevre Oranı",
+      "Alan Oranı k²",
+      "Ölçek"
+    ]
   },
   {
     "id": "pdf-12",
@@ -189,7 +255,13 @@
     "pages": "1 Sayfa (Özet & Soru)",
     "badge": "LGS Son Ünite",
     "popular": false,
-    "topics": ["Prizmalar", "Silindir Açınımı", "Yanal Alan 2πrh", "Hacim πr²h", "Koni r/l=α/360"]
+    "topics": [
+      "Prizmalar",
+      "Silindir Açınımı",
+      "Yanal Alan 2πrh",
+      "Hacim πr²h",
+      "Koni r/l=α/360"
+    ]
   },
   {
     "id": "pdf-13",
@@ -205,7 +277,13 @@
     "pages": "Eksiksiz Formül Föyü",
     "badge": "⭐ EN ÇOK İNDİRİLEN",
     "popular": true,
-    "topics": ["Tüm Formüller", "Hızlı Taktikler", "Süre Yönetimi", "Turlama Tekniği", "Hap Notlar"]
+    "topics": [
+      "Tüm Formüller",
+      "Hızlı Taktikler",
+      "Süre Yönetimi",
+      "Turlama Tekniği",
+      "Hap Notlar"
+    ]
   },
   {
     "id": "pdf-14",
@@ -221,6 +299,12 @@
     "pages": "20 Soru + Cevap Anahtarı",
     "badge": "🔥 2025/2026 PROVA",
     "popular": true,
-    "topics": ["20 Yeni Nesil Soru", "Cevap Anahtarı", "Optik Form Rehberi", "Net Skalası", "MEB Uyum"]
+    "topics": [
+      "20 Yeni Nesil Soru",
+      "Cevap Anahtarı",
+      "Optik Form Rehberi",
+      "Net Skalası",
+      "MEB Uyum"
+    ]
   }
 ]

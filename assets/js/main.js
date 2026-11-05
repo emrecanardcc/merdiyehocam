@@ -2,6 +2,7 @@
  * Merdiye Hocam - LGS Matematik Web Platformu
  * Ana JavaScript Mantığı & Etkileşim Motoru
  * Kurallar: Axiom Zero Bloat, Katı O(1)/O(n) Algoritma, İçsel Emniyet (No NaN, No Crash)
+ * Tasarım: Beyaz & Lila Modern Eğitim Estetiği
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -219,6 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
+  let activeCatalog = [...PDF_CATALOG];
+
   // DOM Elements
   const pdfGrid = document.getElementById("pdfGrid");
   const pdfSearchInput = document.getElementById("pdfSearchInput");
@@ -233,13 +236,55 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentCategory = "all";
   let searchQuery = "";
 
-  // 2. PDF Rendering Engine (O(N) Filtreleme)
+  // 2. Dynamic Fetch & Sync with Server or LocalStorage
+  async function syncCatalog() {
+    try {
+      const res = await fetch("/api/pdfs");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          activeCatalog = data.map(item => ({
+            ...item,
+            fileUrl: item.file_url || item.fileUrl || `assets/pdf/${item.filename}`,
+            fileSize: item.file_size || item.fileSize || "105 KB"
+          }));
+          renderPDFs();
+          return;
+        }
+      }
+    } catch (e) {
+      // Offline or static fallback
+    }
+
+    try {
+      const stored = localStorage.getItem("merdiye_custom_pdfs");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          activeCatalog = parsed;
+          renderPDFs();
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 3. Visitor Ping
+  function pingVisitor() {
+    try {
+      fetch("/api/analytics/visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page: window.location.pathname, referrer: document.referrer })
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  // 4. PDF Rendering Engine (O(N) Filtreleme)
   function renderPDFs() {
     if (!pdfGrid) return;
 
     const query = searchQuery.trim().toLowerCase();
-    const filtered = PDF_CATALOG.filter(item => {
-      // Kategori filtresi denetimi
+    const filtered = activeCatalog.filter(item => {
       const matchCat =
         currentCategory === "all" ? true :
         currentCategory === "popular" ? item.popular :
@@ -247,81 +292,161 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!matchCat) return false;
 
-      // Metin arama denetimi
       if (!query) return true;
-      const combined = `${item.title} ${item.subtitle} ${item.unit} ${item.topics.join(" ")}`.toLowerCase();
-      return combined.includes(query);
+      const titleMatch = (item.title || "").toLowerCase().includes(query);
+      const subMatch = (item.subtitle || "").toLowerCase().includes(query);
+      const unitMatch = (item.unit || "").toLowerCase().includes(query);
+      const topicMatch = Array.isArray(item.topics) && item.topics.some(t => t.toLowerCase().includes(query));
+      return titleMatch || subMatch || unitMatch || topicMatch;
     });
 
     if (pdfCountBadge) {
-      pdfCountBadge.textContent = `${filtered.length} Föy Gösteriliyor`;
+      pdfCountBadge.textContent = String(filtered.length);
     }
 
     if (filtered.length === 0) {
       pdfGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-muted);">
-          <div style="font-size: 2.5rem; margin-bottom: 12px;">🔍</div>
-          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Aradığınız kriterlere uygun föy bulunamadı</h3>
-          <p style="font-size: 0.95rem;">Lütfen farklı bir anahtar kelime deneyin veya filtreyi "Tümü" olarak değiştirin.</p>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #FFFFFF; border-radius: var(--radius-lg); border: 1.5px dashed var(--border-color);">
+          <div style="font-size: 2.8rem; margin-bottom: 12px;">🔍</div>
+          <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Aradığınız kriterde föy bulunamadı</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">Lütfen arama terimini değiştirin veya kategori filtresini sıfırlayın.</p>
+          <button id="resetSearchBtn" class="btn btn-secondary btn-sm" style="margin-top: 16px;">Tüm Föyleri Göster</button>
         </div>
       `;
+      const resetBtn = document.getElementById("resetSearchBtn");
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          searchQuery = "";
+          currentCategory = "all";
+          if (pdfSearchInput) pdfSearchInput.value = "";
+          filterTabs.forEach(t => t.classList.toggle("active", t.dataset.category === "all"));
+          renderPDFs();
+        });
+      }
       return;
     }
 
-    pdfGrid.innerHTML = filtered.map(item => `
-      <article class="pdf-card" data-id="${item.id}">
-        <span class="pdf-card-badge ${item.popular ? 'popular' : ''}">${item.badge}</span>
-        <div class="pdf-card-unit">${item.unit} &bull; ${item.term}</div>
-        <h3 class="pdf-card-title">${item.title}</h3>
-        <p class="pdf-card-desc">${item.subtitle}</p>
-        
-        <div class="pdf-topics-list">
-          ${item.topics.map(t => `<span class="pdf-topic-chip">${t}</span>`).join("")}
-        </div>
+    pdfGrid.innerHTML = filtered.map(item => {
+      const isGold = (item.badge || "").includes("⭐") || (item.badge || "").includes("Altın") || (item.badge || "").includes("🔥");
+      const badgeClass = isGold ? "pdf-badge gold" : "pdf-badge";
+      const topicsHtml = (item.topics || []).slice(0, 4).map(t => `<span class="pdf-tag">#${t}</span>`).join("");
+      const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
 
-        <div class="pdf-card-footer">
-          <div class="pdf-meta">
-            <span>📄 ${item.fileSize}</span>
-            <span>⭐ ${item.difficulty.split(" ")[0]}</span>
-          </div>
-          <div class="pdf-actions">
-            <button class="btn btn-secondary btn-sm preview-btn" data-id="${item.id}" title="Önizle">
-              Detay
-            </button>
-            <a href="${item.fileUrl}" download="${item.filename}" class="btn btn-primary btn-sm download-btn" data-name="${item.filename}">
-              📥 İndir
-            </a>
-          </div>
-        </div>
-      </article>
-    `).join("");
+      return `
+        <article class="pdf-card" data-id="${item.id}">
+          <div>
+            <div class="pdf-card-top">
+              <span class="${badgeClass}">${item.badge || "MEB Uyumlu"}</span>
+              <span class="pdf-unit">${item.unit || "8. Sınıf"} &bull; ${item.term || "Dönem"}</span>
+            </div>
 
-    // Event listener binding for rendered cards
-    pdfGrid.querySelectorAll(".preview-btn").forEach(btn => {
+            <h3 class="pdf-title">${item.title}</h3>
+            <p class="pdf-subtitle">${item.subtitle || ""}</p>
+
+            <div class="pdf-meta">
+              ${topicsHtml}
+            </div>
+          </div>
+
+          <div class="pdf-card-bottom">
+            <div class="pdf-info-txt">
+              <span>📄 ${item.pages || "1 Sayfa"}</span> &bull; 
+              <span>💾 ${item.fileSize || item.file_size || "105 KB"}</span>
+            </div>
+
+            <div class="pdf-btn-group">
+              <button class="btn btn-secondary btn-sm preview-btn" data-id="${item.id}" title="Önizle ve Konuları Gör">
+                👁️ İncele
+              </button>
+              <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm download-btn" data-id="${item.id}">
+                📥 İndir
+              </a>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    attachCardEvents();
+  }
+
+  // 5. Card Events & Modal
+  function attachCardEvents() {
+    const previewBtns = document.querySelectorAll(".preview-btn");
+    previewBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-id");
-        const found = PDF_CATALOG.find(p => p.id === id);
-        if (found) openPreviewModal(found);
+        openPDFModal(id);
       });
     });
 
-    pdfGrid.querySelectorAll(".download-btn").forEach(link => {
-      link.addEventListener("click", () => {
-        const name = link.getAttribute("data-name");
-        showToast(`"${name}" başarıyla indiriliyor!`, "success");
+    const downloadBtns = document.querySelectorAll(".download-btn");
+    downloadBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        showToast("PDF başarıyla indiriliyor! İyi çalışmalar dileriz 🚀", "success");
+        try {
+          fetch("/api/analytics/visit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_download: true, pdf_id: id })
+          }).catch(() => {});
+        } catch (e) {}
       });
     });
   }
 
-  // 3. Search & Filter Tab Listeners
+  function openPDFModal(id) {
+    const item = activeCatalog.find(p => p.id === id);
+    if (!item || !modalOverlay) return;
+
+    const modalBody = document.getElementById("modalBody");
+    const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
+    const topicsList = (item.topics || []).map(t => `<li style="margin-bottom: 6px;">🔹 <b>${t}</b></li>`).join("");
+
+    modalBody.innerHTML = `
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+        <span class="pdf-badge gold">${item.badge || "MEB Uyumlu"}</span>
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--secondary);">${item.unit} &bull; ${item.term}</span>
+      </div>
+      
+      <h2 style="font-size: 1.5rem; font-weight: 900; color: var(--text-main); margin-bottom: 8px;">${item.title}</h2>
+      <p style="font-size: 0.98rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">${item.subtitle || ""}</p>
+      
+      <div style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px;">
+        <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary); margin-bottom: 10px;">📌 Föy İçeriğinde Neler Var?</h4>
+        <ul style="list-style: none; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+          ${topicsList}
+        </ul>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; border-top: 1px solid var(--border-color); padding-top: 18px;">
+        <div style="font-size: 0.88rem; color: var(--text-dim); font-weight: 700;">
+          <span>Zorluk: <b>${item.difficulty || "LGS Ayarı"}</b></span> &bull; 
+          <span>Boyut: <b>${item.fileSize || item.file_size || "105 KB"}</b></span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a href="${fileLink}" target="_blank" class="btn btn-secondary btn-sm">Tarayıcıda Aç</a>
+          <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm">📥 Hemen İndir</a>
+        </div>
+      </div>
+    `;
+
+    modalOverlay.classList.add("active");
+  }
+
+  if (modalClose && modalOverlay) {
+    modalClose.addEventListener("click", () => modalOverlay.classList.remove("active"));
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) modalOverlay.classList.remove("active");
+    });
+  }
+
+  // Search & Filter Listeners
   if (pdfSearchInput) {
-    let debounceTimer = null;
     pdfSearchInput.addEventListener("input", (e) => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        searchQuery = e.target.value;
-        renderPDFs();
-      }, 150);
+      searchQuery = e.target.value;
+      renderPDFs();
     });
   }
 
@@ -329,120 +454,35 @@ document.addEventListener("DOMContentLoaded", () => {
     tab.addEventListener("click", () => {
       filterTabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
-      currentCategory = tab.getAttribute("data-category") || "all";
+      currentCategory = tab.dataset.category;
       renderPDFs();
     });
   });
 
-  // 4. Preview Modal Operations
-  function openPreviewModal(item) {
-    if (!modalOverlay) return;
-
-    const modalBody = document.getElementById("modalBody");
-    if (modalBody) {
-      const youtubeSearchUrl = `https://www.youtube.com/@MerdiyeHocam/search?query=${encodeURIComponent(item.title)}`;
-
-      modalBody.innerHTML = `
-        <div style="margin-bottom: 20px;">
-          <span class="pdf-card-badge ${item.popular ? 'popular' : ''}" style="position: static; margin-bottom: 10px; display: inline-block;">${item.badge}</span>
-          <div style="font-size: 0.85rem; color: #38BDF8; font-weight: 700; text-transform: uppercase;">${item.unit} &bull; ${item.term}</div>
-          <h2 style="font-size: 1.5rem; font-weight: 800; margin: 8px 0; color: #FFFFFF;">${item.title}</h2>
-          <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5;">${item.subtitle}</p>
-        </div>
-
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 24px;">
-          <h4 style="font-size: 0.85rem; font-weight: 700; color: #FBBF24; text-transform: uppercase; margin-bottom: 10px;">📌 Föy İçeriğinde Neler Var?</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; color: var(--text-main);">
-            <li>✅ <b>Kazanım Hap Bilgileri:</b> Konunun en can alıcı formül ve pratik kuralları.</li>
-            <li>✅ <b>LGS Tuzakları & Uyarılar:</b> MEB'in çeldirdiği kritik noktalar.</li>
-            <li>✅ <b>Yeni Nesil Model Soru:</b> Adım adım paragraf ve şekil analizi çözümü.</li>
-            <li>✅ <b>Pekiştirme Soruları:</b> Cevap anahtarlı sınav ayarında alıştırmalar.</li>
-          </ul>
-        </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;">
-          ${item.topics.map(t => `<span class="pdf-topic-chip" style="font-size: 0.82rem; padding: 4px 10px;">#${t}</span>`).join("")}
-        </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-light); padding-top: 20px;">
-          <div style="font-size: 0.85rem; color: var(--text-dim);">
-            Dosya Boyutu: <b>${item.fileSize}</b> | Format: <b>PDF (A4 Baskıya Uygun)</b>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <a href="${youtubeSearchUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-              📺 Çözüm Videosu
-            </a>
-            <a href="${item.fileUrl}" download="${item.filename}" class="btn btn-primary btn-sm modal-download-btn">
-              📥 Hemen İndir
-            </a>
-          </div>
-        </div>
-      `;
-
-      modalBody.querySelector(".modal-download-btn").addEventListener("click", () => {
-        showToast(`"${item.filename}" indiriliyor!`, "success");
-      });
-    }
-
-    modalOverlay.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeModal() {
-    if (modalOverlay) {
-      modalOverlay.classList.remove("open");
-      document.body.style.overflow = "";
-    }
-  }
-
-  if (modalClose) {
-    modalClose.addEventListener("click", closeModal);
-  }
-
-  if (modalOverlay) {
-    modalOverlay.addEventListener("click", (e) => {
-      if (e.target === modalOverlay) closeModal();
-    });
-  }
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modalOverlay && modalOverlay.classList.contains("open")) {
-      closeModal();
-    }
-  });
-
-  // 5. Toast Notification Manager
+  // 6. Toast Notification Helper
   function showToast(message, type = "info") {
     if (!toastContainer) return;
-
     const toast = document.createElement("div");
-    toast.className = `toast ${type === 'success' ? 'toast-success' : ''}`;
-    toast.innerHTML = `
-      <span style="font-size: 1.1rem;">${type === 'success' ? '✅' : 'ℹ️'}</span>
-      <span>${message}</span>
-    `;
-
+    toast.className = `toast ${type}`;
+    const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
+    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     toastContainer.appendChild(toast);
-
     setTimeout(() => {
       toast.style.opacity = "0";
-      toast.style.transform = "translateX(120%)";
-      toast.style.transition = "all 0.3s ease";
+      toast.style.transform = "translateX(100%)";
       setTimeout(() => toast.remove(), 300);
-    }, 3500);
+    }, 4000);
   }
 
-  // 6. LGS 2026 Geri Sayım Sayacı
+  // 7. LGS Geri Sayım Motoru
   function initCountdown() {
+    const targetDate = new Date("2026-06-14T09:30:00+03:00").getTime();
     const daysEl = document.getElementById("countdownDays");
     const hoursEl = document.getElementById("countdownHours");
     const minutesEl = document.getElementById("countdownMinutes");
     const secondsEl = document.getElementById("countdownSeconds");
 
     if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
-
-    // Hedef LGS Tarihi (Tahmini 2. Pazar Haziran 2026: 14 Haziran 2026, 09:30)
-    const targetDate = new Date("2026-06-14T09:30:00+03:00").getTime();
 
     function update() {
       const now = new Date().getTime();
@@ -471,7 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(update, 1000);
   }
 
-  // 7. LGS Matematik Net & Puan Hesaplayıcı (İçsel Emniyet: Asla NaN üretmez)
+  // 8. LGS Matematik Net & Puan Hesaplayıcı (İçsel Emniyet: Asla NaN üretmez)
   function initCalculator() {
     const correctInput = document.getElementById("calcCorrect");
     const wrongInput = document.getElementById("calcWrong");
@@ -486,11 +526,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let correct = parseInt(correctInput.value, 10);
       let wrong = parseInt(wrongInput.value, 10);
 
-      // Safe guards
       if (isNaN(correct) || correct < 0) correct = 0;
       if (isNaN(wrong) || wrong < 0) wrong = 0;
 
-      // 20 Soru LGS Matematik Sınırı
       if (correct > 20) {
         correct = 20;
         correctInput.value = 20;
@@ -500,9 +538,8 @@ document.addEventListener("DOMContentLoaded", () => {
         wrongInput.value = wrong;
       }
 
-      const netRaw = correct - (wrong / 3);
-      const net = Math.max(0, parseFloat(netRaw.toFixed(2)));
-      // LGS Matematik Katkısı (Takribi standart katsayı ve baz etki ~4.2 - 4.6 puan / net)
+      const netRaw = correct - (wrong / 3.0);
+      const net = Math.max(0.0, parseFloat(netRaw.toFixed(2)));
       const estimatedMathScore = parseFloat((net * 4.3).toFixed(1));
 
       netDisplay.textContent = net.toFixed(2);
@@ -513,16 +550,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (adviceDisplay && recDisplay) {
         if (net >= 18) {
           adviceDisplay.textContent = "🏆 Muazzam Performans! Galatasaray, Kabataş ve Fen Liseleri kapılarını aralıyorsun. Soru kaçırma payını sıfıra indirmek için 'Yeni Nesil Pro Deneme' ve zaman turlaması yap.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf' download style='color: #FBBF24; text-decoration: underline;'>LGS Yeni Nesil Pro Deneme-1</a>";
+          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>LGS Yeni Nesil Pro Deneme-1</a>";
         } else if (net >= 14) {
           adviceDisplay.textContent = "⭐ Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına (Cebirsel İfadeler & Geometrik Cisimler) odaklan.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf' download style='color: #FBBF24; text-decoration: underline;'>Cebirsel İfadeler ve Özdeşlikler Föyü</a>";
+          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Cebirsel İfadeler ve Özdeşlikler Föyü</a>";
         } else if (net >= 8) {
           adviceDisplay.textContent = "📈 Yükseliş Potansiyeli Yüksek! Temel kazanımların var ancak yeni nesil paragraf sorularında tuzaklara düşüyorsun. 'Kareköklü İfadeler' ve 'Eğim' taktiklerini gözden geçir.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/03_Karekoklu_Ifadeler_Yeni_Nesil.pdf' download style='color: #FBBF24; text-decoration: underline;'>Kareköklü İfadeler & Yaklaşık Değer</a>";
+          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/03_Karekoklu_Ifadeler_Yeni_Nesil.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Kareköklü İfadeler & Yaklaşık Değer</a>";
         } else {
           adviceDisplay.textContent = "💪 Harekete Geçme Zamanı! Korkacak hiçbir şey yok; matematikte doğru metot ve birebir takip ile 3-4 ayda 12-15 nete çıkmak mümkün. Temel kamp föylerinden başla ve özel ders desteği al.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf' download style='color: #FBBF24; text-decoration: underline;'>Çarpanlar ve Katlar & EBOB-EKOK Temel Föyü</a>";
+          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Çarpanlar ve Katlar & EBOB-EKOK Temel Föyü</a>";
         }
       }
     }
@@ -532,7 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
     recalculate();
   }
 
-  // 8. Özel Ders Ön Başvuru Formu & Akıllı WhatsApp Entegrasyonu
+  // 9. Özel Ders Ön Başvuru Formu & Akıllı WhatsApp Entegrasyonu
   function initTutoringForm() {
     const form = document.getElementById("tutoringForm");
     const sendWhatsappBtn = document.getElementById("sendWhatsappBtn");
@@ -550,8 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function buildWhatsAppUrl(data) {
-      // Merdiye Hoca WhatsApp İletişim Hattı
-      const phoneNum = "905300000000"; // Merdiye Hoca Destek Hattı
+      const phoneNum = "905300000000";
       const text = 
         `*Merdiye Hocam - LGS Özel Ders & Koçluk Başvurusu*\n\n` +
         `👤 *Ad Soyad:* ${data.name}\n` +
@@ -567,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (sendWhatsappBtn) {
-      sendWhatsappBtn.addEventListener("click", (e) => {
+      sendWhatsappBtn.addEventListener("click", () => {
         const data = getFormData();
         if (!data.name || !data.phone) {
           showToast("Lütfen Ad Soyad ve Telefon alanlarını doldurunuz.", "info");
@@ -592,7 +628,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-          // Backend API varsa POST et
           const response = await fetch("/api/contact", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -603,13 +638,11 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast("Başvurunuz başarıyla iletildi! En kısa sürede aranacaksınız.", "success");
             form.reset();
           } else {
-            // Local fallback
             saveLocalLead(data);
             showToast("Başvurunuz kaydedildi! WhatsApp ile de anında mesaj atabilirsiniz.", "success");
             form.reset();
           }
         } catch (err) {
-          // Offline / static hosting fallback
           saveLocalLead(data);
           showToast("Başvurunuz kaydedildi! WhatsApp üzerinden iletişime geçebilirsiniz.", "success");
         }
@@ -621,13 +654,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const existing = JSON.parse(localStorage.getItem("merdiye_leads") || "[]");
         existing.push({ ...data, date: new Date().toISOString() });
         localStorage.setItem("merdiye_leads", JSON.stringify(existing));
-      } catch (e) {
-        // Safe fail
-      }
+      } catch (e) {}
     }
   }
 
-  // 9. FAQ Accordion Manager
+  // 10. FAQ Accordion Manager
   function initFAQ() {
     const faqItems = document.querySelectorAll(".faq-item");
     faqItems.forEach(item => {
@@ -635,7 +666,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (question) {
         question.addEventListener("click", () => {
           const isOpen = item.classList.contains("open");
-          // Diğerlerini kapat
           faqItems.forEach(other => other.classList.remove("open"));
           if (!isOpen) {
             item.classList.add("open");
@@ -645,7 +675,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 10. Mobil Hamburger Menü
+  // 11. Mobil Hamburger Menü
   if (mobileToggle && navMenu) {
     mobileToggle.addEventListener("click", () => {
       navMenu.classList.toggle("open");
@@ -661,8 +691,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 11. Başlatma
+  // 12. Başlatma
   renderPDFs();
+  syncCatalog();
+  pingVisitor();
   initCountdown();
   initCalculator();
   initTutoringForm();

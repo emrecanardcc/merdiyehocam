@@ -16,7 +16,9 @@
   <meta property="og:description" content="Ücretsiz LGS Matematik PDF föyleri, yeni nesil soru çözüm taktikleri ve birebir özel ders koçluğu.">
   <meta property="og:image" content="assets/images/math-hero-illustration.svg">
   
-  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
+  <!-- Brand Monogram Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo-icon.svg">
+  <link rel="alternate icon" type="image/svg+xml" href="assets/images/logo.svg">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -34,9 +36,10 @@
           <li><a href="#pdf-portal" class="nav-link">LGS PDF Arşivi</a></li>
           <li><a href="#tutoring" class="nav-link">1'e 1 Özel Ders</a></li>
           <li><a href="#calculator" class="nav-link">Net Hesaplama</a></li>
-          <li><a href="#social" class="nav-link">YouTube & Reels</a></li>
+          <li><a href="#social" class="nav-link">YouTube &amp; Reels</a></li>
           <li><a href="#testimonials" class="nav-link">Başarılar</a></li>
           <li><a href="#faq" class="nav-link">SSS</a></li>
+          <li><a href="admin.html" class="nav-link" style="color: var(--primary); font-weight: 800;">⚙️ Panel</a></li>
         </ul>
       </nav>
 
@@ -46,6 +49,9 @@
         </a>
         <a href="#tutoring" class="btn btn-primary btn-sm">
           ⭐ Özel Ders Al
+        </a>
+        <a href="admin.html" class="btn btn-secondary btn-sm" title="Yönetim Paneli" style="border-color: var(--primary-border); background: var(--primary-soft);">
+          🔐 Admin
         </a>
       </div>
 
@@ -71,10 +77,10 @@
           </h1>
 
           <p class="hero-desc">
-            8. Sınıf tüm üniteler için hazırlanmış <b>%100 MEB uyumlu konu özetleri</b>, yeni nesil soru çözüm föyleri ve kişiye özel <b>1'e 1 özel ders mentörlüğü</b> ile hedefin olan Fen Lisesi'ne adım adım ulaş.
+            8. Sınıf tüm üniteler için hazırlanmış <b>%100 MEB uyumlu konu özetleri</b>, yeni nesil soru çözüm föyleri ve kişiye özel <b>1'e 1 özel ders mentörlüğü</b> ile hedefin olan Fen Lisesi'ne emin adımlarla ulaş.
           </p>
 
-          <!-- LGS Geri Sayım Kutusu -->
+          <!-- LGS Geri Sayım Kutusu (Beyaz & Lila) -->
           <div class="countdown-box">
             <div class="countdown-header">
               <span class="countdown-title">
@@ -102,214 +108,194 @@
             </div>
           </div>
 
-          <!-- Hero Butonları -->
-          <div class="hero-cta-group">
+          <div class="hero-actions">
             <a href="#pdf-portal" class="btn btn-primary btn-lg">
-              📥 Ücretsiz PDF'leri İndir
+              📚 14 Ücretsiz PDF'i İncele &amp; İndir
             </a>
-            <a href="#tutoring" class="btn btn-whatsapp btn-lg">
-              💬 Özel Ders & WhatsApp İletişim
-            </a>
-            <a href="https://www.youtube.com/@MerdiyeHocam" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg">
-              📺 YouTube Kanalı
+            <a href="#tutoring" class="btn btn-secondary btn-lg">
+              🎯 1'e 1 Özel Ders Başvurusu Yap
             </a>
           </div>
 
-          <!-- Hızlı İstatistikler -->
-          <div class="hero-stats">
-            <div class="stat-box">
-              <div class="stat-num">14+</div>
-              <div class="stat-lbl">Ücretsiz Föy & PDF</div>
+          <div class="hero-stats-row">
+            <div class="hero-stat-item">
+              <h4>14+</h4>
+              <p>Ücretsiz MEB Uyumlu Föy</p>
             </div>
-            <div class="stat-box">
-              <div class="stat-num">%100</div>
-              <div class="stat-lbl">MEB Kazanım Uyumu</div>
+            <div class="hero-stat-item">
+              <h4>20/20</h4>
+              <p>Hedef Matematik Neti</p>
             </div>
-            <div class="stat-box">
-              <div class="stat-num">500+</div>
-              <div class="stat-lbl">Yeni Nesil Soru Çözümü</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-num">Birebir</div>
-              <div class="stat-lbl">Kişiselleştirilmiş Takip</div>
+            <div class="hero-stat-item">
+              <h4>%98</h4>
+              <p>Öğrenci &amp; Veli Memnuniyeti</p>
             </div>
           </div>
         </div>
 
-        <!-- Hero Görseli -->
-        <div class="hero-visual">
-          <img src="assets/images/math-hero-illustration.svg" alt="LGS Matematik Başarı Görseli" width="540" height="400">
+        <div class="hero-graphic">
+          <img src="assets/images/math-hero-illustration.svg" alt="Merdiye Hocam LGS Matematik Portalı">
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ==================== PDF İNDİRME PORTALI ==================== -->
-  <section class="pdf-section" id="pdf-portal">
+  <!-- ==================== PDF PORTAL SECTION ==================== -->
+  <section class="section section-alt" id="pdf-portal">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">ÖĞRENCİ KÜTÜPHANESİ</span>
-        <h2 class="section-title">LGS Matematik Ücretsiz PDF Arşivi</h2>
-        <p class="section-subtitle">
-          Tüm 8. sınıf üniteleri için hazırladığımız konu anlatımlı özetleri, altın formül föylerini ve yeni nesil deneme sınavlarını tek tıkla doğrudan cihazına indir.
+        <span class="section-tag">ÜCRETSİZ DERS MATERYALLERİ</span>
+        <h2 class="section-title">LGS Matematik PDF İndirme Portalı</h2>
+        <p class="section-desc">
+          8. Sınıf tüm üniteleri kapsayan, yeni nesil soru mantığıyla hazırlanmış özet ve soru föylerini tek tıkla cihazına indir.
         </p>
       </div>
 
-      <!-- Arama ve Filtre Kontrolleri -->
       <div class="pdf-controls">
-        <div class="search-box-wrapper">
+        <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input 
-            type="text" 
-            class="search-input" 
-            id="pdfSearchInput" 
-            placeholder="Konu, ünite veya anahtar kelime ara (Örn: Çarpanlar, Eğim, Pisagor, Deneme)..."
-            aria-label="PDF Arama Kutusu"
-          >
+          <input type="text" id="pdfSearchInput" class="search-input" placeholder="Konu, ünite veya kazanım ara... (Örn: EBOB, Üslü Sayılar, Eğim)">
         </div>
 
         <div class="filter-tabs">
-          <button class="filter-tab active" data-category="all">Tüm Föyler</button>
-          <button class="filter-tab" data-category="term1">1. Dönem Konuları</button>
-          <button class="filter-tab" data-category="term2">2. Dönem Konuları</button>
-          <button class="filter-tab" data-category="summary">Altın Formüller</button>
-          <button class="filter-tab" data-category="trial">Deneme Sınavları</button>
-          <button class="filter-tab" data-category="popular">⭐ Çok İndirilenler</button>
-        </div>
-
-        <div style="text-align: center;">
-          <span id="pdfCountBadge" style="font-size: 0.85rem; color: var(--text-dim); background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 9999px;">
-            14 Föy Gösteriliyor
-          </span>
+          <button class="filter-tab active" data-category="all">Tüm Föyler (<span id="pdfCountBadge">14</span>)</button>
+          <button class="filter-tab" data-category="term1">1. Dönem Üniteleri</button>
+          <button class="filter-tab" data-category="term2">2. Dönem Üniteleri</button>
+          <button class="filter-tab" data-category="summary">Özet &amp; Formül Kitapçığı</button>
+          <button class="filter-tab" data-category="trial">Deneme Sınavı</button>
+          <button class="filter-tab" data-category="popular">⭐ Popüler Föyler</button>
         </div>
       </div>
 
-      <!-- Dinamik PDF Kartları Izgarası -->
+      <!-- Dinamik PDF Kartları Alanı -->
       <div class="pdf-grid" id="pdfGrid">
-        <!-- JavaScript tarafından doldurulur -->
+        <!-- JavaScript ile dinamik olarak doldurulur -->
       </div>
     </div>
   </section>
 
-  <!-- ==================== 1'E 1 ÖZEL DERS & KOÇLUK ==================== -->
-  <section class="tutoring-section" id="tutoring">
+  <!-- ==================== 1'E 1 ÖZEL DERS ==================== -->
+  <section class="section" id="tutoring">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">BİREBİR BAŞARI SİSTEMİ</span>
-        <h2 class="section-title">Merdiye Hoca ile 1'e 1 LGS Özel Ders</h2>
-        <p class="section-subtitle">
-          Ezberci eğitimi bir kenara bırakın. Soruyu anlama, modelleme ve yeni nesil sınav mantığını çözme odaklı birebir LGS koçluğu.
+        <span class="section-tag">KİŞİYE ÖZEL PROGRAM</span>
+        <h2 class="section-title">1'e 1 Özel Ders &amp; LGS Koçluğu</h2>
+        <p class="section-desc">
+          Öğrencinin eksiklerine göre şekillendirilen birebir dersler, haftalık ödev takibi ve 7/24 soru çözüm desteği.
         </p>
       </div>
 
       <div class="tutoring-grid">
-        <!-- Sol Taraf: 4 Aşamalı Sistem -->
-        <div class="tutoring-info">
-          <div style="background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; display: flex; align-items: center; gap: 18px;">
-            <img src="assets/images/avatar-merdiye.svg" alt="Merdiye Hoca Avatar" style="width: 76px; height: 76px; border-radius: 50%;">
+        <div class="tutoring-card">
+          <h3>Neden Merdiye Hocam ile Özel Ders?</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Matematik sadece formül ezberlemek değil; soru kökünü doğru okumak, analitik düşünmek ve zamanı iyi yönetmektir.
+          </p>
+
+          <ul class="tutoring-features">
+            <li class="tutoring-feature-item">
+              <div class="feature-icon-box">🎯</div>
+              <div class="feature-text">
+                <h5>Kişiye Özel Seviye Tespiti &amp; Yol Haritası</h5>
+                <p>İlk derste öğrencinin kazanım açıkları belirlenir ve sınava kadar haftalık hedef çizelgesi hazırlanır.</p>
+              </div>
+            </li>
+
+            <li class="tutoring-feature-item">
+              <div class="feature-icon-box">📐</div>
+              <div class="feature-text">
+                <h5>Yeni Nesil Modelleme &amp; Paragraf Taktikleri</h5>
+                <p>Şekilli ve uzun metinli soruları korkmadan, adım adım analiz etme metodu öğretilir.</p>
+              </div>
+            </li>
+
+            <li class="tutoring-feature-item">
+              <div class="feature-icon-box">💬</div>
+              <div class="feature-text">
+                <h5>7/24 WhatsApp Soru Çözüm Hattı</h5>
+                <p>Hafta içi çözülemeyen sorular bekletilmez; öğrenci fotoğraf atar ve sesli/video çözüm alır.</p>
+              </div>
+            </li>
+
+            <li class="tutoring-feature-item">
+              <div class="feature-icon-box">📊</div>
+              <div class="feature-text">
+                <h5>Haftalık Veli Gelişim Raporlaması</h5>
+                <p>Ödev kontrolü, net grafiği ve deneme analizleri düzenli olarak veli ile paylaşılır.</p>
+              </div>
+            </li>
+          </ul>
+
+          <div style="background: var(--primary-soft); padding: 18px 22px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px;">
+            <div style="font-size: 1.8rem;">✉️</div>
             <div>
-              <h3 style="font-size: 1.2rem; font-weight: 800; color: #FFFFFF;">Merdiye Koç (Merdiye Hoca)</h3>
-              <p style="font-size: 0.88rem; color: #38BDF8; font-weight: 600;">LGS Matematik Uzmanı & Eğitim Koçu</p>
-              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Öğrencinin anlama hızına göre kişiselleştirilmiş ders planlaması ve 7/24 soru takip desteği.</p>
-            </div>
-          </div>
-
-          <div class="steps-list">
-            <div class="step-card">
-              <div class="step-num">1</div>
-              <div class="step-content">
-                <h4>Nokta Atışı Seviye Tespiti</h4>
-                <p>İlk derste öğrencinin hangi kazanımlarda eksik kaldığı tespit edilir; zaman kaybetmeden zayıf halkalar güçlendirilir.</p>
-              </div>
-            </div>
-
-            <div class="step-card">
-              <div class="step-num">2</div>
-              <div class="step-content">
-                <h4>Yeni Nesil Mantık & Şekil Modelleme</h4>
-                <p>Uzun paragraf sorularını matematiksel denklemlere dönüştürme ve görsel grafik okuma teknikleri öğretilir.</p>
-              </div>
-            </div>
-
-            <div class="step-card">
-              <div class="step-num">3</div>
-              <div class="step-content">
-                <h4>Birebir Ödevlendirme & WhatsApp Soru Hattı</h4>
-                <p>Her ders sonrası seviyeye uygun ödev verilir. Hafta içi çözülemeyen sorular WhatsApp üzerinden anında çözümlenir.</p>
-              </div>
-            </div>
-
-            <div class="step-card">
-              <div class="step-num">4</div>
-              <div class="step-content">
-                <h4>Deneme Analizi & Zaman Yönetimi (Turlama Tekniği)</h4>
-                <p>Öğrencinin sınavda süreyi yetiştirmesi için 'Turlama Tekniği' ve odak yönetimi koçluğu sağlanır.</p>
-              </div>
+              <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">Doğrudan E-Posta İletişimi:</div>
+              <a href="mailto:merdiyehocam@gmail.com" style="color: var(--primary); font-weight: 800; font-size: 1rem;">merdiyehocam@gmail.com</a>
             </div>
           </div>
         </div>
 
-        <!-- Sağ Taraf: Ön Başvuru Formu -->
-        <div class="tutoring-form-card">
-          <div class="form-header">
-            <h3>Özel Ders Ön Başvuru Formu</h3>
-            <p>Formu doldurarak veya doğrudan WhatsApp üzerinden bize yazarak ders programı ve müsaitlik hakkında bilgi alabilirsiniz.</p>
-          </div>
+        <!-- Başvuru Formu -->
+        <div class="tutoring-card">
+          <h3>Ön Başvuru &amp; Tanışma Randevusu</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 22px;">
+            Formu doldurun veya doğrudan WhatsApp üzerinden bize ulaşın. Aynı gün içinde dönüş yapalım.
+          </p>
 
-          <form id="tutoringForm" class="lead-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="formName" class="form-label">Adınız Soyadınız *</label>
-                <input type="text" id="formName" class="form-control" placeholder="Örn: Ayşe Yılmaz" required>
-              </div>
-              <div class="form-group">
-                <label for="formRole" class="form-label">Başvuran Kişi *</label>
-                <select id="formRole" class="form-control">
-                  <option value="Veli">Öğrenci Velisi</option>
-                  <option value="Öğrenci">Öğrencinin Kendisi</option>
-                </select>
-              </div>
+          <form id="tutoringForm">
+            <div class="form-group">
+              <label class="form-label" for="formName">Öğrenci / Veli Adı Soyadı *</label>
+              <input type="text" id="formName" class="form-control" placeholder="Örn: Ayşe Yılmaz" required>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="formPhone" class="form-label">Telefon Numarası *</label>
+                <label class="form-label" for="formRole">Kim Başvuruyor?</label>
+                <select id="formRole" class="form-control">
+                  <option value="Öğrenci">Öğrenci</option>
+                  <option value="Veli">Veli (Anne/Baba)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="formPhone">Telefon Numarası *</label>
                 <input type="tel" id="formPhone" class="form-control" placeholder="05XX XXX XX XX" required>
               </div>
-              <div class="form-group">
-                <label for="formCity" class="form-label">Şehir & İlçe</label>
-                <input type="text" id="formCity" class="form-control" placeholder="Örn: İstanbul / Kadıköy">
-              </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="formCurrentNet" class="form-label">Mevcut Matematik Neti</label>
-                <select id="formCurrentNet" class="form-control">
-                  <option value="0 - 5 Net Arası">0 - 5 Net Arası (Temel İhtiyacı)</option>
-                  <option value="6 - 10 Net Arası">6 - 10 Net Arası (Geliştirilebilir)</option>
-                  <option value="11 - 15 Net Arası">11 - 15 Net Arası (İyi Seviye)</option>
-                  <option value="16 - 20 Net Arası">16 - 20 Net Arası (Derece Hedefi)</option>
-                </select>
+                <label class="form-label" for="formCity">Şehir / İlçe</label>
+                <input type="text" id="formCity" class="form-control" placeholder="Örn: İstanbul / Kadıköy">
               </div>
+
               <div class="form-group">
-                <label for="formTargetSchool" class="form-label">Hedeflenen Okul Türü</label>
-                <input type="text" id="formTargetSchool" class="form-control" placeholder="Örn: Fen Lisesi / Anadolu Lisesi">
+                <label class="form-label" for="formCurrentNet">Mevcut Matematik Neti</label>
+                <select id="formCurrentNet" class="form-control">
+                  <option value="0 - 5 Net">0 - 5 Net (Temel Seviye)</option>
+                  <option value="6 - 11 Net">6 - 11 Net (Orta Seviye)</option>
+                  <option value="12 - 16 Net">12 - 16 Net (İleri Seviye)</option>
+                  <option value="17 - 20 Net">17 - 20 Net (Fen Lisesi Hedefi)</option>
+                </select>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="formNotes" class="form-label">Özel Notunuz / Hedefleriniz</label>
-              <textarea id="formNotes" class="form-control" placeholder="Öğrencinin özel durumu, online veya yüz yüze ders tercihi vb..."></textarea>
+              <label class="form-label" for="formTargetSchool">Hedef Lise / Açıklama</label>
+              <input type="text" id="formTargetSchool" class="form-control" placeholder="Örn: İstanbul Erkek Lisesi, Kadıköy Anadolu...">
             </div>
 
-            <div class="form-actions">
-              <button type="button" id="sendWhatsappBtn" class="btn btn-whatsapp btn-lg" style="width: 100%;">
-                <img src="assets/images/whatsapp-icon.svg" alt="WhatsApp" style="width: 20px; height: 20px;">
-                WhatsApp ile Hemen Bilgi Al
+            <div class="form-group">
+              <label class="form-label" for="formNotes">Ek Bilgi / Notlar (Opsiyonel)</label>
+              <textarea id="formNotes" class="form-control" rows="2" placeholder="Öğrencinin zorlandığı özel konular veya ders saat tercihleri..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+              <button type="submit" class="btn btn-primary" style="flex: 1;">
+                📩 Talebi Gönder
               </button>
-              <button type="submit" class="btn btn-primary" style="width: 100%;">
-                📨 Ön Başvuruyu İlet
+              <button type="button" id="sendWhatsappBtn" class="btn btn-secondary" style="border-color: #25D366; color: #16A34A;">
+                💬 WhatsApp ile Yaz
               </button>
             </div>
           </form>
@@ -318,54 +304,43 @@
     </div>
   </section>
 
-  <!-- ==================== NET & HEDEF HESAPLAMA ARACI ==================== -->
-  <section class="calc-section" id="calculator">
+  <!-- ==================== LGS NET HESAPLAYICI ==================== -->
+  <section class="section section-alt" id="calculator">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">İNTERAKTİF HESAPLAMA</span>
-        <h2 class="section-title">LGS Matematik Net & Hedef Hesaplayıcı</h2>
-        <p class="section-subtitle">
-          Son denemendeki doğru ve yanlış sayını gir; netini, LGS puan katkısını ve senin için en doğru PDF çalışma föyünü anında öğren.
+        <span class="section-tag">ANLIK ANALİZ ARACI</span>
+        <h2 class="section-title">LGS Matematik Net &amp; Puan Hesaplayıcı</h2>
+        <p class="section-desc">
+          Doğru ve yanlış sayılarını girerek netini öğren, seviyene uygun önerilen PDF föyünü keşfet. (3 Yanlış 1 Doğruyu Götürür)
         </p>
       </div>
 
-      <div class="calc-card">
+      <div class="calc-wrapper">
         <div class="calc-grid">
-          <!-- Sol: Girdiler -->
-          <div class="calc-inputs">
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Deneme Sonucunu Gir</h3>
-            
-            <div class="form-group">
-              <label for="calcCorrect" class="form-label" style="display: flex; justify-content: space-between;">
-                <span>Doğru Sayısı (Maks. 20)</span>
-                <span style="color: #10B981; font-weight: 700;">+1 Net</span>
-              </label>
-              <input type="number" id="calcCorrect" class="form-control" value="14" min="0" max="20">
-            </div>
-
-            <div class="form-group">
-              <label for="calcWrong" class="form-label" style="display: flex; justify-content: space-between;">
-                <span>Yanlış Sayısı (3 Yanlış = -1 Net)</span>
-                <span style="color: #EF4444; font-weight: 700;">-0.33 Net</span>
-              </label>
-              <input type="number" id="calcWrong" class="form-control" value="3" min="0" max="20">
-            </div>
-
-            <div style="font-size: 0.82rem; color: var(--text-dim); line-height: 1.4;">
-              * MEB LGS kılavuzuna göre her 3 yanlış 1 doğruyu götürür. Toplam soru sayısı 20 ile sınırlıdır.
-            </div>
+          <div class="calc-input-box">
+            <label for="calcCorrect">Doğru Sayısı (0 - 20)</label>
+            <input type="number" id="calcCorrect" class="calc-number-input" min="0" max="20" value="16">
           </div>
 
-          <!-- Sağ: Sonuç Kutusu -->
-          <div class="calc-result-box">
-            <span style="font-size: 0.85rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Hesaplanan Matematik Neti</span>
-            <div class="result-net-badge" id="calcNetDisplay">13.00</div>
-            <div id="calcScoreDisplay" style="font-size: 1.1rem; font-weight: 800; color: #FBBF24;">+55.9 Puan LGS Etkisi</div>
-            <p class="result-advice" id="calcAdvice">
-              Yükseliş potansiyelin yüksek! Eksik olduğun konuları tespit edip yeni nesil föylerle pekiştir.
-            </p>
-            <div class="result-recommendation" id="calcRecommendation">
-              🎯 <b>Önerilen Föy:</b> <a href="assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf" download style="color: #FBBF24; text-decoration: underline;">Cebirsel İfadeler Föyü</a>
+          <div class="calc-input-box">
+            <label for="calcWrong">Yanlış Sayısı (0 - 20)</label>
+            <input type="number" id="calcWrong" class="calc-number-input" min="0" max="20" value="3">
+          </div>
+        </div>
+
+        <div class="calc-result-box">
+          <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+            Hesaplanan LGS Matematik Neti
+          </div>
+          <div class="calc-net-number" id="calcNetDisplay">15.00</div>
+          <div class="calc-score-sub" id="calcScoreDisplay">+64.5 Puan LGS Etkisi</div>
+
+          <div class="calc-feedback">
+            <div id="calcAdvice" style="margin-bottom: 8px;">
+              ⭐ Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına odaklan.
+            </div>
+            <div id="calcRecommendation" style="font-weight: 700;">
+              🎯 Önerilen Föy: Cebirsel İfadeler ve Özdeşlikler Föyü
             </div>
           </div>
         </div>
@@ -373,87 +348,93 @@
     </div>
   </section>
 
-  <!-- ==================== SOSYAL MEDYA & İÇERİK VİTRİNİ ==================== -->
-  <section class="social-section" id="social">
+  <!-- ==================== SOSYAL MEDYA / SHORTS & REELS ==================== -->
+  <section class="section" id="social">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">DİJİTAL İÇERİKLERİMİZ</span>
-        <h2 class="section-title">YouTube & Instagram'da Merdiye Hoca</h2>
-        <p class="section-subtitle">
-          Hergün paylaşılan hap formüller, yeni nesil soru çözüm videoları ve sınav motivasyon içerikleriyle LGS yolculuğunda yanındayız.
+        <span class="section-tag">DİJİTAL İÇERİKLER</span>
+        <h2 class="section-title">YouTube &amp; Instagram ile Günlük Taktikler</h2>
+        <p class="section-desc">
+          60 saniyede yeni nesil soru taktikleri, hap matematik kuralları ve soru çözüm kampları sosyal medyada seni bekliyor.
         </p>
       </div>
 
-      <div class="social-cards-grid">
+      <div class="social-grid">
         <!-- YouTube Kartı -->
-        <div class="social-card youtube">
+        <div class="social-card">
           <div class="social-card-header">
-            <div class="social-icon-wrapper">
-              <img src="assets/images/youtube-icon.svg" alt="YouTube" style="width: 36px; height: 36px;">
+            <div class="social-icon-circle yt">
+              <img src="assets/images/youtube-icon.svg" alt="YouTube" style="width: 32px; height: 32px;">
             </div>
-            <div>
-              <div class="social-card-title">YouTube Kanalımız</div>
-              <div class="social-handle">@MerdiyeHocam</div>
+            <div class="social-meta">
+              <h4>YouTube: @MerdiyeHocam</h4>
+              <p>LGS Matematik Video Çözümleri &amp; Shorts Kampları</p>
             </div>
           </div>
 
-          <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;">
-            Ayrıntılı konu anlatımları, MEB örnek sorularının adım adım çözümleri ve LGS kamp serileri ile sınav mantığını tam kavra.
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+            Ayrıntılı konu özetleri, MEB örnek sorularının adım adım çözümleri ve 9:16 dikey Shorts ile pratik formüller.
           </p>
 
-          <ul class="social-highlight-list">
-            <li><span>▶</span> LGS Çıkmış Soru & Benzeri Çözüm Kampları</li>
-            <li><span>▶</span> 9:16 Dikey Shorts ile 60 Saniyede Soru Çözüm Taktikleri</li>
-            <li><span>▶</span> Ünitelerin En Çok Soru Çıkan Nokta Atışı Analizleri</li>
-          </ul>
-
-          <div style="margin-top: auto; padding-top: 14px;">
-            <a href="https://www.youtube.com/@MerdiyeHocam?sub_confirmation=1" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; background: #FF0000; box-shadow: 0 4px 18px rgba(255,0,0,0.35);">
-              📺 Abone Ol ve Dersleri Kaçırma
-            </a>
+          <div class="social-stats-bar">
+            <div class="social-stat-unit">
+              <div class="stat-num">12.4K+</div>
+              <div class="stat-lbl">YouTube Abonesi</div>
+            </div>
+            <div class="social-stat-unit">
+              <div class="stat-num">280K+</div>
+              <div class="stat-lbl">Video İzlenmesi</div>
+            </div>
           </div>
+
+          <a href="https://www.youtube.com/@MerdiyeHocam" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: #DC2626;">
+            📺 Kanala Abone Ol &amp; İzle
+          </a>
         </div>
 
         <!-- Instagram Kartı -->
-        <div class="social-card instagram">
+        <div class="social-card">
           <div class="social-card-header">
-            <div class="social-icon-wrapper">
-              <img src="assets/images/instagram-icon.svg" alt="Instagram" style="width: 36px; height: 36px;">
+            <div class="social-icon-circle ig">
+              <img src="assets/images/instagram-icon.svg" alt="Instagram" style="width: 32px; height: 32px;">
             </div>
-            <div>
-              <div class="social-card-title">Instagram Hesabımız</div>
-              <div class="social-handle">@merdiyehocam</div>
+            <div class="social-meta">
+              <h4>Instagram: @merdiyehocam</h4>
+              <p>Reels, Günlük Hikaye Soruları &amp; Sınav Koçluğu</p>
             </div>
           </div>
 
-          <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;">
-            Günlük hikayelerde anlık soru çözümleri, Reels üzerinden hap matematik kuralları ve LGS koçluk paylaşımları.
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+            Öğrencilerden gelen zor soruların Reels çözümleri, hikayelerde anlık mini testler ve özel ders duyuruları.
           </p>
 
-          <ul class="social-highlight-list">
-            <li><span>📸</span> Günlük LGS Matematik Hap Bilgileri & Hikaye Soruları</li>
-            <li><span>📸</span> Öğrencilerden Gelen Zor Soruların Reels Çözümleri</li>
-            <li><span>📸</span> Özel Ders Duyuruları ve Dönemlik Kamp Bilgileri</li>
-          </ul>
-
-          <div style="margin-top: auto; padding-top: 14px;">
-            <a href="https://www.instagram.com/merdiyehocam/" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, #405DE6, #D800B9, #FF0100); box-shadow: 0 4px 18px rgba(216,0,185,0.35);">
-              📸 Instagram'da Takip Et
-            </a>
+          <div class="social-stats-bar">
+            <div class="social-stat-unit">
+              <div class="stat-num">14.2K+</div>
+              <div class="stat-lbl">Instagram Takipçisi</div>
+            </div>
+            <div class="social-stat-unit">
+              <div class="stat-num">%6.8</div>
+              <div class="stat-lbl">Etkileşim Oranı</div>
+            </div>
           </div>
+
+          <a href="https://www.instagram.com/merdiyehocam/" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+            📸 Instagram'da Takip Et
+          </a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ==================== ÖĞRENCİ & VELİ YORUMLARI ==================== -->
-  <section class="testimonials-section" id="testimonials">
+  <section class="section section-alt" id="testimonials">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">BAŞARI HİKAYELERİ</span>
-        <h2 class="section-title">Öğrenci & Veli Deneyimleri</h2>
-        <p class="section-subtitle">
-          Merdiye Hocam ile çalışan öğrencilerimizin başarı yolculukları ve sınav sonuçları.
+        <h2 class="section-title">Öğrenci &amp; Veli Deneyimleri</h2>
+        <p class="section-desc">
+          Merdiye Hocam ile çalışan öğrencilerimizin başarı hikayeleri ve gerçek sınav sonuçları.
         </p>
       </div>
 
@@ -461,15 +442,15 @@
         <div class="testi-card">
           <div>
             <div class="testi-stars">★★★★★</div>
-            <p class="testi-text">
-              "LGS seneme 8-9 matematikle başlamıştım, paragraf sorularından çok çekiniyordum. Merdiye Hocam'ın taktikleri ve birebir ödev takibi sayesinde gerçek LGS'de 19 doğru 1 yanlış yaptım! Sayesinde hedefim olan liseye yerleştim."
+            <p class="testi-quote">
+              "LGS seneme 8 netle başlamıştım. Paragraf tipi matematik sorularında çok panik yapıyordum. Merdiye Hocam'ın taktikleri ve ödev disiplini sayesinde LGS'de 19 doğru yaptım! Kabataş Erkek Lisesi'ndeyim."
             </p>
           </div>
           <div class="testi-author">
             <div class="testi-avatar">EK</div>
-            <div>
-              <div class="testi-name">Emir K.</div>
-              <div class="testi-school">Kabataş Erkek Lisesi Kazanıldı</div>
+            <div class="testi-info">
+              <h5>Emir K.</h5>
+              <p>Kabataş Erkek Lisesi Kazanıldı</p>
             </div>
           </div>
         </div>
@@ -477,15 +458,15 @@
         <div class="testi-card">
           <div>
             <div class="testi-stars">★★★★★</div>
-            <p class="testi-text">
-              "Bir veli olarak en çok takdir ettiğim şey hocamızın düzenli geri bildirimleri ve oğlumun motivasyonunu sürekli yüksek tutması oldu. PDF föyleri de konu özetleri için harika bir kaynak."
+            <p class="testi-quote">
+              "Bir veli olarak en çok takdir ettiğim şey hocamızın düzenli geri bildirimleri ve oğlumun motivasyonunu sürekli yüksek tutması oldu. PDF föyleri de konu tekrarlarında harika bir kaynak."
             </p>
           </div>
           <div class="testi-author">
             <div class="testi-avatar">SY</div>
-            <div>
-              <div class="testi-name">Sema Yılmaz (Veli)</div>
-              <div class="testi-school">Ankara Fen Lisesi Velisi</div>
+            <div class="testi-info">
+              <h5>Sema Yılmaz (Veli)</h5>
+              <p>Ankara Fen Lisesi Velisi</p>
             </div>
           </div>
         </div>
@@ -493,15 +474,15 @@
         <div class="testi-card">
           <div>
             <div class="testi-stars">★★★★★</div>
-            <p class="testi-text">
+            <p class="testi-quote">
               "Cebirsel ifadeler ve Pisagor sorularında sürekli zaman kaybediyordum. Merdiye Hocam'ın YouTube videoları ve föyleriyle soruya bakış açım tamamen değişti. Kesinlikle herkese tavsiye ediyorum!"
             </p>
           </div>
           <div class="testi-author">
-            <div class="testi-avatar">ZD</div>
-            <div>
-              <div class="testi-name">Zeynep D.</div>
-              <div class="testi-school">İstanbul Erkek Lisesi Kazanıldı</div>
+            <div class="testi-avatar">BD</div>
+            <div class="testi-info">
+              <h5>Burak D.</h5>
+              <p>İzmir Fen Lisesi Öğrencisi</p>
             </div>
           </div>
         </div>
@@ -509,45 +490,45 @@
     </div>
   </section>
 
-  <!-- ==================== SIKÇA SORULAN SORULAR ==================== -->
-  <section class="faq-section" id="faq">
+  <!-- ==================== FAQ ACCORDION ==================== -->
+  <section class="section" id="faq">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">MERAK EDİLENLER</span>
         <h2 class="section-title">Sıkça Sorulan Sorular</h2>
-        <p class="section-subtitle">
-          Web sitemiz, PDF arşivimiz ve özel ders sürecimiz hakkında en çok sorulan soruların yanıtları.
+        <p class="section-desc">
+          PDF indirmeleri, özel ders programları ve LGS koçluğu hakkında aklınıza takılan tüm soruların cevapları.
         </p>
       </div>
 
-      <div class="faq-list">
-        <div class="faq-item open">
+      <div class="faq-wrapper">
+        <div class="faq-item">
           <button class="faq-question">
-            <span>Web sitesindeki PDF föyleri tamamen ücretsiz mi?</span>
+            <span>Sitedeki 14 PDF föyü gerçekten tamamen ücretsiz mi?</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Evet! Sitemizde yer alan 14 adet LGS Matematik konu özeti, yeni nesil soru föyü ve deneme sınavı tüm öğrencilerimizin eşit ve kolay eğitime erişebilmesi adına %100 ücretsizdir. Dilediğiniz zaman indirip çıktısını alabilirsiniz.
+            Evet, 8. sınıf LGS Matematik tüm ünitelerine ait konu özetleri, yeni nesil soru föyleri ve sınav provası denemesi öğrencilerimiz için %100 ücretsizdir. Hiçbir üyelik gerekmeden doğrudan PDF olarak indirebilirsiniz.
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>1'e 1 Özel Dersler online mı yoksa yüz yüze mi yapılıyor?</span>
+            <span>1'e 1 Özel dersler online mı yoksa yüz yüze mi yapılıyor?</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Özel derslerimiz Türkiye geneli ve yurtdışındaki öğrencilerimiz için yüksek çözünürlüklü interaktif grafik tablet ve profesyonel dijital tahta eşliğinde online (Zoom / Google Meet) olarak yürütülmektedir. Talep doğrultusunda yüz yüze programlama imkanı da değerlendirilmektedir.
+            Türkiye genelindeki ve yurt dışındaki öğrencilerimizle yüksek çözünürlüklü grafik tablet destekli interaktif online dersler gerçekleştiriyoruz. İstanbul içi belirli lokasyonlarda talep doğrultusunda yüz yüze özel ders de verilmektedir.
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>Öğrencinin yapamadığı sorular hafta içi nasıl çözülüyor?</span>
+            <span>Ders dışında takıldığımız soruları sorabiliyor muyuz?</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Özel ders öğrencilerimize özel 7/24 WhatsApp Soru Hattı bulunmaktadır. Öğrenci hafta içi test çözerken takıldığı soruların fotoğrafını gönderir ve video veya sesli detaylı çözümle geri dönüt alır. Böylece bir sonraki derse kadar konu birikmesi yaşanmaz.
+            Özel ders öğrencilerimize özel 7/24 WhatsApp Soru Hattı bulunmaktadır. Öğrenci hafta içi test çözerken takıldığı soruların fotoğrafını gönderir ve detaylı sesli/video çözümle anında geri dönüt alır.
           </div>
         </div>
 
@@ -583,7 +564,7 @@
           <p>
             LGS Matematik sınavına hazırlanan 8. sınıf öğrencileri ve veliler için yeni nesil soru taktikleri, ücretsiz PDF arşivi ve 1'e 1 özel ders rehberliği.
           </p>
-          <p style="margin-top: 10px; font-weight: 700; color: #FBBF24;">
+          <p style="margin-top: 10px; font-weight: 700; color: var(--primary);">
             "Matematik Çözülür, Başarı Merdiye Hocam'la Gelir!"
           </p>
         </div>
@@ -595,7 +576,7 @@
             <li><a href="#pdf-portal">LGS PDF İndir</a></li>
             <li><a href="#tutoring">Özel Ders Koçluğu</a></li>
             <li><a href="#calculator">Net Hesaplayıcı</a></li>
-            <li><a href="#faq">Sıkça Sorulan Sorular</a></li>
+            <li><a href="admin.html">⚙️ Yönetim Paneli</a></li>
           </ul>
         </div>
 
@@ -605,25 +586,25 @@
             <li><a href="#pdf-portal">Çarpanlar ve Katlar</a></li>
             <li><a href="#pdf-portal">Üslü ve Köklü İfadeler</a></li>
             <li><a href="#pdf-portal">Cebirsel İfadeler</a></li>
-            <li><a href="#pdf-portal">Doğrusal Denklemler & Eğim</a></li>
-            <li><a href="#pdf-portal">Pisagor & Üçgenler</a></li>
+            <li><a href="#pdf-portal">Doğrusal Denklemler &amp; Eğim</a></li>
+            <li><a href="#pdf-portal">Pisagor &amp; Üçgenler</a></li>
           </ul>
         </div>
 
         <div class="footer-col">
-          <h5>Sosyal Medya & İletişim</h5>
+          <h5>Sosyal Medya &amp; İletişim</h5>
           <ul class="footer-links">
             <li><a href="https://www.youtube.com/@MerdiyeHocam" target="_blank" rel="noopener noreferrer">📺 YouTube: @MerdiyeHocam</a></li>
             <li><a href="https://www.instagram.com/merdiyehocam/" target="_blank" rel="noopener noreferrer">📸 Instagram: @merdiyehocam</a></li>
             <li><a href="https://wa.me/905300000000" target="_blank" rel="noopener noreferrer">💬 WhatsApp Destek Hattı</a></li>
-            <li><a href="mailto:iletisim@merdiyehocam.com">✉️ iletisim@merdiyehocam.com</a></li>
+            <li><a href="mailto:merdiyehocam@gmail.com">✉️ merdiyehocam@gmail.com</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
         <div>
-          &copy; 2026 Merdiye Hocam (Merdiye Koç). Tüm Hakları Saklıdır.
+          &copy; 2026 Merdiye Hocam (Merdiye Koç). Tüm Hakları Saklıdır. &bull; <a href="mailto:merdiyehocam@gmail.com" style="color: var(--primary); font-weight: 700;">merdiyehocam@gmail.com</a>
         </div>
         <div>
           MEB Müfredatına ve LGS Sınav Formatına Tam Uyumlu Eğitim Portalı

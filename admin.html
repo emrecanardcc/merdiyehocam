@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merdiye Hocam | Yönetim Paneli &amp; Sosyal Medya Merkezi</title>
+  
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo-icon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    /* Admin Panel Dedicated Styles (White & Lila) */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+      background: var(--bg-base);
+    }
+
+    .admin-sidebar {
+      background: var(--bg-white);
+      border-right: 1.5px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px;
+      z-index: 100;
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 22px;
+      border-bottom: 1.5px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .admin-brand img {
+      height: 42px;
+      width: auto;
+    }
+
+    .admin-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .admin-nav-item button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition-fast);
+    }
+
+    .admin-nav-item button:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .admin-nav-item.active button {
+      background: var(--gradient-brand);
+      color: var(--text-white);
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+    }
+
+    .admin-sidebar-footer {
+      border-top: 1.5px solid var(--border-color);
+      padding-top: 18px;
+    }
+
+    .admin-main {
+      padding: 32px 40px;
+      overflow-y: auto;
+    }
+
+    .admin-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      background: var(--bg-white);
+      padding: 18px 26px;
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-title h1 {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .topbar-title p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: #ECFDF5;
+      color: #059669;
+      font-size: 0.82rem;
+      font-weight: 800;
+      border: 1px solid #A7F3D0;
+    }
+
+    /* Metric Cards Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: var(--bg-white);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .metric-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .metric-growth {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #10B981;
+    }
+
+    /* Visual Charts & Split Sections */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .chart-card {
+      background: var(--bg-white);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .chart-card-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    /* Bar Chart Component */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 18px;
+      height: 180px;
+      padding-top: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar-fill {
+      width: 100%;
+      background: var(--gradient-brand);
+      border-radius: 6px 6px 0 0;
+      transition: height 0.6s ease;
+      min-height: 10px;
+      position: relative;
+    }
+
+    .bar-fill:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-main);
+      color: #FFF;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .bar-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    /* Source distribution bars */
+    .source-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .source-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .source-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .source-progress-bg {
+      height: 8px;
+      background: var(--bg-muted);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .source-progress-fill {
+      height: 100%;
+      background: var(--gradient-brand);
+      border-radius: var(--radius-full);
+    }
+
+    /* Table Styles */
+    .data-card {
+      background: var(--bg-white);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 28px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .admin-table th {
+      background: var(--primary-soft);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      border-bottom: 1.5px solid var(--border-color);
+    }
+
+    .admin-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.92rem;
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    .admin-table tr:hover td {
+      background: var(--bg-card-hover);
+    }
+
+    /* Status Badges */
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .status-pill.new { background: #FEF3C7; color: #D97706; }
+    .status-pill.contacted { background: #E0E7FF; color: #4338CA; }
+    .status-pill.enrolled { background: #ECFDF5; color: #059669; }
+
+    /* Tab Panels */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Dispatcher Box */
+    .dispatcher-box {
+      background: var(--bg-white);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: var(--shadow-md);
+      max-width: 860px;
+      margin-bottom: 30px;
+    }
+
+    .platform-selector {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .platform-checkbox-card {
+      flex: 1;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      background: var(--bg-base);
+    }
+
+    .platform-checkbox-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .platform-checkbox-card input {
+      accent-color: var(--primary);
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Mobile Responsive for Admin */
+    @media (max-width: 900px) {
+      .admin-layout {
+        grid-template-columns: 1fr;
+      }
+      .admin-sidebar {
+        position: relative;
+        height: auto;
+      }
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-main {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="admin-sidebar">
+      <div class="admin-brand">
+        <a href="index.html">
+          <img src="assets/images/logo.svg" alt="Merdiye Hocam Logo">
+        </a>
+      </div>
+
+      <ul class="admin-nav">
+        <li class="admin-nav-item active" data-tab="analyticsTab">
+          <button>📊 Ziyaretçi &amp; Analitik</button>
+        </li>
+        <li class="admin-nav-item" data-tab="pdfTab">
+          <button>📁 PDF Kütüphanesi</button>
+        </li>
+        <li class="admin-nav-item" data-tab="youtubeTab">
+          <button>📺 YouTube İstatistikleri</button>
+        </li>
+        <li class="admin-nav-item" data-tab="instagramTab">
+          <button>📸 Instagram İstatistikleri</button>
+        </li>
+        <li class="admin-nav-item" data-tab="publishTab">
+          <button>🚀 Gönderi / Video Yayınla</button>
+        </li>
+        <li class="admin-nav-item" data-tab="leadsTab">
+          <button>💬 Özel Ders Talepleri</button>
+        </li>
+      </ul>
+
+      <div class="admin-sidebar-footer">
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+          Yönetici: <b>Merdiye Hocam</b><br>
+          <span id="serverModeStatus">🟢 Çevrimiçi Sunucu Aktif</span>
+        </div>
+        <a href="index.html" class="btn btn-secondary btn-sm" style="width: 100%;">
+          🌐 Web Sitesini Aç
+        </a>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="admin-main">
+      <!-- Topbar Header -->
+      <header class="admin-topbar">
+        <div class="topbar-title">
+          <h1 id="topbarTitle">Genel Bakış &amp; Ziyaretçi Analitiği</h1>
+          <p id="topbarSubtitle">Web sitesi ziyaretçi sayıları, LGS föy indirmeleri ve sosyal medya performansı</p>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="live-badge">
+            <span class="pulse-dot"></span>
+            <span id="activeVisitorsTxt">Şu an Sitede: 7 Kişi</span>
+          </span>
+          <button id="refreshDataBtn" class="btn btn-secondary btn-sm" title="Verileri Güncelle">
+            🔄 Yenile
+          </button>
+        </div>
+      </header>
+
+      <!-- ==================== TAB 1: ZİYARETÇİ & SİTE ANALİTİĞİ ==================== -->
+      <section id="analyticsTab" class="tab-panel active">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Toplam Ziyaret</span>
+              <div class="metric-icon">👥</div>
+            </div>
+            <div class="metric-value" id="totalVisitsVal">3,840</div>
+            <div class="metric-growth">▲ %18.4 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Tekil Ziyaretçi</span>
+              <div class="metric-icon">👤</div>
+            </div>
+            <div class="metric-value" id="uniqueVisitsVal">2,190</div>
+            <div class="metric-growth">▲ %12.1 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Sayfa Görüntüleme</span>
+              <div class="metric-icon">📄</div>
+            </div>
+            <div class="metric-value" id="pageViewsVal">8,420</div>
+            <div class="metric-growth">▲ %24.3 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">PDF İndirmeleri</span>
+              <div class="metric-icon">📥</div>
+            </div>
+            <div class="metric-value" id="pdfDownloadsVal">1,450</div>
+            <div class="metric-growth">▲ %31.0 bu ay</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3 class="chart-card-title">Son 7 Günlük Ziyaretçi Trendi</h3>
+              <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700;">Günlük Tekil Ziyaret</span>
+            </div>
+            <div class="bar-chart" id="visitBarChart">
+              <!-- JS ile çizilir -->
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3 class="chart-card-title">Trafik Kaynakları</h3>
+              <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700;">Dağılım</span>
+            </div>
+            <div class="source-list" id="trafficSourceList">
+              <!-- JS ile doldurulur -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Cihaz Dağılımı & Popüler Föyler -->
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3 class="chart-card-title">En Çok İndirilen LGS Föyleri</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Föy Adı</th>
+                    <th>Kategori</th>
+                    <th>İndirme Sayısı</th>
+                    <th>Oran</th>
+                  </tr>
+                </thead>
+                <tbody id="topPdfsTableBody">
+                  <tr>
+                    <td><b>LGS Matematik Altın Formüller Kitapçığı</b></td>
+                    <td><span class="pdf-badge gold">Özet</span></td>
+                    <td>420 İndirme</td>
+                    <td>%29</td>
+                  </tr>
+                  <tr>
+                    <td><b>LGS Yeni Nesil Pro Deneme - 1</b></td>
+                    <td><span class="pdf-badge gold">Deneme</span></td>
+                    <td>310 İndirme</td>
+                    <td>%21</td>
+                  </tr>
+                  <tr>
+                    <td><b>Çarpanlar ve Katlar &amp; EBOB-EKOK</b></td>
+                    <td><span class="pdf-badge">1. Dönem</span></td>
+                    <td>265 İndirme</td>
+                    <td>%18</td>
+                  </tr>
+                  <tr>
+                    <td><b>Kareköklü İfadeler Yeni Nesil</b></td>
+                    <td><span class="pdf-badge">1. Dönem</span></td>
+                    <td>215 İndirme</td>
+                    <td>%15</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3 class="chart-card-title">Cihaz Dağılımı</h3>
+            </div>
+            <div class="source-list" style="margin-top: 10px;">
+              <div class="source-item">
+                <div class="source-meta"><span>📱 Mobil (Telefon)</span><span>%68</span></div>
+                <div class="source-progress-bg"><div class="source-progress-fill" style="width: 68%;"></div></div>
+              </div>
+              <div class="source-item">
+                <div class="source-meta"><span>💻 Masaüstü (PC/Mac)</span><span>%27</span></div>
+                <div class="source-progress-bg"><div class="source-progress-fill" style="width: 27%;"></div></div>
+              </div>
+              <div class="source-item">
+                <div class="source-meta"><span>📟 Tablet</span><span>%5</span></div>
+                <div class="source-progress-bg"><div class="source-progress-fill" style="width: 5%;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: PDF KÜTÜPHANE YÖNETİMİ ==================== -->
+      <section id="pdfTab" class="tab-panel">
+        <div class="data-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">PDF Föy Kütüphanesi</h2>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">Sitede yayınlanan tüm LGS çalışma föylerini ekleyin, güncelleyin veya kaldırın.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button id="openAddPdfModalBtn" class="btn btn-primary btn-sm">
+                ➕ Yeni PDF Föyü Ekle
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;">
+            <input type="text" id="adminPdfSearch" class="form-control" style="max-width: 380px;" placeholder="PDF başlığı veya ünite ara...">
+            <select id="adminPdfFilter" class="form-control" style="max-width: 220px;">
+              <option value="all">Tüm Kategoriler</option>
+              <option value="term1">1. Dönem</option>
+              <option value="term2">2. Dönem</option>
+              <option value="summary">Özet &amp; Formül</option>
+              <option value="trial">Deneme Sınavı</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Föy Başlığı</th>
+                  <th>Ünite / Dönem</th>
+                  <th>Kategori</th>
+                  <th>Dosya / Boyut</th>
+                  <th>Rozet</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="adminPdfTableBody">
+                <!-- JS ile doldurulur -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: YOUTUBE ANALİZ ==================== -->
+      <section id="youtubeTab" class="tab-panel">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">YouTube Abone Sayısı</span>
+              <div class="metric-icon" style="background: #FEE2E2; color: #DC2626;">📺</div>
+            </div>
+            <div class="metric-value" id="ytSubsVal">12.4K</div>
+            <div class="metric-growth">▲ +%14.8 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Toplam Video İzlenmesi</span>
+              <div class="metric-icon" style="background: #FEE2E2; color: #DC2626;">▶</div>
+            </div>
+            <div class="metric-value" id="ytViewsVal">284.5K</div>
+            <div class="metric-growth">▲ +%22.5 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Yayınlanan Video / Shorts</span>
+              <div class="metric-icon">🎬</div>
+            </div>
+            <div class="metric-value" id="ytVideosVal">68</div>
+            <div class="metric-growth">Düzenli içerik akışı</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Toplam İzlenme Süresi</span>
+              <div class="metric-icon">⏳</div>
+            </div>
+            <div class="metric-value" id="ytWatchHoursVal">3,420 s</div>
+            <div class="metric-growth">Ort. Tutma %84.2</div>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="chart-card-header">
+            <h3 class="chart-card-title">En Çok İzlenen YouTube Shorts Videoları (@MerdiyeHocam)</h3>
+            <a href="https://www.youtube.com/@MerdiyeHocam" target="_blank" class="btn btn-secondary btn-sm">Kanalı Aç ↗</a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Shorts Video Başlığı</th>
+                  <th>İzlenme</th>
+                  <th>Beğeni</th>
+                  <th>İzleyiciyi Tutma</th>
+                  <th>Yayın Tarihi</th>
+                </tr>
+              </thead>
+              <tbody id="ytTopShortsBody">
+                <!-- JS ile doldurulur -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 4: INSTAGRAM ANALİZ ==================== -->
+      <section id="instagramTab" class="tab-panel">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Instagram Takipçi</span>
+              <div class="metric-icon" style="background: #FCE7F3; color: #DB2777;">📸</div>
+            </div>
+            <div class="metric-value" id="igFollowersVal">14.2K</div>
+            <div class="metric-growth">▲ +%18.2 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Aylık Erişim (Reach)</span>
+              <div class="metric-icon" style="background: #FCE7F3; color: #DB2777;">🚀</div>
+            </div>
+            <div class="metric-value">142.8K</div>
+            <div class="metric-growth">▲ +%34.0 bu ay</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Etkileşim Oranı</span>
+              <div class="metric-icon">❤️</div>
+            </div>
+            <div class="metric-value">%6.8</div>
+            <div class="metric-growth">Eğitim ortalamasının üzerinde</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Hikaye / Reels İzlenme</span>
+              <div class="metric-icon">👁️</div>
+            </div>
+            <div class="metric-value">28.4K</div>
+            <div class="metric-growth">Ort. 1.2K Kaydetme</div>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="chart-card-header">
+            <h3 class="chart-card-title">Son Reels Videoları Performansı (@merdiyehocam)</h3>
+            <a href="https://www.instagram.com/merdiyehocam/" target="_blank" class="btn btn-secondary btn-sm">Profili Aç ↗</a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Reels İçeriği</th>
+                  <th>İzlenme</th>
+                  <th>Kaydetme</th>
+                  <th>Paylaşım</th>
+                </tr>
+              </thead>
+              <tbody id="igRecentReelsBody">
+                <!-- JS ile doldurulur -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 5: GÖNDERİ / VİDEO YAYINLAMA MERKEZİ ==================== -->
+      <section id="publishTab" class="tab-panel">
+        <div class="dispatcher-box">
+          <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin-bottom: 8px;">
+            YouTube &amp; Instagram Yayınlama Merkezi
+          </h2>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">
+            Hazırladığınız dikey LGS matematik video çözümünü tek tuşla hem YouTube Shorts hem de Instagram Reels platformlarına aynı anda yayınlayın.
+          </p>
+
+          <form id="publishForm">
+            <label class="form-label">Yayınlanacak Platformları Seçin *</label>
+            <div class="platform-selector">
+              <label class="platform-checkbox-card selected" id="ytPlatformCard">
+                <input type="checkbox" id="checkYouTube" checked>
+                <div>
+                  <div style="font-weight: 800; font-size: 0.95rem;">📺 YouTube Shorts</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);">Kanal: @MerdiyeHocam</div>
+                </div>
+              </label>
+
+              <label class="platform-checkbox-card selected" id="igPlatformCard">
+                <input type="checkbox" id="checkInstagram" checked>
+                <div>
+                  <div style="font-weight: 800; font-size: 0.95rem;">📸 Instagram Reels</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);">Hesap: @merdiyehocam</div>
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pubTitle">Video / Gönderi Başlığı *</label>
+              <input type="text" id="pubTitle" class="form-control" placeholder="Örn: 60 Saniyede EBOB-EKOK Taktiği! 🔥" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pubDesc">Açıklama &amp; Notlar</label>
+              <textarea id="pubDesc" class="form-control" rows="3" placeholder="LGS 2026 Matematik hazırlığında bu soru kalıbına dikkat edin. Ücretsiz PDF'ler profildeki linkte!"></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="pubVideoUrl">Video Dosyası veya Bağlantısı</label>
+                <input type="text" id="pubVideoUrl" class="form-control" placeholder="Örn: output/shorts_ebob_final.mp4">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="pubPrivacy">Görünürlük Durumu</label>
+                <select id="pubPrivacy" class="form-control">
+                  <option value="public">Herkese Açık (Public)</option>
+                  <option value="unlisted">Liste Dışı (Unlisted)</option>
+                  <option value="private">Gizli (Private)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin: 20px 0;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-right: 8px;">Önerilen Etiketler:</span>
+              <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#LGS2026">#LGS2026</button>
+              <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#LGSMatematik">#LGSMatematik</button>
+              <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#MerdiyeHocam">#MerdiyeHocam</button>
+              <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#Shorts">#Shorts</button>
+              <button type="button" class="btn btn-secondary btn-sm hashtag-btn" data-tag="#Reels">#Reels</button>
+            </div>
+
+            <button type="submit" id="submitPublishBtn" class="btn btn-primary btn-lg" style="width: 100%;">
+              🚀 Seçilen Platformlara Gönderiyi Yayınla
+            </button>
+          </form>
+        </div>
+
+        <!-- Yayınlanan Gönderiler Geçmişi -->
+        <div class="data-card">
+          <div class="chart-card-header">
+            <h3 class="chart-card-title">Yayınlanan Gönderi Geçmişi</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Tarih</th>
+                  <th>Başlık</th>
+                  <th>Platformlar</th>
+                  <th>Durum</th>
+                  <th>Bağlantılar</th>
+                </tr>
+              </thead>
+              <tbody id="publishedHistoryBody">
+                <!-- JS ile doldurulur -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 6: GELEN ÖZEL DERS TALEPLERİ ==================== -->
+      <section id="leadsTab" class="tab-panel">
+        <div class="data-card">
+          <div class="chart-card-header">
+            <div>
+              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">Özel Ders &amp; Koçluk Başvuruları</h2>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">Web sitesindeki başvuru formunu dolduran veli ve öğrencilerin listesi.</p>
+            </div>
+            <button id="refreshLeadsBtn" class="btn btn-secondary btn-sm">🔄 Talepleri Yenile</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Tarih</th>
+                  <th>Ad Soyad</th>
+                  <th>Rol</th>
+                  <th>Telefon</th>
+                  <th>Şehir</th>
+                  <th>Net Seviyesi</th>
+                  <th>Hedef Lise</th>
+                  <th>Durum</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="adminLeadsTableBody">
+                <!-- JS ile doldurulur -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==================== PDF EKLE / DÜZENLE MODAL ==================== -->
+  <div class="modal-overlay" id="adminPdfModal">
+    <div class="modal-dialog">
+      <button class="modal-close" id="closeAdminPdfModalBtn">✕</button>
+      <h2 id="modalPdfTitle" style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin-bottom: 16px;">
+        Yeni PDF Föyü Ekle
+      </h2>
+
+      <form id="adminPdfForm">
+        <input type="hidden" id="pdfEditId" value="">
+
+        <div class="form-group">
+          <label class="form-label" for="modalPdfName">Föy Başlığı *</label>
+          <input type="text" id="modalPdfName" class="form-control" placeholder="Örn: 15_LGS_Hacim_ve_Prizmalar_Ozel_Foy" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modalPdfSub">Alt Başlık / Kazanım Özeti</label>
+          <input type="text" id="modalPdfSub" class="form-control" placeholder="Örn: Prizmaların Yanal Alanı ve Yeni Nesil Kurgu Soruları">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="modalPdfUnit">Ünite</label>
+            <input type="text" id="modalPdfUnit" class="form-control" placeholder="Örn: 6. Ünite">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="modalPdfCategory">Kategori *</label>
+            <select id="modalPdfCategory" class="form-control" required>
+              <option value="term1">1. Dönem Üniteleri</option>
+              <option value="term2">2. Dönem Üniteleri</option>
+              <option value="summary">Özet &amp; Formül Kitapçığı</option>
+              <option value="trial">Deneme Sınavı</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="modalPdfDifficulty">Zorluk Seviyesi</label>
+            <input type="text" id="modalPdfDifficulty" class="form-control" placeholder="Örn: Temel - Orta - Yeni Nesil">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="modalPdfBadge">Rozet Metni</label>
+            <input type="text" id="modalPdfBadge" class="form-control" placeholder="Örn: ⭐ YENİ FÖY">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="modalPdfFilename">Dosya Adı (.pdf)</label>
+            <input type="text" id="modalPdfFilename" class="form-control" placeholder="Örn: 15_LGS_Hacim_ve_Prizmalar.pdf">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="modalPdfSize">Boyut</label>
+            <input type="text" id="modalPdfSize" class="form-control" value="105 KB">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modalPdfTopics">Konu Etiketleri (Virgülle ayırın)</label>
+          <input type="text" id="modalPdfTopics" class="form-control" placeholder="Örn: Prizma, Yanal Alan, Hacim, Yeni Nesil">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" id="cancelPdfModalBtn" class="btn btn-secondary btn-sm">Vazgeç</button>
+          <button type="submit" class="btn btn-primary btn-sm">Kaydet &amp; Yayınla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Bildirimleri -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Admin Script -->
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
