@@ -2081,3 +2081,346 @@ button, input, select, textarea {
   }
 }
 
+
+/* ==========================================================================
+   📱 NATIVE MOBILE APP EXPERIENCE & RESPONSIVE COMPONENT LAYER
+   ========================================================================== */
+
+/* 1. Desktop Defaults (Hidden on Desktop) */
+.mobile-bottom-bar {
+  display: none;
+}
+.mobile-app-tray {
+  display: none;
+}
+.mobile-sheet-handle {
+  display: none;
+}
+
+/* 2. Mobile Device Active Layer (<= 768px) */
+@media (max-width: 768px) {
+  /* Prevent horizontal overflow on mobile */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Body space for fixed bottom app bar */
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Floating email repositioned above mobile bottom bar */
+  .floating-email {
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 14px !important;
+    padding: 10px 14px !important;
+    font-size: 0.82rem !important;
+  }
+  .floating-email span {
+    display: none;
+  }
+  .floating-email::before {
+    content: "✉";
+    font-size: 1.3rem;
+  }
+
+  /* Compact Mobile Header */
+  .header {
+    height: 60px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+  }
+  .logo-img {
+    height: 38px;
+  }
+  .nav-actions .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.80rem;
+  }
+
+  /* Mobile App Quick Action Tray */
+  .mobile-app-tray {
+    display: block !important;
+    margin: 18px -16px 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-app-tray::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-tray-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 4px 16px;
+    width: max-content;
+  }
+  .mobile-tray-chip {
+    background: #FFFFFF;
+    border: 1.5px solid rgba(124, 58, 237, 0.16);
+    border-radius: 16px;
+    padding: 10px 14px;
+    min-width: 128px;
+    box-shadow: 0 2px 10px rgba(124, 58, 237, 0.05);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .mobile-tray-chip:active {
+    transform: scale(0.96);
+  }
+  .mobile-tray-chip.pulse-chip {
+    background: linear-gradient(135deg, #FAF5FF, #F3E8FF);
+    border-color: #D8B4FE;
+  }
+  .mobile-tray-chip.highlight-chip {
+    background: linear-gradient(135deg, #7C3AED, #9061F9);
+    border-color: #7C3AED;
+  }
+  .mobile-tray-chip.highlight-chip .tray-chip-title,
+  .mobile-tray-chip.highlight-chip .tray-chip-sub {
+    color: #FFFFFF !important;
+  }
+  .tray-chip-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.25;
+    margin-bottom: 2px;
+  }
+  .tray-chip-sub {
+    font-size: 0.70rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .tray-chip-badge {
+    position: absolute;
+    top: -6px;
+    right: 8px;
+    background: var(--primary);
+    color: #FFF;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+  .tray-chip-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10B981;
+    display: inline-block;
+    margin-bottom: 4px;
+    box-shadow: 0 0 6px #10B981;
+  }
+
+  /* Native Mobile Bottom Navigation Bar */
+  .mobile-bottom-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1.5px solid rgba(124, 58, 237, 0.16);
+    box-shadow: 0 -4px 25px rgba(124, 58, 237, 0.08);
+    z-index: 9999;
+    justify-content: space-around;
+    align-items: center;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .mobile-bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #64748B;
+    font-size: 0.68rem;
+    font-weight: 700;
+    flex: 1;
+    height: 100%;
+    transition: color 0.2s ease, transform 0.15s ease;
+    gap: 3px;
+  }
+  .mobile-bar-item:active {
+    transform: scale(0.92);
+  }
+  .mobile-bar-item.active {
+    color: var(--primary);
+    font-weight: 800;
+  }
+  .mobile-bar-icon-wrap {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-bar-icon-wrap svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Center Elevated Icon for Mini Sınav */
+  .mobile-bar-item.highlight-item {
+    margin-top: -18px;
+  }
+  .mobile-bar-center-pill {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #9061F9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    box-shadow: 0 8px 18px rgba(124, 58, 237, 0.35);
+    border: 3px solid #FFFFFF;
+  }
+  .mobile-bar-center-pill svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Native Mobile Bottom Sheet (Modal) */
+  .modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+  }
+  .modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 26px 26px 0 0 !important;
+    margin: 0 !important;
+    max-height: 88vh !important;
+    padding: 16px 20px 34px !important;
+    animation: slideUpSheet 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+  }
+  .mobile-sheet-handle {
+    display: block !important;
+    width: 44px;
+    height: 5px;
+    background: #CBD5E1;
+    border-radius: 999px;
+    margin: 0 auto 14px !important;
+  }
+  .modal-close {
+    top: 14px !important;
+    right: 18px !important;
+    background: var(--bg-muted) !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .pdf-embed-wrapper {
+    height: 280px !important;
+  }
+
+  @keyframes slideUpSheet {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Hero Adjustments for Mobile */
+  .hero-section {
+    padding: 24px 0 32px;
+  }
+  .hero-title {
+    font-size: 1.65rem !important;
+    line-height: 1.25 !important;
+  }
+  .hero-desc {
+    font-size: 0.90rem !important;
+    margin-bottom: 20px !important;
+  }
+  .hero-actions {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .hero-actions .btn {
+    width: 100% !important;
+    text-align: center;
+    padding: 14px 20px !important;
+  }
+
+  /* Countdown Grid for Mobile */
+  .countdown-box {
+    padding: 16px !important;
+  }
+  .countdown-grid {
+    gap: 6px !important;
+  }
+  .countdown-val {
+    font-size: 1.45rem !important;
+  }
+  .countdown-lbl {
+    font-size: 0.68rem !important;
+  }
+
+  /* Category Filter Tabs - Horizontal Swipe */
+  .filter-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 6px !important;
+    gap: 8px !important;
+  }
+  .filter-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+  .filter-tab {
+    flex-shrink: 0 !important;
+    padding: 8px 16px !important;
+    font-size: 0.84rem !important;
+  }
+
+  /* PDF Card Adjustments for Thumb Tapping */
+  .pdf-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .pdf-card {
+    padding: 18px !important;
+    border-radius: 18px !important;
+  }
+  .pdf-btn-group {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  .pdf-btn-group .btn {
+    width: 100% !important;
+    text-align: center;
+    padding: 10px 14px !important;
+    justify-content: center;
+  }
+
+  /* Quiz Option Cards for Mobile */
+  .quiz-options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .quiz-option-card {
+    padding: 14px 16px !important;
+    min-height: 54px !important;
+  }
+}

@@ -123,6 +123,34 @@
             </a>
           </div>
 
+          <!-- Mobile App Quick Action Tray (Sadece Mobil Cihazlarda Aktif) -->
+          <div class="mobile-app-tray">
+            <div class="mobile-tray-scroll">
+              <a href="#mini-quiz" class="mobile-tray-chip pulse-chip">
+                <span class="tray-chip-dot"></span>
+                <span class="tray-chip-title">Günün Sorusu</span>
+                <span class="tray-chip-sub">Canlı Deneme</span>
+              </a>
+              <a href="#pdf-portal" class="mobile-tray-chip">
+                <span class="tray-chip-badge">14 Föy</span>
+                <span class="tray-chip-title">LGS Föyleri</span>
+                <span class="tray-chip-sub">Ücretsiz İndir</span>
+              </a>
+              <a href="#calculator" class="mobile-tray-chip">
+                <span class="tray-chip-title">Lise Simülatörü</span>
+                <span class="tray-chip-sub">Netini Hesapla</span>
+              </a>
+              <a href="#hero" class="mobile-tray-chip">
+                <span class="tray-chip-title">LGS 2026</span>
+                <span class="tray-chip-sub">14 Haziran</span>
+              </a>
+              <a href="#tutoring" class="mobile-tray-chip highlight-chip">
+                <span class="tray-chip-title">Birebir Koçluk</span>
+                <span class="tray-chip-sub">Özel Ders Al</span>
+              </a>
+            </div>
+          </div>
+
           <div class="hero-stats-row">
             <div class="hero-stat-item">
               <h4>14+</h4>
@@ -867,6 +895,7 @@
   <!-- ==================== MODAL DIALOG ==================== -->
   <div class="modal-overlay" id="pdfModal" role="dialog" aria-modal="true">
     <div class="modal-dialog">
+      <div class="mobile-sheet-handle"></div>
       <button class="modal-close" id="modalClose" aria-label="Kapat">✕</button>
       <div id="modalBody">
         <!-- JS ile doldurulur -->
@@ -875,6 +904,40 @@
   </div>
 
   <!-- Toast Bildirim Alanı -->
+  <!-- ==================== MOBILE APP BOTTOM NAVIGATION BAR (Sadece Mobil) ==================== -->
+  <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="Mobil Uygulama Gezinme Menüsü">
+    <a href="#hero" class="mobile-bar-item active" data-tab="hero">
+      <div class="mobile-bar-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span>Ana Sayfa</span>
+    </a>
+    <a href="#pdf-portal" class="mobile-bar-item" data-tab="pdf-portal">
+      <div class="mobile-bar-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <span>Föyler</span>
+    </a>
+    <a href="#mini-quiz" class="mobile-bar-item highlight-item" data-tab="mini-quiz">
+      <div class="mobile-bar-center-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <span>Mini Sınav</span>
+    </a>
+    <a href="#calculator" class="mobile-bar-item" data-tab="calculator">
+      <div class="mobile-bar-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>
+      </div>
+      <span>Lise Sim</span>
+    </a>
+    <a href="#tutoring" class="mobile-bar-item" data-tab="tutoring">
+      <div class="mobile-bar-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </div>
+      <span>Özel Ders</span>
+    </a>
+  </nav>
+
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- JavaScript & Supabase Data Layer -->

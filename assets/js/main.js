@@ -1368,7 +1368,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 12b. Mobile Bottom App Bar Navigation & Active Section Tracking
+  function initMobileNavigation() {
+    const mobileBar = document.getElementById("mobileBottomBar");
+    if (!mobileBar) return;
+
+    const items = mobileBar.querySelectorAll(".mobile-bar-item");
+    const sections = ["hero", "pdf-portal", "mini-quiz", "calculator", "tutoring"];
+    const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean);
+
+    mobileBar.addEventListener("click", (e) => {
+      const item = e.target.closest(".mobile-bar-item");
+      if (!item) return;
+      items.forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+    });
+
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const currentId = entry.target.id;
+            items.forEach(item => {
+              item.classList.toggle("active", item.getAttribute("data-tab") === currentId);
+            });
+          }
+        });
+      }, { threshold: 0.35 });
+
+      sectionEls.forEach(sec => observer.observe(sec));
+    }
+  }
+
   // 13. Başlatma
+  initMobileNavigation();
   setCatalog(PDF_CATALOG);
   syncCatalog();
   pingVisitor();
