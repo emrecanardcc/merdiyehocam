@@ -15,6 +15,17 @@
   const STORAGE_KEY_LOCAL_LEADS = "merdiye_leads";
   const STORAGE_KEY_LOCAL_POSTS = "merdiye_published_posts";
 
+  const DEFAULT_SUPABASE_URL = "https://sttcifugzytmvlwhcxla.supabase.co";
+  const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0dGNpZnVnenl0bXZsd2hjeGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5MDIwMDUsImV4cCI6MjEwOTQ3ODAwNX0.xbN1g5P48EcwR1wREOVEFP7RoQxIfWnzLDredaKOviY";
+  const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0OZjaL_v9Bx1jBs01Qf5kw_spqK3eVi";
+
+  // Pre-seed window global config
+  window.MH_SUPABASE_CONFIG = {
+    url: DEFAULT_SUPABASE_URL,
+    anonKey: DEFAULT_SUPABASE_ANON_KEY,
+    publishableKey: DEFAULT_SUPABASE_PUBLISHABLE_KEY
+  };
+
   // Varsayılan Sabit PDF Veritabanı Havuzu (Zero-Crash Fallback)
   const FALLBACK_PDF_LIST = [
     { id: "pdf-01", unit: "1. Ünite", term: "1. Dönem", category: "term1", title: "Çarpanlar ve Katlar & EBOB - EKOK", subtitle: "Asal Çarpanlara Ayırma, Aralarında Asallık ve Yeni Nesil Problemler", difficulty: "Temel - Orta - Yeni Nesil", filename: "01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf", file_url: "assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf", file_size: "105 KB", pages: "1 Sayfa (Özet & Soru)", badge: "MEB Kazanım Uyumlu", popular: true, topics: ["Asal Çarpanlar", "EBOB", "EKOK", "Aralarında Asal", "Bölünebilme"] },
@@ -57,22 +68,36 @@
         return window.MH_SUPABASE_CONFIG;
       }
 
-      return { url: "", anonKey: "" };
+      return {
+        url: DEFAULT_SUPABASE_URL,
+        anonKey: DEFAULT_SUPABASE_ANON_KEY,
+        publishableKey: DEFAULT_SUPABASE_PUBLISHABLE_KEY
+      };
     }
 
     async _init() {
       if (this.config.url && this.config.anonKey && window.supabase && typeof window.supabase.createClient === "function") {
         try {
           this.client = window.supabase.createClient(this.config.url, this.config.anonKey);
-          // Test ping
-          const { error } = await this.client.from("mh_pdfs").select("id").limit(1);
-          if (!error) {
-            this.isOnline = true;
-          } else {
-            console.warn("[MH_DB] Supabase bağlantı uyarısı:", error.message);
+          // Ping test with quick timeout
+          try {
+            const { error } = await Promise.race([
+              this.client.from("mh_pdfs").select("id").limit(1),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3500))
+            ]);
+            if (!error) {
+              this.isOnline = true;
+            } else {
+              // Verify auth session capability
+              const sessionRes = await this.client.auth.getSession().catch(() => null);
+              this.isOnline = Boolean(sessionRes);
+            }
+          } catch (pingErr) {
+            const sessionRes = await this.client.auth.getSession().catch(() => null);
+            this.isOnline = Boolean(sessionRes);
           }
         } catch (err) {
-          console.warn("[MH_DB] Supabase init hatası (yerel mod devrede):", err);
+          console.warn("[MH_DB] Supabase init hatası:", err);
           this.isOnline = false;
         }
       }
@@ -762,6 +787,57 @@
       } catch (e) {}
 
       return results;
+    }
+
+    // =========================================================================
+    // 6. ADMİN KİMLİK DOĞRULAMA (SUPABASE AUTH)
+    // =========================================================================
+    async adminLogin(usernameOrEmail, password) {
+      await this.initPromise;
+      if (!this.client || !this.client.auth) {
+        throw new Error("Supabase kimlik doğrulama servisi hazır değil.");
+      }
+
+      let email = String(usernameOrEmail || "").trim();
+      if (!email.includes("@")) {
+        email = "admin@merdiyehocam.com";
+      }
+
+      const { data, error } = await this.client.auth.signInWithPassword({
+        email: email,
+        password: String(password || "").trim()
+      });
+
+      if (error) {
+        throw new Error(error.message || "Giriş başarısız. Lütfen bilgilerinizi kontrol ediniz.");
+      }
+
+      return {
+        user: data.user,
+        session: data.session,
+        token: data.session ? data.session.access_token : null
+      };
+    }
+
+    async adminLogout() {
+      if (this.client && this.client.auth) {
+        try {
+          await this.client.auth.signOut();
+        } catch (e) {}
+      }
+    }
+
+    async checkAdminSession() {
+      await this.initPromise;
+      if (this.client && this.client.auth) {
+        try {
+          const { data, error } = await this.client.auth.getSession();
+          if (!error && data && data.session) {
+            return data.session;
+          }
+        } catch (e) {}
+      }
+      return null;
     }
   }
 

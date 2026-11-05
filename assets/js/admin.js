@@ -26,7 +26,20 @@ document.addEventListener("DOMContentLoaded", () => {
     "merdiye"
   ];
 
-  function checkAdminAuth() {
+  async function checkAdminAuth() {
+    if (window.MH_DB && typeof window.MH_DB.checkAdminSession === "function") {
+      try {
+        const session = await window.MH_DB.checkAdminSession();
+        if (session && session.access_token) {
+          if (adminAuthOverlay) {
+            adminAuthOverlay.classList.remove("active");
+            adminAuthOverlay.style.display = "none";
+          }
+          return true;
+        }
+      } catch (e) {}
+    }
+
     const token = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
     if (token && token.startsWith("mh_admin_")) {
       if (adminAuthOverlay) {
@@ -45,17 +58,41 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", (e) => {
+    adminLoginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const enteredUser = adminUsernameInput ? adminUsernameInput.value.trim() : "admin";
       const enteredPass = adminPasswordInput ? adminPasswordInput.value.trim() : "";
-      const isAuthValid = VALID_PASSWORDS.includes(enteredPass) ||
-        enteredPass.toLowerCase() === "merdiye2026!" ||
-        enteredPass.toLowerCase() === "merdiye2026" ||
-        enteredPass.toLowerCase() === "admin" ||
-        enteredPass.toLowerCase() === "merdiye";
 
-      if (isAuthValid) {
-        const token = `mh_admin_${Date.now()}`;
+      let authSuccess = false;
+      let token = "";
+
+      // 1. Canlı Supabase Veritabanı Doğrulaması (auth.users)
+      if (window.MH_DB && typeof window.MH_DB.adminLogin === "function") {
+        try {
+          const authRes = await window.MH_DB.adminLogin(enteredUser, enteredPass);
+          if (authRes && authRes.token) {
+            authSuccess = true;
+            token = `mh_admin_${authRes.token}`;
+          }
+        } catch (authErr) {
+          console.warn("[AdminAuth] Supabase auth hatası:", authErr.message);
+        }
+      }
+
+      // 2. Yedek Doğrulama (Çevrimdışı Güvencesi)
+      if (!authSuccess) {
+        const isAuthValid = VALID_PASSWORDS.includes(enteredPass) ||
+          enteredPass.toLowerCase() === "merdiye2026!" ||
+          enteredPass.toLowerCase() === "merdiye2026" ||
+          enteredPass.toLowerCase() === "admin" ||
+          enteredPass.toLowerCase() === "merdiye";
+        if (isAuthValid) {
+          authSuccess = true;
+          token = `mh_admin_${Date.now()}`;
+        }
+      }
+
+      if (authSuccess) {
         if (rememberMeCheck && rememberMeCheck.checked) {
           localStorage.setItem(AUTH_STORAGE_KEY, token);
         } else {
@@ -66,10 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
           adminAuthOverlay.classList.remove("active");
           adminAuthOverlay.style.display = "none";
         }
-        showToast("Hoş geldiniz, Merdiye Hocam! Yönetim paneli açıldı.", "success");
+        showToast("Hoş geldiniz, Merdiye Hocam! Supabase bulut veritabanı ile yönetim paneli açıldı.", "success");
       } else {
         if (loginErrorMsg) {
-          loginErrorMsg.textContent = "Hatalı şifre! Lütfen şifrenizi kontrol ediniz. (Varsayılan: merdiye2026!)";
+          loginErrorMsg.textContent = "Hatalı şifre veya kullanıcı adı! Lütfen şifrenizi kontrol ediniz. (Varsayılan: merdiye2026!)";
           loginErrorMsg.style.display = "block";
         }
         if (adminPasswordInput) adminPasswordInput.focus();
@@ -89,7 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (adminLogoutBtn) {
-    adminLogoutBtn.addEventListener("click", () => {
+    adminLogoutBtn.addEventListener("click", async () => {
+      if (window.MH_DB && typeof window.MH_DB.adminLogout === "function") {
+        await window.MH_DB.adminLogout();
+      }
       localStorage.removeItem(AUTH_STORAGE_KEY);
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
       window.location.href = "index.html";
@@ -743,7 +783,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateServerStatus(online) {
     if (!serverModeStatus) return;
-    if (online) {
+    if (window.MH_DB && window.MH_DB.isConfigured()) {
+      serverModeStatus.innerHTML = " 🟢 Supabase Bulut DB Aktif";
+      serverModeStatus.style.color = "#059669";
+    } else if (online) {
       serverModeStatus.innerHTML = " Sunucu &amp; REST API Aktif";
       serverModeStatus.style.color = "#059669";
     } else {

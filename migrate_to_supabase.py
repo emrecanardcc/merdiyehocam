@@ -8,6 +8,7 @@ doğrudan Supabase PostgREST API uç noktalarına aktarır (Upsert / Insert).
 import os
 import sys
 import json
+import time
 import argparse
 import urllib.request
 import urllib.parse
@@ -19,6 +20,10 @@ STORAGE_DIR = PROJECT_ROOT / "storage"
 PDFS_JSON_FILE = WEBSITE_DIR / "assets" / "data" / "pdfs.json"
 INQUIRIES_FILE = STORAGE_DIR / "inquiries.json"
 POSTS_FILE = STORAGE_DIR / "published_posts.json"
+QUESTIONS_FILE = STORAGE_DIR / "questions.json"
+
+DEFAULT_SUPABASE_URL = "https://sttcifugzytmvlwhcxla.supabase.co"
+DEFAULT_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0dGNpZnVnenl0bXZsd2hjeGxhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzkwMjAwNSwiZXhwIjoyMTA5NDc4MDA1fQ.p5Eh4_usEO2CJrrZQilVE4WSom9HNZxCxWaBWXUkwVE"
 
 
 def _read_json(file_path: Path, default):
@@ -125,9 +130,10 @@ def migrate_all(supabase_url: str, supabase_key: str):
     posts = _read_json(POSTS_FILE, [])
     print(f"[*] {len(posts)} adet sosyal medya gönderisi taranıyor...")
     post_rows = []
-    for po in posts:
+    for idx, po in enumerate(posts):
+        post_id = str(po.get("id") or f"post_{idx}_{int(time.time())}")
         post_rows.append({
-            "id": po.get("id", f"post_{int(po.get('timestamp', 0))}"),
+            "id": post_id,
             "title": po.get("title", ""),
             "description": po.get("description", ""),
             "platforms": po.get("platforms", []),
@@ -143,25 +149,81 @@ def migrate_all(supabase_url: str, supabase_key: str):
         else:
             print(f"[+] mh_posts tablosuna {len(post_rows)} gönderi başarıyla aktarıldı!")
 
+    # 4. Günün Soruları (Quiz Questions) Göçü
+    questions = _read_json(QUESTIONS_FILE, [])
+    print(f"[*] {len(questions)} adet LGS quiz sorusu taranıyor...")
+    q_rows = []
+    for q in questions:
+        q_rows.append({
+            "unit": q.get("unit", "LGS Matematik"),
+            "question_text": q.get("question", ""),
+            "options": q.get("options", []),
+            "correct_index": int(q.get("correctIndex", 0)),
+            "explanation": q.get("solution") or q.get("explanation", ""),
+            "difficulty": "LGS Ayarı",
+            "is_active": True
+        })
+
+    if q_rows:
+        res = _supabase_request(supabase_url, supabase_key, "mh_quiz_questions", q_rows)
+        if "error" in res:
+            print(f"[-] mh_quiz_questions yüklenirken hata oluştu ({res['status']}): {res['error']}")
+        else:
+            print(f"[+] mh_quiz_questions tablosuna {len(q_rows)} soru başarıyla aktarıldı!")
+
+    # 5. Supabase Auth Admin Kullanıcı Denetimi
+    ensure_admin_user(supabase_url, supabase_key)
+
     print("-" * 70)
     print("[MİGRASYON TAMAMLANDI] Supabase bulut veritabanı senkronizasyonu bitti.")
     print("=" * 70)
 
 
+def ensure_admin_user(supabase_url: str, service_key: str):
+    """Supabase Auth üzerinde Merdiye Hocam admin kullanıcısının varlığını garanti eder."""
+    admin_endpoint = f"{supabase_url.rstrip('/')}/auth/v1/admin/users"
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Content-Type": "application/json"
+    }
+    # Check existing users
+    req = urllib.request.Request(admin_endpoint, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            users = data.get("users", [])
+            for u in users:
+                if u.get("email") == "admin@merdiyehocam.com":
+                    print("[+] Supabase Auth Admin Kullanıcısı Hazır (admin@merdiyehocam.com)")
+                    return
+    except Exception as e:
+        print(f"[-] Supabase Auth kontrol uyarısı: {e}")
+
+    # Create user if not found
+    create_body = json.dumps({
+        "email": "admin@merdiyehocam.com",
+        "password": "merdiye2026!",
+        "email_confirm": True,
+        "user_metadata": {"name": "Merdiye Hocam", "role": "admin"}
+    }).encode("utf-8")
+    create_req = urllib.request.Request(admin_endpoint, data=create_body, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(create_req, timeout=10) as resp:
+            print("[+] Supabase Auth üzerinde yeni Admin kullanıcısı oluşturuldu (admin@merdiyehocam.com)")
+    except Exception as e:
+        print(f"[-] Admin kullanıcısı oluşturulurken hata: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Merdiye Hocam Supabase Veri Göç Betiği")
-    parser.add_argument("--url", default=os.getenv("SUPABASE_URL"), help="Supabase Proje URL")
-    parser.add_argument("--key", default=os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY"), help="Supabase Anon/Public Key")
+    parser.add_argument("--url", default=os.getenv("SUPABASE_URL", DEFAULT_SUPABASE_URL), help="Supabase Proje URL")
+    parser.add_argument("--key", default=os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY") or DEFAULT_SERVICE_ROLE_KEY, help="Supabase API/Service Key")
 
     args = parser.parse_args()
 
-    url = args.url or ""
-    key = args.key or ""
-
-    if not url or not key:
-        print("[HATA] Lütfen Supabase URL ve Key belirtiniz!")
-        print("Örnek: python website/migrate_to_supabase.py --url https://xyz.supabase.co --key eyJhbGci...")
-        sys.exit(1)
+    url = args.url or DEFAULT_SUPABASE_URL
+    key = args.key or DEFAULT_SERVICE_ROLE_KEY
 
     migrate_all(url, key)
 

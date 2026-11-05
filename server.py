@@ -411,8 +411,8 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
 
         # 6. Supabase Status & Config Check
         if clean_path in ("/api/supabase/status", "/api/supabase/config"):
-            sb_url = os.getenv("SUPABASE_URL", "")
-            has_key = bool(os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY"))
+            sb_url = os.getenv("SUPABASE_URL", "https://sttcifugzytmvlwhcxla.supabase.co")
+            has_key = bool(os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0dGNpZnVnenl0bXZsd2hjeGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5MDIwMDUsImV4cCI6MjEwOTQ3ODAwNX0.xbN1g5P48EcwR1wREOVEFP7RoQxIfWnzLDredaKOviY"))
             return self._send_json_response(200, {
                 "configured": bool(sb_url and has_key),
                 "url": sb_url,
