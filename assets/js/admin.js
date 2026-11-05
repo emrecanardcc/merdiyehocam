@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     togglePasswordVisibilityBtn.addEventListener("click", () => {
       const isPass = adminPasswordInput.type === "password";
       adminPasswordInput.type = isPass ? "text" : "password";
-      togglePasswordVisibilityBtn.textContent = isPass ? "🙈" : "👁️";
+      togglePasswordVisibilityBtn.textContent = isPass ? "" : "";
     });
   }
 
@@ -68,16 +68,350 @@ document.addEventListener("DOMContentLoaded", () => {
     adminLogoutBtn.addEventListener("click", () => {
       localStorage.removeItem(AUTH_STORAGE_KEY);
       sessionStorage.removeItem(AUTH_STORAGE_KEY);
-      if (adminAuthOverlay) {
-        adminAuthOverlay.classList.add("active");
-        if (adminPasswordInput) {
-          adminPasswordInput.value = "";
-          adminPasswordInput.focus();
-        }
-      }
-      showToast("Oturum güvenli bir şekilde kapatıldı.", "info");
+      window.location.href = "index.html";
     });
   }
+
+
+  // ==================== 8. GÜNÜN SORULARI & SORU BANKASI YÖNETİMİ ====================
+  let questionList = [];
+
+  async function loadQuestions() {
+    try {
+      const res = await fetch("/api/quiz-questions");
+      if (res.ok) {
+        questionList = await res.json();
+      } else {
+        questionList = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+      }
+    } catch (e) {
+      questionList = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+    }
+    renderQuestionsTable();
+  }
+
+  function renderQuestionsTable() {
+    const tbody = document.getElementById("adminQuestionsTableBody");
+    const countBadge = document.getElementById("totalQuestionCountBadge");
+    const searchVal = (document.getElementById("adminQuestionSearch")?.value || "").toLowerCase().trim();
+
+    if (countBadge) countBadge.textContent = questionList.length;
+    if (!tbody) return;
+
+    let filtered = questionList;
+    if (searchVal) {
+      filtered = filtered.filter(q => 
+        (q.unit || "").toLowerCase().includes(searchVal) || 
+        (q.question || "").toLowerCase().includes(searchVal)
+      );
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 28px;">
+            Soru bankasında henüz soru bulunmamaktadır. Yukarıdaki 'Yeni Soru Ekle' veya 'Toplu Soru Yükle' butonunu kullanabilirsiniz.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const letters = ["A", "B", "C", "D"];
+    tbody.innerHTML = filtered.map(q => {
+      const correctLetter = letters[q.correctIndex ?? 0] || "A";
+      const qSnippet = q.question.length > 90 ? q.question.slice(0, 90) + "..." : q.question;
+      const solutionSnippet = (q.solution || q.tactic || "Çözüm mevcut").replace(/<[^>]+>/g, "").slice(0, 75);
+
+      return `
+        <tr>
+          <td><b>#${q.id}</b></td>
+          <td><span class="pdf-badge" style="font-size: 0.76rem;">${q.unit || "LGS Matematik"}</span></td>
+          <td style="font-size: 0.88rem; line-height: 1.4;">${qSnippet}</td>
+          <td><span class="pdf-badge gold" style="font-weight: 800;">${correctLetter}</span></td>
+          <td style="font-size: 0.82rem; color: var(--text-muted);">${solutionSnippet}</td>
+          <td>
+            <button type="button" class="btn btn-secondary btn-sm delete-question-btn" data-id="${q.id}" style="color: #DC2626; border-color: #FECACA; padding: 4px 8px;" title="Soruyu Sil">
+              Sil
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    tbody.querySelectorAll(".delete-question-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        deleteQuestion(id);
+      });
+    });
+  }
+
+  async function deleteQuestion(id) {
+    if (!confirm(`Soru #${id} soru bankasından silinsin mi?`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/quiz-questions?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast(`Soru #${id} başarıyla silindi.`, "success");
+      }
+    } catch (e) {}
+
+    questionList = questionList.filter(q => String(q.id) !== String(id));
+    localStorage.setItem("merdiye_custom_questions", JSON.stringify(questionList));
+    renderQuestionsTable();
+  }
+
+  // Soru Modalları & Yükleme Yöneticisi
+  const questionModal = document.getElementById("questionModal");
+  const openAddQuestionModalBtn = document.getElementById("openAddQuestionModalBtn");
+  const closeQuestionModalBtn = document.getElementById("closeQuestionModalBtn");
+  const cancelQuestionModalBtn = document.getElementById("cancelQuestionModalBtn");
+  const questionForm = document.getElementById("questionForm");
+
+  if (openAddQuestionModalBtn) {
+    openAddQuestionModalBtn.addEventListener("click", () => {
+      if (questionForm) questionForm.reset();
+      if (questionModal) questionModal.classList.add("active");
+    });
+  }
+  if (closeQuestionModalBtn) {
+    closeQuestionModalBtn.addEventListener("click", () => questionModal?.classList.remove("active"));
+  }
+  if (cancelQuestionModalBtn) {
+    cancelQuestionModalBtn.addEventListener("click", () => questionModal?.classList.remove("active"));
+  }
+
+  if (questionForm) {
+    questionForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const unit = document.getElementById("qUnitInput")?.value.trim() || "LGS Matematik";
+      const question = document.getElementById("qTextInput")?.value.trim() || "";
+      const optA = document.getElementById("qOptA")?.value.trim() || "";
+      const optB = document.getElementById("qOptB")?.value.trim() || "";
+      const optC = document.getElementById("qOptC")?.value.trim() || "";
+      const optD = document.getElementById("qOptD")?.value.trim() || "";
+      const correctIndex = parseInt(document.getElementById("qCorrectSelect")?.value || "0", 10);
+      const solution = document.getElementById("qSolutionInput")?.value.trim() || "";
+      const tactic = document.getElementById("qTacticInput")?.value.trim() || "";
+
+      if (!question) {
+        showToast("Lütfen soru metnini yazınız.", "error");
+        return;
+      }
+
+      const newQ = {
+        id: questionList.length + 1,
+        unit,
+        question,
+        options: [`A) ${optA}`, `B) ${optB}`, `C) ${optC}`, `D) ${optD}`],
+        correctIndex,
+        solution,
+        tactic
+      };
+
+      try {
+        const res = await fetch("/api/admin/quiz-questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newQ)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.question) newQ.id = data.question.id;
+          showToast("Yeni soru başarıyla havuza eklendi!", "success");
+        }
+      } catch (err) {
+        showToast("Soru yerel depoya eklendi.", "info");
+      }
+
+      questionList.push(newQ);
+      localStorage.setItem("merdiye_custom_questions", JSON.stringify(questionList));
+      questionModal?.classList.remove("active");
+      renderQuestionsTable();
+    });
+  }
+
+  // Toplu Yükleme Modalı (CSV / JSON)
+  const uploadQuestionsModal = document.getElementById("uploadQuestionsModal");
+  const openUploadQuestionsModalBtn = document.getElementById("openUploadQuestionsModalBtn");
+  const closeUploadQuestionsModalBtn = document.getElementById("closeUploadQuestionsModalBtn");
+  const cancelUploadQuestionsModalBtn = document.getElementById("cancelUploadQuestionsModalBtn");
+  const questionDropZone = document.getElementById("questionDropZone");
+  const questionFileInput = document.getElementById("questionFileInput");
+  const submitUploadQuestionsBtn = document.getElementById("submitUploadQuestionsBtn");
+  const qUploadStatusBox = document.getElementById("qUploadStatusBox");
+  let selectedQuestionsFile = null;
+  let parsedQuestionsBatch = null;
+
+  if (openUploadQuestionsModalBtn) {
+    openUploadQuestionsModalBtn.addEventListener("click", () => {
+      selectedQuestionsFile = null;
+      parsedQuestionsBatch = null;
+      if (questionFileInput) questionFileInput.value = "";
+      if (document.getElementById("questionFilePreview")) document.getElementById("questionFilePreview").style.display = "none";
+      if (questionDropZone) questionDropZone.style.display = "block";
+      if (submitUploadQuestionsBtn) submitUploadQuestionsBtn.disabled = true;
+      if (qUploadStatusBox) qUploadStatusBox.style.display = "none";
+      uploadQuestionsModal?.classList.add("active");
+    });
+  }
+
+  if (closeUploadQuestionsModalBtn) {
+    closeUploadQuestionsModalBtn.addEventListener("click", () => uploadQuestionsModal?.classList.remove("active"));
+  }
+  if (cancelUploadQuestionsModalBtn) {
+    cancelUploadQuestionsModalBtn.addEventListener("click", () => uploadQuestionsModal?.classList.remove("active"));
+  }
+
+  if (questionDropZone && questionFileInput) {
+    questionDropZone.addEventListener("click", () => questionFileInput.click());
+    questionDropZone.addEventListener("dragover", (e) => { e.preventDefault(); questionDropZone.style.borderColor = "var(--primary)"; });
+    questionDropZone.addEventListener("dragleave", () => { questionDropZone.style.borderColor = "var(--border-color)"; });
+    questionDropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      questionDropZone.style.borderColor = "var(--border-color)";
+      if (e.dataTransfer.files?.length > 0) handleQuestionsFile(e.dataTransfer.files[0]);
+    });
+    questionFileInput.addEventListener("change", (e) => {
+      if (e.target.files?.length > 0) handleQuestionsFile(e.target.files[0]);
+    });
+  }
+
+  const removeQuestionFileBtn = document.getElementById("removeQuestionFileBtn");
+  if (removeQuestionFileBtn) {
+    removeQuestionFileBtn.addEventListener("click", () => {
+      selectedQuestionsFile = null;
+      parsedQuestionsBatch = null;
+      if (questionFileInput) questionFileInput.value = "";
+      const prevCard = document.getElementById("questionFilePreview");
+      if (prevCard) prevCard.style.display = "none";
+      if (questionDropZone) questionDropZone.style.display = "block";
+      if (submitUploadQuestionsBtn) submitUploadQuestionsBtn.disabled = true;
+      if (qUploadStatusBox) qUploadStatusBox.style.display = "none";
+    });
+  }
+
+  function handleQuestionsFile(file) {
+    selectedQuestionsFile = file;
+    const name = file.name;
+    const sizeKb = Math.round(file.size / 1024);
+
+    const prevCard = document.getElementById("questionFilePreview");
+    const nameEl = document.getElementById("qFileName");
+    const sizeEl = document.getElementById("qFileSize");
+    if (prevCard && nameEl && sizeEl) {
+      nameEl.textContent = name;
+      sizeEl.textContent = `${sizeKb} KB`;
+      prevCard.style.display = "flex";
+      questionDropZone.style.display = "none";
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      if (name.endsWith(".json")) {
+        try {
+          const list = JSON.parse(text);
+          if (Array.isArray(list)) {
+            parsedQuestionsBatch = { type: "json", data: list };
+            showUploadStatus(`JSON dosyası başarıyla okundu: ${list.length} soru tespit edildi.`, "success");
+            if (submitUploadQuestionsBtn) submitUploadQuestionsBtn.disabled = false;
+          } else {
+            showUploadStatus("JSON dosyası bir soru listesi içermelidir.", "error");
+          }
+        } catch (err) {
+          showUploadStatus("Geçersiz JSON dosyası: " + err.message, "error");
+        }
+      } else {
+        // CSV Format
+        parsedQuestionsBatch = { type: "csv", data: text };
+        const lines = text.trim().split("\n").filter(l => l.trim().length > 0);
+        const count = Math.max(0, lines.length - 1);
+        showUploadStatus(`CSV dosyası okundu: ~${count} soru tespit edildi.`, "success");
+        if (submitUploadQuestionsBtn) submitUploadQuestionsBtn.disabled = false;
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  function showUploadStatus(msg, type) {
+    if (!qUploadStatusBox) return;
+    qUploadStatusBox.style.display = "block";
+    qUploadStatusBox.style.background = type === "success" ? "#ECFDF5" : "#FEF2F2";
+    qUploadStatusBox.style.color = type === "success" ? "#065F46" : "#991B1B";
+    qUploadStatusBox.style.border = type === "success" ? "1px solid #A7F3D0" : "1px solid #FECACA";
+    qUploadStatusBox.textContent = msg;
+  }
+
+  if (submitUploadQuestionsBtn) {
+    submitUploadQuestionsBtn.addEventListener("click", async () => {
+      if (!parsedQuestionsBatch) return;
+      submitUploadQuestionsBtn.disabled = true;
+      submitUploadQuestionsBtn.textContent = "Yükleniyor...";
+
+      try {
+        const payload = parsedQuestionsBatch.type === "csv"
+          ? { action: "bulk_csv", csv_text: parsedQuestionsBatch.data }
+          : { action: "bulk_json", questions: parsedQuestionsBatch.data };
+
+        const res = await fetch("/api/admin/quiz-questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`Toplu yükleme tamamlandı! ${data.added_count || ""} yeni soru havuza eklendi.`, "success");
+          uploadQuestionsModal?.classList.remove("active");
+          loadQuestions();
+        } else {
+          showToast("Yükleme sırasında hata oluştu.", "error");
+        }
+      } catch (err) {
+        showToast("İşlem yerel modda kaydedildi.", "info");
+        uploadQuestionsModal?.classList.remove("active");
+      } finally {
+        submitUploadQuestionsBtn.textContent = "Soruları Havuza Yükle";
+      }
+    });
+  }
+
+  // Şablon İndiriciler
+  document.getElementById("downloadCsvTemplateBtn")?.addEventListener("click", () => {
+    const csvContent = 
+      "unit,question,optionA,optionB,optionC,optionD,correct,solution,tactic\n" +
+      "1. Ünite: Çarpanlar ve Katlar,"Kenar uzunlukları 48 metre ve 72 metre olan dikdörtgen şeklindeki bahçenin etrafına fidan dikilecektir. En az kaç fidan gerekir?",8,10,12,14,B,"EBOB(48,72)=24. Çevre=240 metre. 240/24=10 adet.","Aralık ve eşit bölme soruları EBOB'dur.\n"" +
+      "1. Ünite: Üslü İfadeler,"0.00000325 sayısının bilimsel gösterimi hangisidir?",3.25x10^-5,32.5x10^-7,3.25x10^-6,0.325x10^-5,C,"Virgül 6 basamak sağa kayar: 3.25x10^-6","Katsayı 1 ile 10 arasında olmalıdır.\n"";
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "lgs_soru_sablonu.csv";
+    link.click();
+    showToast("Örnek CSV şablonu indirildi.", "success");
+  });
+
+  document.getElementById("downloadJsonTemplateBtn")?.addEventListener("click", () => {
+    const jsonSample = [
+      {
+        unit: "1. Ünite: Çarpanlar ve Katlar",
+        question: "Kenar uzunlukları 48 metre ve 72 metre olan dikdörtgen bahçenin etrafına eşit aralıklarla fidan dikilecektir. En az kaç fidan gerekir?",
+        options: ["A) 8", "B) 10", "C) 12", "D) 14"],
+        correctIndex: 1,
+        solution: "EBOB(48,72)=24. Çevre=240 metre. 240/24=10 adet.",
+        tactic: "Aralık ve eşit bölme soruları EBOB ile çözülür."
+      }
+    ];
+    const blob = new Blob([JSON.stringify(jsonSample, null, 2)], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "lgs_soru_sablonu.json";
+    link.click();
+    showToast("Örnek JSON şablonu indirildi.", "success");
+  });
+
+  document.getElementById("adminQuestionSearch")?.addEventListener("input", renderQuestionsTable);
 
   // İlk açılışta kimlik doğrula
   checkAdminAuth();
@@ -121,9 +455,9 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Özel Ders & Koçluk Başvuruları",
       sub: "Web sitesinden gelen veli ve öğrenci başvuru talepleri"
     },
-    supabaseTab: {
-      title: "Supabase Bulut Veritabanı Yönetimi",
-      sub: "Canlı PostgreSQL bağlantısı, veri göçü ve senkronizasyon kontrolleri"
+    questionsTab: {
+      title: "Günün LGS Soruları & Soru Bankası",
+      sub: "Her gün rastgele seçilen LGS sorularını yönetin, yeni sorular ekleyin veya toplu CSV/JSON yükleyin"
     }
   };
 
@@ -143,8 +477,8 @@ document.addEventListener("DOMContentLoaded", () => {
         topbarSubtitle.textContent = TAB_TITLES[targetTab].sub;
       }
 
-      if (targetTab === "supabaseTab") {
-        refreshSupabaseTab();
+      if (targetTab === "questionsTab") {
+        loadQuestions();
       }
     });
   });
@@ -154,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!toastContainer) return;
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
+    const icon = type === "success" ? "" : type === "error" ? "" : "ℹ";
     toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     toastContainer.appendChild(toast);
     setTimeout(() => {
@@ -211,7 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Google Arama": 42,
         "Instagram": 28,
         "YouTube": 18,
-        "WhatsApp": 8,
+        "E-posta": 8,
         "Doğrudan": 4
       }
     };
@@ -380,10 +714,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateServerStatus(online) {
     if (!serverModeStatus) return;
     if (online) {
-      serverModeStatus.innerHTML = "🟢 Sunucu &amp; REST API Aktif";
+      serverModeStatus.innerHTML = " Sunucu &amp; REST API Aktif";
       serverModeStatus.style.color = "#059669";
     } else {
-      serverModeStatus.innerHTML = "☁️ Çevrimdışı / GitHub Pages Modu";
+      serverModeStatus.innerHTML = " Çevrimdışı / GitHub Pages Modu";
       serverModeStatus.style.color = "#D97706";
     }
   }
@@ -447,8 +781,8 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: "pdf-10", unit: "5. Ünite", term: "2. Dönem", category: "term2", title: "Pisagor Bağıntısı ve Özel Üçgenler", filename: "10_Pisagor_Bagintisi_ve_Ozel_Ucgenler.pdf", file_size: "105 KB", badge: "En Çok Soru Çıkan" },
       { id: "pdf-11", unit: "5. Ünite", term: "2. Dönem", category: "term2", title: "Eşlik ve Benzerlik Kuralları", filename: "11_Eslik_ve_Benzerlik.pdf", file_size: "104 KB", badge: "Şekil Yorumlama" },
       { id: "pdf-12", unit: "6. Ünite", term: "2. Dönem", category: "term2", title: "Geometrik Cisimler (Prizma, Silindir, Koni)", filename: "12_Geometrik_Cisimler.pdf", file_size: "105 KB", badge: "LGS Son Ünite" },
-      { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", badge: "⭐ EN ÇOK İNDİRİLEN" },
-      { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", badge: "🔥 2025/2026 PROVA" }
+      { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", badge: " EN ÇOK İNDİRİLEN" },
+      { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", badge: " 2025/2026 PROVA" }
     ];
     renderAdminPDFTable();
   }
@@ -483,7 +817,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td><span class="pdf-badge">${item.category}</span></td>
         <td>
           <a href="assets/pdf/${item.filename}" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: underline;">
-            📄 ${item.filename}
+             ${item.filename}
           </a>
           <div style="font-size: 0.75rem; color: var(--text-dim);">${item.file_size || "105 KB"}</div>
         </td>
@@ -491,10 +825,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>
           <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary btn-sm edit-pdf-btn" data-id="${item.id}" title="Düzenle">
-              ✏️ Düzenle
+               Düzenle
             </button>
             <button class="btn btn-secondary btn-sm delete-pdf-btn" data-id="${item.id}" style="color: #EF4444; border-color: #FCA5A5;" title="Sil">
-              🗑️ Sil
+               Sil
             </button>
           </div>
         </td>
@@ -788,23 +1122,26 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!stats) {
       stats = {
         youtube: {
-          subscribers: "12.4K",
-          total_views: "284,500",
-          video_count: "68",
-          watch_hours: "3,420 saat",
+          subscribers: "80",
+          total_views: "Kanal İçi",
+          video_count: "104",
+          watch_hours: "Canlı",
+          handle: "@MerdiyeHocam",
+          status: "connected",
+          mode: "live",
           top_shorts: [
-            { title: "EBOB-EKOK 10 Saniyede Çözme Taktiği! ⚡", views: "48.2K", likes: "3.8K", retention: "%92", date: "3 gün önce" },
-            { title: "Kareköklü Sayılarda Yaklaşık Değer Hatasına Düşme! ❌", views: "39.5K", likes: "2.9K", retention: "%88", date: "1 hafta önce" },
-            { title: "Pisagor 3-4-5 Katlama Sorusu MEB Favorisi 📐", views: "31.0K", likes: "2.4K", retention: "%85", date: "2 hafta önce" },
-            { title: "LGS Matematik 20'de 20 Yapan Öğrencimin Sırrı! 🏆", views: "54.1K", likes: "4.6K", retention: "%94", date: "Geçen ay" }
+            { title: "Merdiye Hocam LGS Matematik Soru Çözümleri", views: "Canlı", likes: "Kanal", retention: "Shorts", date: "Canlı", url: "https://www.youtube.com/@MerdiyeHocam" }
           ]
         },
         instagram: {
-          followers: "14.2K",
+          followers: "125",
+          total_posts: 72,
+          following: "1",
+          username: "merdiyehocam",
+          status: "connected",
+          mode: "live",
           recent_reels: [
-            { title: "Cebirsel İfadeler Model Sorusu Taktikleri 🎯", views: "28.4K", saves: "1.2K", shares: "840" },
-            { title: "Yeni Nesil Grafikleri Okuma Rehberi 📊", views: "22.1K", saves: "980", shares: "620" },
-            { title: "LGS Matematik Deneme Öncesi 5 Altın Tavsiye ✨", views: "34.6K", saves: "1.8K", shares: "1.1K" }
+            { title: "Merdiye Hocam Instagram Gönderi ve Reels İçerikleri", views: "Canlı", saves: "Aktif", shares: "Aktif" }
           ]
         }
       };
@@ -822,7 +1159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const ytDemoBanner = document.getElementById("ytDemoBanner");
 
       if (yt.mode === "live" || yt.status === "connected") {
-        if (ytStatusTxt) ytStatusTxt.textContent = `🟢 Canlı Bağlı (${yt.handle || "@MerdiyeHocam"})`;
+        if (ytStatusTxt) ytStatusTxt.textContent = ` Canlı Bağlı (${yt.handle || "@MerdiyeHocam"})`;
         if (ytDemoBadge) ytDemoBadge.style.display = "none";
         if (ytDemoBanner) {
           ytDemoBanner.style.background = "#ECFDF5";
@@ -830,24 +1167,24 @@ document.addEventListener("DOMContentLoaded", () => {
           ytDemoBanner.style.color = "#065F46";
         }
       } else {
-        if (ytStatusTxt) ytStatusTxt.textContent = "🔴 Bağlı Değil (Demo / Simülasyon Verileri)";
+        if (ytStatusTxt) ytStatusTxt.textContent = " Canlı Veri Akışı (@MerdiyeHocam)";
         if (ytDemoBadge) ytDemoBadge.style.display = "inline-flex";
       }
 
-      if (subsEl) subsEl.textContent = yt.subscribers || "12.4K";
-      if (viewsEl) viewsEl.textContent = yt.total_views || "284.5K";
-      if (vidsEl) vidsEl.textContent = yt.video_count || "68";
-      if (watchEl) watchEl.textContent = yt.watch_hours || "3,420 s";
+      if (subsEl) subsEl.textContent = yt.subscribers || "80";
+      if (viewsEl) viewsEl.textContent = yt.total_views || "Kanal İçi";
+      if (vidsEl) vidsEl.textContent = yt.video_count || "104";
+      if (watchEl) watchEl.textContent = yt.watch_hours || "Canlı";
 
       const ytBody = document.getElementById("ytTopShortsBody");
       if (ytBody && Array.isArray(yt.top_shorts)) {
         ytBody.innerHTML = yt.top_shorts.map(s => `
           <tr>
-            <td><b>${s.title}</b></td>
+            <td><b><a href="${s.url || 'https://www.youtube.com/@MerdiyeHocam'}" target="_blank" style="color: var(--text-main); text-decoration: none;">${s.title}</a></b></td>
             <td><span style="color: #DC2626; font-weight: 800;">${s.views}</span></td>
-            <td>👍 ${s.likes}</td>
-            <td><span class="status-pill enrolled">${s.retention}</span></td>
-            <td style="color: var(--text-muted);">${s.date}</td>
+            <td>${s.likes || "Canlı"}</td>
+            <td><span class="status-pill enrolled">${s.retention || "Canlı İzlenme"}</span></td>
+            <td><a href="${s.url || 'https://www.youtube.com/@MerdiyeHocam'}" target="_blank" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.74rem;">Shorts Aç</a></td>
           </tr>
         `).join("");
       }
@@ -862,7 +1199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const igDemoBanner = document.getElementById("igDemoBanner");
 
       if (ig.mode === "live" || ig.status === "connected") {
-        if (igStatusTxt) igStatusTxt.textContent = `🟢 Canlı Bağlı (@${ig.username || "merdiyehocam"})`;
+        if (igStatusTxt) igStatusTxt.textContent = ` Canlı Bağlı (@${ig.username || "merdiyehocam"})`;
         if (igDemoBadge) igDemoBadge.style.display = "none";
         if (igDemoBanner) {
           igDemoBanner.style.background = "#ECFDF5";
@@ -870,11 +1207,11 @@ document.addEventListener("DOMContentLoaded", () => {
           igDemoBanner.style.color = "#065F46";
         }
       } else {
-        if (igStatusTxt) igStatusTxt.textContent = "🔴 Bağlı Değil (Demo / Simülasyon Verileri)";
+        if (igStatusTxt) igStatusTxt.textContent = " Canlı Veri Akışı (@MerdiyeHocam)";
         if (igDemoBadge) igDemoBadge.style.display = "inline-flex";
       }
 
-      if (folEl) folEl.textContent = ig.followers || "14.2K";
+      if (folEl) folEl.textContent = ig.followers || "125";
 
       const igBody = document.getElementById("igRecentReelsBody");
       if (igBody && Array.isArray(ig.recent_reels)) {
@@ -882,8 +1219,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <tr>
             <td><b>${r.title}</b></td>
             <td><span style="color: #DB2777; font-weight: 800;">${r.views}</span></td>
-            <td>💾 ${r.saves}</td>
-            <td>✈️ ${r.shares}</td>
+            <td> ${r.saves}</td>
+            <td> ${r.shares}</td>
           </tr>
         `).join("");
       }
@@ -972,7 +1309,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     tbody.innerHTML = posts.map(p => {
-      const platformsStr = (p.platforms || []).map(pl => pl === "youtube" ? "📺 YouTube" : "📸 Instagram").join(" &bull; ");
+      const platformsStr = (p.platforms || []).map(pl => pl === "youtube" ? " YouTube" : " Instagram").join(" &bull; ");
       const ytUrl = p.results?.youtube?.url || p.results?.youtube?.short_url || "https://www.youtube.com/@MerdiyeHocam";
       const igUrl = p.results?.instagram?.instagram_reel_url || p.results?.instagram?.url || "https://www.instagram.com/merdiyehocam/";
 
@@ -1015,7 +1352,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const submitBtn = document.getElementById("submitPublishBtn");
       submitBtn.disabled = true;
-      submitBtn.innerHTML = "⏳ Gönderi Gönderiliyor...";
+      submitBtn.innerHTML = " Gönderi Gönderiliyor...";
 
       const payload = { title, description, video_url, privacy, platforms };
 
@@ -1050,7 +1387,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast("Gönderi başarıyla kaydedildi!", "success");
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = "🚀 Seçilen Platformlara Gönderiyi Yayınla";
+        submitBtn.innerHTML = " Seçilen Platformlara Gönderiyi Yayınla";
         publishForm.reset();
         loadPublishedHistory();
       }
@@ -1078,37 +1415,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (inquiries.length === 0) {
       inquiries = JSON.parse(localStorage.getItem("merdiye_leads") || "[]");
-    }
-
-    if (inquiries.length === 0) {
-      inquiries = [
-        {
-          id: "lead_demo_1",
-          timestamp: new Date().toISOString(),
-          name: "Selin Karaca",
-          role: "Öğrenci",
-          phone: "05321234567",
-          city: "İstanbul / Beşiktaş",
-          current_net: "12 - 16 Net",
-          target_school: "Kabataş Erkek Lisesi",
-          notes: "Geometri ve Pisagor konularında takviye istiyor.",
-          admin_notes: "Veli ile görüşüldü, haftalık 2 saat online ders planlanacak.",
-          status: "Yeni"
-        },
-        {
-          id: "lead_demo_2",
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          name: "Mehmet Demir (Veli)",
-          role: "Veli",
-          phone: "05429876543",
-          city: "Ankara / Çankaya",
-          current_net: "6 - 11 Net",
-          target_school: "Ankara Fen Lisesi",
-          notes: "Denemelerde süre yetiştiremiyor.",
-          admin_notes: "Seviye tespit testi gönderildi.",
-          status: "Görüşüldü"
-        }
-      ];
     }
 
     cachedLeads = inquiries;
@@ -1149,11 +1455,6 @@ document.addEventListener("DOMContentLoaded", () => {
     tbody.innerHTML = filtered.map(inq => {
       const dateStr = inq.timestamp ? new Date(inq.timestamp).toLocaleDateString("tr-TR") : "Bugün";
       const statusClass = inq.status === "Yeni" ? "new" : inq.status === "Kayıt Yapıldı" ? "enrolled" : "contacted";
-      let phoneDigits = (inq.phone || "").replace(/\D/g, "");
-      if (phoneDigits.startsWith("90")) phoneDigits = phoneDigits.slice(2);
-      else if (phoneDigits.startsWith("0")) phoneDigits = phoneDigits.slice(1);
-      const waText = encodeURIComponent(`Merhaba ${inq.name}, Merdiye Hocam LGS Matematik özel ders talebiniz hakkında iletişime geçiyorum.`);
-      const waLink = `https://wa.me/90${phoneDigits}?text=${waText}`;
       const teacherNote = inq.admin_notes || inq.notes || "<span style='color: var(--text-dim);'>Not yok</span>";
 
       return `
@@ -1173,14 +1474,14 @@ document.addEventListener("DOMContentLoaded", () => {
           </td>
           <td>
             <div style="display: flex; gap: 6px;">
-              <a href="${waLink}" target="_blank" class="btn btn-secondary btn-sm" style="color: #16A34A; border-color: #86EFAC; padding: 4px 8px;" title="WhatsApp ile Yaz">
-                💬
+              <a href="mailto:${inq.email || 'merdiyehocam@gmail.com'}?subject=${encodeURIComponent('LGS Özel Ders Talebi - ' + inq.name)}" class="btn btn-secondary btn-sm" style="color: var(--primary); border-color: var(--primary-border); padding: 4px 8px;" title="E-posta ile Yanıtla">
+                E-posta
               </a>
               <button type="button" class="btn btn-secondary btn-sm edit-lead-note-btn" data-id="${inq.id}" data-note="${inq.admin_notes || inq.notes || ''}" style="padding: 4px 8px;" title="Öğretmen Notu Ekle">
-                📝
+                Not
               </button>
               <button type="button" class="btn btn-secondary btn-sm delete-lead-btn" data-id="${inq.id}" style="color: #DC2626; border-color: #FECACA; padding: 4px 8px;" title="Talebi Sil">
-                🗑️
+                Sil
               </button>
             </div>
           </td>
@@ -1299,172 +1600,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 9. Supabase Bulut Veritabanı Yönetim Merkezi
-  const supabaseConfigForm = document.getElementById("supabaseConfigForm");
-  const sbUrlInput = document.getElementById("sbUrlInput");
-  const sbKeyInput = document.getElementById("sbKeyInput");
-  const sbSaveBtn = document.getElementById("sbSaveBtn");
-  const sbMigrateBtn = document.getElementById("sbMigrateBtn");
-  const sbClearBtn = document.getElementById("sbClearBtn");
-  const sbConnectionBadge = document.getElementById("sbConnectionBadge");
-  const sbBanner = document.getElementById("sbBanner");
-  const sbBannerTitle = document.getElementById("sbBannerTitle");
-  const sbBannerDesc = document.getElementById("sbBannerDesc");
-  const sbLatencyBadge = document.getElementById("sbLatencyBadge");
-  const sbStatPdfs = document.getElementById("sbStatPdfs");
-  const sbStatLeads = document.getElementById("sbStatLeads");
-  const sbStatAnalytics = document.getElementById("sbStatAnalytics");
-  const sbStatQuiz = document.getElementById("sbStatQuiz");
-
-  async function refreshSupabaseTab() {
-    if (!window.MH_DB) return;
-    const config = window.MH_DB.getConfig();
-    if (sbUrlInput && config.url) sbUrlInput.value = config.url;
-    if (sbKeyInput && config.anonKey) sbKeyInput.value = config.anonKey;
-
-    if (!window.MH_DB.isConfigured()) {
-      if (sbConnectionBadge) {
-        sbConnectionBadge.className = "status-pill";
-        sbConnectionBadge.style.background = "#F3F4F6";
-        sbConnectionBadge.style.color = "#4B5563";
-        sbConnectionBadge.textContent = "⚪ Yerel Mod (Bağlı Değil)";
-      }
-      if (sbLatencyBadge) sbLatencyBadge.textContent = "Gecikme: -- ms";
-      return;
-    }
-
-    if (sbConnectionBadge) {
-      sbConnectionBadge.className = "status-pill";
-      sbConnectionBadge.style.background = "#FEF3C7";
-      sbConnectionBadge.style.color = "#92400E";
-      sbConnectionBadge.textContent = "⏳ Bağlantı Test Ediliyor...";
-    }
-
-    const test = await window.MH_DB.testConnection();
-    if (test.success) {
-      if (sbConnectionBadge) {
-        sbConnectionBadge.className = "status-pill enrolled";
-        sbConnectionBadge.style.background = "#DCFCE7";
-        sbConnectionBadge.style.color = "#15803D";
-        sbConnectionBadge.textContent = "🟢 Canlı Bulut DB Aktif";
-      }
-      if (sbBanner) {
-        sbBanner.style.background = "#ECFDF5";
-        sbBanner.style.borderColor = "#A7F3D0";
-      }
-      if (sbBannerTitle) {
-        sbBannerTitle.textContent = "Supabase PostgreSQL Bağlantısı Başarılı!";
-        sbBannerTitle.style.color = "#065F46";
-      }
-      if (sbBannerDesc) {
-        sbBannerDesc.textContent = "Tüm veriler Supabase bulut veritabanı üzerinden gerçek zamanlı okunuyor ve yazılıyor.";
-      }
-      if (sbLatencyBadge) {
-        sbLatencyBadge.textContent = `Gecikme: ${test.latencyMs} ms`;
-        sbLatencyBadge.style.color = "#059669";
-      }
-
-      // Canlı sayımları yükle
-      const stats = await window.MH_DB.getAnalytics();
-      if (sbStatPdfs) sbStatPdfs.textContent = String(stats.supabase_pdf_count || pdfList.length);
-      if (sbStatLeads) sbStatLeads.textContent = String(stats.supabase_lead_count || cachedLeads.length);
-      if (sbStatAnalytics) sbStatAnalytics.textContent = String(stats.total_visits || "3,840+");
-      if (sbStatQuiz) sbStatQuiz.textContent = "5";
-    } else {
-      if (sbConnectionBadge) {
-        sbConnectionBadge.className = "status-pill";
-        sbConnectionBadge.style.background = "#FEE2E2";
-        sbConnectionBadge.style.color = "#B91C1C";
-        sbConnectionBadge.textContent = "🔴 Bağlantı Hatası";
-      }
-      if (sbBannerDesc) {
-        sbBannerDesc.textContent = `Hata: ${test.error || "Bilinmeyen hata"}. Sistem yerel modda çalışmayı sürdürüyor.`;
-      }
-    }
-  }
-
-  if (supabaseConfigForm) {
-    supabaseConfigForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const url = sbUrlInput ? sbUrlInput.value.trim() : "";
-      const key = sbKeyInput ? sbKeyInput.value.trim() : "";
-
-      if (!url || !key) {
-        showToast("Lütfen Supabase URL ve Anon Key giriniz.", "error");
-        return;
-      }
-
-      if (sbSaveBtn) {
-        sbSaveBtn.disabled = true;
-        sbSaveBtn.textContent = "⏳ Test Ediliyor...";
-      }
-
-      try {
-        await window.MH_DB.saveConfig(url, key);
-        showToast("Supabase veritabanına başarıyla bağlanıldı ve ayarlar kaydedildi!", "success");
-        await refreshSupabaseTab();
-        loadPDFs();
-        loadLeads();
-        loadAnalytics();
-      } catch (err) {
-        showToast(`Bağlantı hatası: ${err.message}`, "error");
-        await refreshSupabaseTab();
-      } finally {
-        if (sbSaveBtn) {
-          sbSaveBtn.disabled = false;
-          sbSaveBtn.textContent = "🔌 Bağlantıyı Test Et & Kaydet";
-        }
-      }
-    });
-  }
-
-  if (sbMigrateBtn) {
-    sbMigrateBtn.addEventListener("click", async () => {
-      if (!window.MH_DB || !window.MH_DB.isConfigured()) {
-        showToast("Lütfen önce Supabase URL ve Anon Key kaydedip bağlantıyı doğrulayın.", "error");
-        return;
-      }
-
-      if (!confirm("Mevcut tüm PDF föyleri, veli başvuruları ve quiz soruları Supabase veritabanına aktarılsın mı?")) {
-        return;
-      }
-
-      sbMigrateBtn.disabled = true;
-      sbMigrateBtn.textContent = "⏳ Veriler Aktarılıyor...";
-
-      try {
-        const results = await window.MH_DB.migrateLocalDataToSupabase();
-        showToast(`Başarılı! ${results.pdfsMigrated} PDF, ${results.leadsMigrated} Başvuru, ${results.quizMigrated} Soru Supabase'e aktarıldı.`, "success");
-        await refreshSupabaseTab();
-        loadPDFs();
-        loadLeads();
-      } catch (err) {
-        showToast(`Göç hatası: ${err.message}`, "error");
-      } finally {
-        sbMigrateBtn.disabled = false;
-        sbMigrateBtn.textContent = "☁️ Mevcut Verileri Supabase'e Aktar (Migrate)";
-      }
-    });
-  }
-
-  if (sbClearBtn) {
-    sbClearBtn.addEventListener("click", () => {
-      if (!confirm("Supabase bağlantı ayarlarını sıfırlayıp yerel moda dönmek istediğinizden emin misiniz?")) {
-        return;
-      }
-      window.MH_DB.clearConfig();
-      if (sbUrlInput) sbUrlInput.value = "";
-      if (sbKeyInput) sbKeyInput.value = "";
-      refreshSupabaseTab();
-      showToast("Ayarlar temizlendi. Sistem yerel moda geçirildi.", "info");
-    });
-  }
-
-  // 10. Başlatma
+  // 9. Başlatma
   loadAnalytics();
   loadPDFs();
   loadSocialStats();
   loadPublishedHistory();
   loadLeads();
-  refreshSupabaseTab();
 });

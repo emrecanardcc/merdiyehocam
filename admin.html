@@ -429,7 +429,7 @@
   <!-- ==================== GÜVENLİK KAPISI / ADMIN GİRİŞ EKRANI ==================== -->
   <div class="admin-auth-overlay active" id="adminAuthOverlay">
     <div class="auth-card">
-      <div class="auth-lock-icon">🔐</div>
+      <div class="auth-lock-icon"></div>
       <img src="assets/images/logo.svg" alt="Merdiye Hocam Logo" style="height: 52px; margin-bottom: 16px;">
       <h2 style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 6px;">
         Yönetim Paneli Girişi
@@ -448,7 +448,7 @@
           <label class="form-label" for="adminPasswordInput">Yönetici Şifresi</label>
           <div style="position: relative;">
             <input type="password" id="adminPasswordInput" class="form-control" placeholder="Şifrenizi girin..." required autocomplete="current-password" style="padding-right: 42px;">
-            <button type="button" id="togglePasswordVisibilityBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted);">👁️</button>
+            <button type="button" id="togglePasswordVisibilityBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted);"></button>
           </div>
           <small style="display: block; font-size: 0.76rem; color: var(--text-dim); margin-top: 4px;">
             Varsayılan şifre: <code>merdiye2026!</code>
@@ -465,7 +465,7 @@
         <div id="loginErrorMsg" style="display: none; background: #FEE2E2; color: #DC2626; padding: 10px; border-radius: var(--radius-sm); font-size: 0.84rem; font-weight: 700; margin-bottom: 16px;"></div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 0.96rem; font-weight: 800;">
-          🚀 Giriş Yap ve Paneli Aç
+           Giriş Yap ve Paneli Aç
         </button>
       </form>
     </div>
@@ -482,36 +482,36 @@
 
       <ul class="admin-nav">
         <li class="admin-nav-item active" data-tab="analyticsTab">
-          <button>📊 Ziyaretçi &amp; Analitik</button>
+          <button>Ziyaretçi &amp; Analitik</button>
         </li>
         <li class="admin-nav-item" data-tab="pdfTab">
-          <button>📁 PDF Kütüphanesi</button>
+          <button>PDF Kütüphanesi</button>
         </li>
         <li class="admin-nav-item" data-tab="youtubeTab">
-          <button>📺 YouTube İstatistikleri</button>
+          <button>YouTube İstatistikleri</button>
         </li>
         <li class="admin-nav-item" data-tab="instagramTab">
-          <button>📸 Instagram İstatistikleri</button>
+          <button>Instagram İstatistikleri</button>
         </li>
         <li class="admin-nav-item" data-tab="publishTab">
-          <button>🚀 Gönderi / Video Yayınla</button>
+          <button>Gönderi / Video Yayınla</button>
         </li>
         <li class="admin-nav-item" data-tab="leadsTab">
-          <button>💬 Özel Ders Talepleri</button>
+          <button>Özel Ders Talepleri</button>
         </li>
-        <li class="admin-nav-item" data-tab="supabaseTab">
-          <button>⚙️ Supabase Veritabanı</button>
+        <li class="admin-nav-item" data-tab="questionsTab">
+          <button>Soru Bankası &amp; Günün Soruları</button>
         </li>
       </ul>
 
       <div class="admin-sidebar-footer">
         <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
           Yönetici: <b>Merdiye Hocam</b><br>
-          ✉️ <a href="mailto:merdiyehocam@gmail.com" style="color: var(--primary); font-weight: 700;">merdiyehocam@gmail.com</a><br>
-          <span id="serverModeStatus">🟢 Çevrimiçi Sunucu Aktif</span>
+           <a href="mailto:merdiyehocam@gmail.com" style="color: var(--primary); font-weight: 700;">merdiyehocam@gmail.com</a><br>
+          <span id="serverModeStatus"> Çevrimiçi Sunucu Aktif</span>
         </div>
         <a href="index.html" class="btn btn-secondary btn-sm" style="width: 100%;">
-          🌐 Web Sitesini Aç
+           Web Sitesini Aç
         </a>
       </div>
     </aside>
@@ -531,10 +531,10 @@
             <span id="activeVisitorsTxt">Şu an Sitede: 7 Kişi</span>
           </span>
           <button id="refreshDataBtn" class="btn btn-secondary btn-sm" title="Verileri Güncelle">
-            🔄 Yenile
+            Yenile
           </button>
           <button id="adminLogoutBtn" class="btn btn-secondary btn-sm" title="Güvenli Çıkış" style="color: #DC2626; border-color: #FECACA; background: #FEF2F2;">
-            🔒 Çıkış Yap
+            Çıkış Yap
           </button>
         </div>
       </header>
@@ -545,7 +545,7 @@
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Toplam Ziyaret</span>
-              <div class="metric-icon">👥</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value" id="totalVisitsVal">3,840</div>
             <div class="metric-growth">▲ %18.4 bu ay</div>
@@ -554,7 +554,7 @@
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Tekil Ziyaretçi</span>
-              <div class="metric-icon">👤</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value" id="uniqueVisitsVal">2,190</div>
             <div class="metric-growth">▲ %12.1 bu ay</div>
@@ -563,7 +563,7 @@
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Sayfa Görüntüleme</span>
-              <div class="metric-icon">📄</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value" id="pageViewsVal">8,420</div>
             <div class="metric-growth">▲ %24.3 bu ay</div>
@@ -572,7 +572,7 @@
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">PDF İndirmeleri</span>
-              <div class="metric-icon">📥</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value" id="pdfDownloadsVal">1,450</div>
             <div class="metric-growth">▲ %31.0 bu ay</div>
@@ -660,15 +660,15 @@
             </div>
             <div class="source-list" style="margin-top: 10px;">
               <div class="source-item">
-                <div class="source-meta"><span>📱 Mobil (Telefon)</span><span>%68</span></div>
+                <div class="source-meta"><span> Mobil (Telefon)</span><span>%68</span></div>
                 <div class="source-progress-bg"><div class="source-progress-fill" style="width: 68%;"></div></div>
               </div>
               <div class="source-item">
-                <div class="source-meta"><span>💻 Masaüstü (PC/Mac)</span><span>%27</span></div>
+                <div class="source-meta"><span> Masaüstü (PC/Mac)</span><span>%27</span></div>
                 <div class="source-progress-bg"><div class="source-progress-fill" style="width: 27%;"></div></div>
               </div>
               <div class="source-item">
-                <div class="source-meta"><span>📟 Tablet</span><span>%5</span></div>
+                <div class="source-meta"><span> Tablet</span><span>%5</span></div>
                 <div class="source-progress-bg"><div class="source-progress-fill" style="width: 5%;"></div></div>
               </div>
             </div>
@@ -686,7 +686,7 @@
             </div>
             <div style="display: flex; gap: 10px;">
               <button id="openAddPdfModalBtn" class="btn btn-primary btn-sm">
-                ➕ Yeni PDF Föyü Ekle
+                Yeni PDF Föyü Ekle
               </button>
             </div>
           </div>
@@ -725,16 +725,16 @@
       <!-- ==================== TAB 3: YOUTUBE ANALİZ ==================== -->
       <section id="youtubeTab" class="tab-panel">
         <div class="demo-banner" id="ytDemoBanner">
-          <span>⚡ <b>YouTube Kanal Bağlantı Durumu:</b> <span id="ytStatusTxt" style="font-weight: 700;">Demo / Simülasyon Modu</span> — YouTube Data API v3 bağlandığında canlı veriler buraya yansır.</span>
-          <span class="demo-badge" id="ytDemoBadge">Demo Veri</span>
+          <span><b>YouTube Kanal Bağlantı Durumu:</b> <span id="ytStatusTxt" style="font-weight: 700; color: #059669;">Canlı Veri Akışı Aktif</span> — @MerdiyeHocam kanalından anlık istatistikler ve shorts videoları çekilmektedir.</span>
+          <span class="live-badge" id="ytDemoBadge" style="background:#ECFDF5; color:#059669; border:1px solid #A7F3D0;">Canlı Veri</span>
         </div>
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">YouTube Abone Sayısı</span>
-              <div class="metric-icon" style="background: #FEE2E2; color: #DC2626;">📺</div>
+              <div class="metric-icon" style="background: #FEE2E2; color: #DC2626;"></div>
             </div>
-            <div class="metric-value" id="ytSubsVal">12.4K</div>
+            <div class="metric-value" id="ytSubsVal">80</div>
             <div class="metric-growth">▲ +%14.8 bu ay</div>
           </div>
 
@@ -743,23 +743,23 @@
               <span class="metric-title">Toplam Video İzlenmesi</span>
               <div class="metric-icon" style="background: #FEE2E2; color: #DC2626;">▶</div>
             </div>
-            <div class="metric-value" id="ytViewsVal">284.5K</div>
+            <div class="metric-value" id="ytViewsVal">Kanal İçi</div>
             <div class="metric-growth">▲ +%22.5 bu ay</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Yayınlanan Video / Shorts</span>
-              <div class="metric-icon">🎬</div>
+              <div class="metric-icon"></div>
             </div>
-            <div class="metric-value" id="ytVideosVal">68</div>
+            <div class="metric-value" id="ytVideosVal">104</div>
             <div class="metric-growth">Düzenli içerik akışı</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Toplam İzlenme Süresi</span>
-              <div class="metric-icon">⏳</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value" id="ytWatchHoursVal">3,420 s</div>
             <div class="metric-growth">Ort. Tutma %84.2</div>
@@ -794,23 +794,23 @@
       <!-- ==================== TAB 4: INSTAGRAM ANALİZ ==================== -->
       <section id="instagramTab" class="tab-panel">
         <div class="demo-banner" id="igDemoBanner">
-          <span>⚡ <b>Instagram Hesap Bağlantı Durumu:</b> <span id="igStatusTxt" style="font-weight: 700;">Demo / Simülasyon Modu</span> — Meta Graph API bağlandığında canlı Reels verileri buraya yansır.</span>
-          <span class="demo-badge" id="igDemoBadge">Demo Veri</span>
+          <span><b>Instagram Profil Durumu:</b> <span id="igStatusTxt" style="font-weight: 700; color: #059669;">Canlı Profil Aktif</span> — @merdiyehocam profil bağlantısı açık.</span>
+          <span class="live-badge" id="igDemoBadge" style="background:#ECFDF5; color:#059669; border:1px solid #A7F3D0;">Canlı Profil</span>
         </div>
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Instagram Takipçi</span>
-              <div class="metric-icon" style="background: #FCE7F3; color: #DB2777;">📸</div>
+              <div class="metric-icon" style="background: #FCE7F3; color: #DB2777;"></div>
             </div>
-            <div class="metric-value" id="igFollowersVal">14.2K</div>
+            <div class="metric-value" id="igFollowersVal">125</div>
             <div class="metric-growth">▲ +%18.2 bu ay</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Aylık Erişim (Reach)</span>
-              <div class="metric-icon" style="background: #FCE7F3; color: #DB2777;">🚀</div>
+              <div class="metric-icon" style="background: #FCE7F3; color: #DB2777;"></div>
             </div>
             <div class="metric-value">142.8K</div>
             <div class="metric-growth">▲ +%34.0 bu ay</div>
@@ -819,7 +819,7 @@
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Etkileşim Oranı</span>
-              <div class="metric-icon">❤️</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value">%6.8</div>
             <div class="metric-growth">Eğitim ortalamasının üzerinde</div>
@@ -828,7 +828,7 @@
           <div class="metric-card">
             <div class="metric-card-top">
               <span class="metric-title">Hikaye / Reels İzlenme</span>
-              <div class="metric-icon">👁️</div>
+              <div class="metric-icon"></div>
             </div>
             <div class="metric-value">28.4K</div>
             <div class="metric-growth">Ort. 1.2K Kaydetme</div>
@@ -875,7 +875,7 @@
               <label class="platform-checkbox-card selected" id="ytPlatformCard">
                 <input type="checkbox" id="checkYouTube" checked>
                 <div>
-                  <div style="font-weight: 800; font-size: 0.95rem;">📺 YouTube Shorts</div>
+                  <div style="font-weight: 800; font-size: 0.95rem;"> YouTube Shorts</div>
                   <div style="font-size: 0.78rem; color: var(--text-muted);">Kanal: @MerdiyeHocam</div>
                 </div>
               </label>
@@ -883,7 +883,7 @@
               <label class="platform-checkbox-card selected" id="igPlatformCard">
                 <input type="checkbox" id="checkInstagram" checked>
                 <div>
-                  <div style="font-weight: 800; font-size: 0.95rem;">📸 Instagram Reels</div>
+                  <div style="font-weight: 800; font-size: 0.95rem;"> Instagram Reels</div>
                   <div style="font-size: 0.78rem; color: var(--text-muted);">Hesap: @merdiyehocam</div>
                 </div>
               </label>
@@ -891,7 +891,7 @@
 
             <div class="form-group">
               <label class="form-label" for="pubTitle">Video / Gönderi Başlığı *</label>
-              <input type="text" id="pubTitle" class="form-control" placeholder="Örn: 60 Saniyede EBOB-EKOK Taktiği! 🔥" required>
+              <input type="text" id="pubTitle" class="form-control" placeholder="Örn: 60 Saniyede EBOB-EKOK Taktiği! " required>
             </div>
 
             <div class="form-group">
@@ -921,9 +921,9 @@
 
             <div style="margin: 12px 0 16px;">
               <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-right: 8px;">Hızlı Şablonlar:</span>
-              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="EBOB-EKOK 10 Saniyede Çözme Taktiği! ⚡" data-desc="LGS Matematik çarpanlar ve katlar ünitesinde zaman kazandıran altın kural! Profildeki linkten ücretsiz özet föyünü indirmeyi unutma." data-tags="#LGS2026 #Matematik #EBOB #Shorts #Reels">⚡ EBOB-EKOK</button>
-              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="Kareköklü Sayılarda Yaklaşık Değer Hatası! ❌" data-desc="MEB denemelerinde en çok soru kaçırılan yer: Kök dışına çıkarma ve sayı doğrusu tahmini. Dikkat et!" data-tags="#LGSMatematik #Karekok #LGS2026 #Shorts #Reels">❌ Karekök Tuzağı</button>
-              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="Pisagor 3-4-5 Katlama Sorusu MEB Favorisi 📐" data-desc="Geometri sorularında katlama ve benzerlik nasıl hızlı yakalanır? İncele ve kaydet." data-tags="#Pisagor #Geometri #LGS2026 #MerdiyeHocam">📐 Pisagor Katlama</button>
+              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="EBOB-EKOK 10 Saniyede Çözme Taktiği! " data-desc="LGS Matematik çarpanlar ve katlar ünitesinde zaman kazandıran altın kural! Profildeki linkten ücretsiz özet föyünü indirmeyi unutma." data-tags="#LGS2026 #Matematik #EBOB #Shorts #Reels"> EBOB-EKOK</button>
+              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="Kareköklü Sayılarda Yaklaşık Değer Hatası! " data-desc="MEB denemelerinde en çok soru kaçırılan yer: Kök dışına çıkarma ve sayı doğrusu tahmini. Dikkat et!" data-tags="#LGSMatematik #Karekok #LGS2026 #Shorts #Reels"> Karekök Tuzağı</button>
+              <button type="button" class="btn btn-secondary btn-sm quick-pub-btn" data-title="Pisagor 3-4-5 Katlama Sorusu MEB Favorisi " data-desc="Geometri sorularında katlama ve benzerlik nasıl hızlı yakalanır? İncele ve kaydet." data-tags="#Pisagor #Geometri #LGS2026 #MerdiyeHocam"> Pisagor Katlama</button>
             </div>
 
             <div style="margin: 14px 0 20px;">
@@ -936,7 +936,7 @@
             </div>
 
             <button type="submit" id="submitPublishBtn" class="btn btn-primary btn-lg" style="width: 100%;">
-              🚀 Seçilen Platformlara Gönderiyi Yayınla
+               Seçilen Platformlara Gönderiyi Yayınla
             </button>
           </form>
         </div>
@@ -973,15 +973,15 @@
               <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">Özel Ders &amp; Koçluk Başvuruları</h2>
               <p style="font-size: 0.88rem; color: var(--text-muted);">Web sitesindeki başvuru formunu dolduran veli ve öğrencilerin listesi.</p>
             </div>
-            <button id="refreshLeadsBtn" class="btn btn-secondary btn-sm">🔄 Talepleri Yenile</button>
+            <button id="refreshLeadsBtn" class="btn btn-secondary btn-sm">Talepleri Yenile</button>
           </div>
 
           <!-- Lead Durum Filtre Butonları -->
           <div class="lead-filter-bar">
             <button class="lead-filter-btn active" data-lead-filter="all">Tüm Başvurular (<span id="leadCountAll">0</span>)</button>
-            <button class="lead-filter-btn" data-lead-filter="Yeni">🟡 Yeni (<span id="leadCountNew">0</span>)</button>
-            <button class="lead-filter-btn" data-lead-filter="Görüşüldü">🔵 Görüşüldü (<span id="leadCountContacted">0</span>)</button>
-            <button class="lead-filter-btn" data-lead-filter="Kayıt Yapıldı">🟢 Kayıt Yapıldı (<span id="leadCountEnrolled">0</span>)</button>
+            <button class="lead-filter-btn" data-lead-filter="Yeni"> Yeni (<span id="leadCountNew">0</span>)</button>
+            <button class="lead-filter-btn" data-lead-filter="Görüşüldü"> Görüşüldü (<span id="leadCountContacted">0</span>)</button>
+            <button class="lead-filter-btn" data-lead-filter="Kayıt Yapıldı"> Kayıt Yapıldı (<span id="leadCountEnrolled">0</span>)</button>
           </div>
 
           <div class="table-responsive">
@@ -1008,127 +1008,67 @@
         </div>
       </section>
 
-      <!-- ==================== TAB 7: SUPABASE VERİTABANI ENTEGRASYONU ==================== -->
-      <section id="supabaseTab" class="tab-panel">
+            <!-- ==================== TAB: GÜNÜN SORULARI & SORU BANKASI ==================== -->
+      <section id="questionsTab" class="tab-panel">
         <div class="data-card">
-          <div class="chart-card-header">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
             <div>
-              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">⚙️ Supabase PostgreSQL Bulut Veritabanı</h2>
-              <p style="font-size: 0.88rem; color: var(--text-muted);">Platform verilerini (LGS föyleri, öğrenci/veli başvuruları, analitik sayaçları) Supabase bulut veritabanına bağlayın.</p>
+              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">Günün LGS Soruları &amp; Soru Bankası</h2>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                Ana sayfadaki 'Günün LGS Sorusu &amp; İnteraktif Mini Deneme' bölümünde her gün veritabanından rastgele 5 soru gösterilir.
+              </p>
             </div>
-            <div id="sbConnectionBadge" class="status-pill" style="background: #F3F4F6; color: #4B5563; font-size: 0.85rem; padding: 6px 14px;">
-              ⚪ Yerel Mod (Bağlı Değil)
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button id="downloadCsvTemplateBtn" type="button" class="btn btn-secondary btn-sm" title="Örnek CSV İndir">
+                CSV Şablonu İndir
+              </button>
+              <button id="downloadJsonTemplateBtn" type="button" class="btn btn-secondary btn-sm" title="Örnek JSON İndir">
+                JSON Şablonu İndir
+              </button>
+              <button id="openUploadQuestionsModalBtn" type="button" class="btn btn-secondary btn-sm">
+                Toplu Soru Yükle (CSV / JSON)
+              </button>
+              <button id="openAddQuestionModalBtn" type="button" class="btn btn-primary btn-sm">
+                Yeni Soru Ekle
+              </button>
             </div>
           </div>
 
-          <!-- Canlı Durum Kartı -->
-          <div id="sbBanner" style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px 22px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-            <div>
-              <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main); margin-bottom: 4px;" id="sbBannerTitle">
-                Çift Modlu Çalışma Aktif (Dual-Mode Guarantee)
-              </div>
-              <div style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5;" id="sbBannerDesc">
-                Supabase anahtarları girildiğinde doğrudan canlı bulut veritabanına bağlanılır. Girilmediğinde platform sıfır kesintiyle yerel depolama moduyla çalışır.
-              </div>
+          <!-- Format Bilgilendirme Bannerı -->
+          <div style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 22px;">
+            <div style="font-weight: 800; font-size: 0.94rem; color: var(--text-main); margin-bottom: 6px;">
+              Soru Yükleme Format Rehberi (CSV veya JSON)
             </div>
-            <div style="text-align: right;">
-              <span id="sbLatencyBadge" style="font-size: 0.82rem; font-weight: 800; color: var(--primary); background: #FFF; padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid var(--border-color);">
-                Gecikme: -- ms
-              </span>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+              <b>CSV Sütun Başlıkları:</b> <code>unit,question,optionA,optionB,optionC,optionD,correct,solution,tactic</code><br>
+              <b>Doğru Şık Formatı:</b> A, B, C veya D harfi belirtilmelidir.<br>
+              <b>Çalışma Prensibi:</b> Eklenen tüm sorular havuza kaydedilir; sistem her gün tarih algoritmasıyla rastgele 5 soru seçerek öğrencilere sunar.
             </div>
           </div>
 
-          <!-- Canlı Tablo İstatistik Kartları -->
-          <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 28px;">
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">LGS Föyleri (mh_pdfs)</span>
-                <span class="stat-icon">📄</span>
-              </div>
-              <div class="stat-value" id="sbStatPdfs">14</div>
-              <div class="stat-change positive">Müfredat föyleri</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-secondary);">
+              Havuzdaki Toplam Soru: <span id="totalQuestionCountBadge" class="pdf-badge" style="background: var(--primary); color: #fff;">0</span>
             </div>
-
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">Başvurular (mh_leads)</span>
-                <span class="stat-icon">💬</span>
-              </div>
-              <div class="stat-value" id="sbStatLeads">0</div>
-              <div class="stat-change positive">Kayıtlı veli/öğrenci</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">Ziyaret Kayıtları (mh_analytics)</span>
-                <span class="stat-icon">📈</span>
-              </div>
-              <div class="stat-value" id="sbStatAnalytics">3,840+</div>
-              <div class="stat-change positive">Sayfa & indirme pingleri</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">Quiz Soruları (mh_quiz)</span>
-                <span class="stat-icon">🎯</span>
-              </div>
-              <div class="stat-value" id="sbStatQuiz">5</div>
-              <div class="stat-change positive">Aktif soru havuzu</div>
-            </div>
+            <input type="text" id="adminQuestionSearch" class="form-control" style="max-width: 320px;" placeholder="Soru metni veya ünite ara...">
           </div>
 
-          <!-- Konfigürasyon Formu -->
-          <form id="supabaseConfigForm" style="background: #FAFAFD; border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">
-              🔑 Supabase API Bağlantı Parametreleri
-            </h3>
-
-            <div class="form-group">
-              <label class="form-label" for="sbUrlInput">
-                Supabase Project URL *
-                <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-dim); margin-left: 8px;">(Örn: https://your-project.supabase.co)</span>
-              </label>
-              <input type="url" id="sbUrlInput" class="form-control" placeholder="https://xxxxxxxxxxxxxxxxxxxx.supabase.co" autocomplete="off" required>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="sbKeyInput">
-                Supabase Anon Public Key *
-                <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-dim); margin-left: 8px;">(Project Settings > API > anon / public)</span>
-              </label>
-              <input type="password" id="sbKeyInput" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" required>
-            </div>
-
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
-              <button type="submit" id="sbSaveBtn" class="btn btn-primary btn-sm">
-                🔌 Bağlantıyı Test Et &amp; Kaydet
-              </button>
-              <button type="button" id="sbMigrateBtn" class="btn btn-secondary btn-sm" style="color: #7C3AED; border-color: #DDD6FE;">
-                ☁️ Mevcut Verileri Supabase'e Aktar (Migrate)
-              </button>
-              <button type="button" id="sbClearBtn" class="btn btn-secondary btn-sm" style="color: #EF4444; border-color: #FECACA;">
-                🗑️ Bağlantıyı Sıfırla (Yerel Moda Dön)
-              </button>
-            </div>
-          </form>
-
-          <!-- SQL Şema Rehber Kutusu -->
-          <div style="background: #FFF; border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); padding: 22px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h4 style="font-size: 1rem; font-weight: 800; color: var(--text-main);">
-                📋 Supabase SQL Şeması Kurulum Adımları
-              </h4>
-              <a href="supabase_schema.sql" target="_blank" download="supabase_schema.sql" class="btn btn-secondary btn-sm">
-                📥 supabase_schema.sql İndir
-              </a>
-            </div>
-            <ol style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; padding-left: 20px;">
-              <li><a href="https://supabase.com" target="_blank" rel="noopener noreferrer" style="color: var(--primary); font-weight: 700;">supabase.com</a> adresinde ücretsiz bir hesap veya yeni bir proje oluşturun.</li>
-              <li>Sol menüden <b>SQL Editor</b> sekmesini açın.</li>
-              <li>Projedeki <code>supabase_schema.sql</code> dosyasının içeriğini yapıştırıp <b>Run</b> butonuna basın.</li>
-              <li>Tüm tablolar (<code>mh_pdfs</code>, <code>mh_leads</code>, <code>mh_analytics</code>, <code>mh_quiz_questions</code>) ve 14 başlangıç föyü saniyeler içinde oluşturulacaktır.</li>
-              <li><b>Project Settings &gt; API</b> bölümündeki <i>URL</i> ve <i>anon key</i> değerlerini yukarıdaki kutulara girip <b>"Bağlantıyı Test Et &amp; Kaydet"</b> butonuna tıklayın.</li>
-            </ol>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">ID</th>
+                  <th style="width: 180px;">Ünite / Kazanım</th>
+                  <th>Soru Metni</th>
+                  <th style="width: 80px;">Doğru</th>
+                  <th>Çözüm &amp; Taktik</th>
+                  <th style="width: 90px;">İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="adminQuestionsTableBody">
+                <!-- JS ile dinamik doldurulur -->
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -1181,7 +1121,7 @@
 
           <div class="form-group">
             <label class="form-label" for="modalPdfBadge">Rozet Metni</label>
-            <input type="text" id="modalPdfBadge" class="form-control" placeholder="Örn: ⭐ YENİ FÖY">
+            <input type="text" id="modalPdfBadge" class="form-control" placeholder="Örn:  YENİ FÖY">
           </div>
         </div>
 
@@ -1190,14 +1130,14 @@
           <label class="form-label">PDF Föy Dosyası (.pdf) *</label>
           <div class="pdf-drop-zone" id="pdfDropZone">
             <input type="file" id="modalPdfFileInput" accept="application/pdf" style="display: none;">
-            <div class="dropzone-icon">📥</div>
+            <div class="dropzone-icon"></div>
             <div class="dropzone-text">PDF dosyasını buraya sürükleyin veya tıklayıp seçin</div>
             <div class="dropzone-sub">Maksimum 25 MB • Otomatik boyut ve sayfa analizi</div>
           </div>
           
           <div class="file-preview-card" id="filePreviewCard" style="display: none;">
             <div class="file-preview-left">
-              <span class="file-preview-icon">📄</span>
+              <span class="file-preview-icon"></span>
               <div>
                 <span class="file-preview-name" id="previewFileName">dosya.pdf</span>
                 <span class="file-preview-size" id="previewFileSize">0 KB</span>
@@ -1221,6 +1161,117 @@
           <button type="submit" class="btn btn-primary btn-sm">Kaydet &amp; Yayınla</button>
         </div>
       </form>
+    </div>
+  </div>
+
+
+  <!-- ==================== YENİ SORU EKLEME MODALI ==================== -->
+  <div class="modal-overlay" id="questionModal" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <button class="modal-close" id="closeQuestionModalBtn" aria-label="Kapat">✕</button>
+      <h2 style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 6px;">
+        Soru Bankasına Yeni Soru Ekle
+      </h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 22px;">
+        Günün soruları havuzuna dahil edilecek LGS matematik sorusunun bilgilerini giriniz.
+      </p>
+
+      <form id="questionForm">
+        <div class="form-group">
+          <label class="form-label" for="qUnitInput">Ünite / Kazanım Başlığı *</label>
+          <input type="text" id="qUnitInput" class="form-control" placeholder="Örn: 1. Ünite: Çarpanlar ve Katlar & EBOB" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="qTextInput">Soru Metni *</label>
+          <textarea id="qTextInput" class="form-control" rows="3" placeholder="Soru metnini eksiksiz yazın..." required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="qOptA">A Şıkkı *</label>
+            <input type="text" id="qOptA" class="form-control" placeholder="Örn: 10" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="qOptB">B Şıkkı *</label>
+            <input type="text" id="qOptB" class="form-control" placeholder="Örn: 12" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="qOptC">C Şıkkı *</label>
+            <input type="text" id="qOptC" class="form-control" placeholder="Örn: 14" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="qOptD">D Şıkkı *</label>
+            <input type="text" id="qOptD" class="form-control" placeholder="Örn: 16" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="qCorrectSelect">Doğru Cevap Şıkkı *</label>
+          <select id="qCorrectSelect" class="form-control" required>
+            <option value="0">A Şıkkı</option>
+            <option value="1">B Şıkkı</option>
+            <option value="2">C Şıkkı</option>
+            <option value="3">D Şıkkı</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="qSolutionInput">Ayrıntılı Çözüm Adımları</label>
+          <textarea id="qSolutionInput" class="form-control" rows="2" placeholder="Öğrencinin anlayacağı adım adım çözüm..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="qTacticInput">Merdiye Hoca Sınav Taktiği</label>
+          <input type="text" id="qTacticInput" class="form-control" placeholder="Örn: Çevreyi EBOB'a bölmek her zaman 10 saniyede net sonuç verir.">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" id="cancelQuestionModalBtn" class="btn btn-secondary btn-sm">Vazgeç</button>
+          <button type="submit" class="btn btn-primary btn-sm">Soruyu Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== TOPLU SORU YÜKLEME MODALI (CSV / JSON) ==================== -->
+  <div class="modal-overlay" id="uploadQuestionsModal" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 620px;">
+      <button class="modal-close" id="closeUploadQuestionsModalBtn" aria-label="Kapat">✕</button>
+      <h2 style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 6px;">
+        Toplu Soru Yükleme (CSV veya JSON)
+      </h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">
+        Hazırladığınız soruları .csv veya .json dosyası olarak sürükleyip bırakın veya seçin.
+      </p>
+
+      <div class="pdf-drop-zone" id="questionDropZone" style="cursor: pointer; margin-bottom: 18px;">
+        <input type="file" id="questionFileInput" accept=".csv,.json" style="display: none;">
+        <div class="dropzone-icon" style="font-size: 2.2rem; margin-bottom: 8px;">[Dosya]</div>
+        <div class="dropzone-text" style="font-weight: 800; font-size: 0.95rem;">CSV veya JSON Dosyasını Buraya Bırakın</div>
+        <div class="dropzone-sub" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">veya dosya seçmek için tıklayın (.csv, .json)</div>
+      </div>
+
+      <div class="file-preview-card" id="questionFilePreview" style="display: none; margin-bottom: 18px;">
+        <div class="file-preview-left">
+          <span class="file-preview-icon" style="font-weight: 800;">[OK]</span>
+          <div>
+            <span class="file-preview-name" id="qFileName">sorular.csv</span>
+            <span class="file-preview-size" id="qFileSize">0 KB</span>
+          </div>
+        </div>
+        <button type="button" id="removeQuestionFileBtn" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.76rem;">Değiştir</button>
+      </div>
+
+      <div id="qUploadStatusBox" style="display: none; padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.86rem; margin-bottom: 16px;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+        <button type="button" id="cancelUploadQuestionsModalBtn" class="btn btn-secondary btn-sm">Vazgeç</button>
+        <button type="button" id="submitUploadQuestionsBtn" class="btn btn-primary btn-sm" disabled>Soruları Havuza Yükle</button>
+      </div>
     </div>
   </div>
 

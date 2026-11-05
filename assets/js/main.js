@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf",
       fileUrl: "assets/pdf/13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf",
       fileSize: "106 KB",
-      badge: "⭐ EN ÇOK İNDİRİLEN",
+      badge: " EN ÇOK İNDİRİLEN",
       popular: true,
       topics: ["Tüm Formüller", "Hızlı Taktikler", "Süre Yönetimi", "Turlama Tekniği", "Hap Notlar"]
     },
@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
       filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf",
       fileUrl: "assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf",
       fileSize: "104 KB",
-      badge: "🔥 2025/2026 PROVA",
+      badge: " 2025/2026 PROVA",
       popular: true,
       topics: ["20 Yeni Nesil Soru", "Cevap Anahtarı", "Optik Form Rehberi", "Net Skalası", "MEB Uyum"]
     }
@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (filtered.length === 0) {
       pdfGrid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #FFFFFF; border-radius: var(--radius-lg); border: 1.5px dashed var(--border-color);">
-          <div style="font-size: 2.8rem; margin-bottom: 12px;">🔍</div>
+          <div style="font-size: 2.8rem; margin-bottom: 12px;"></div>
           <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Aradığınız kriterde föy bulunamadı</h3>
           <p style="color: var(--text-muted); font-size: 0.95rem;">Lütfen arama terimini değiştirin veya kategori filtresini sıfırlayın.</p>
           <button id="resetSearchBtn" class="btn btn-secondary btn-sm" style="margin-top: 16px;">Tüm Föyleri Göster</button>
@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     pdfGrid.innerHTML = filtered.map(item => {
-      const isGold = (item.badge || "").includes("⭐") || (item.badge || "").includes("Altın") || (item.badge || "").includes("🔥");
+      const isGold = (item.badge || "").includes("") || (item.badge || "").includes("Altın") || (item.badge || "").includes("");
       const badgeClass = isGold ? "pdf-badge gold" : "pdf-badge";
       const topicsHtml = (item.topics || []).slice(0, 4).map(t => `<span class="pdf-tag">#${t}</span>`).join("");
       const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
@@ -388,19 +388,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <div class="pdf-card-bottom">
             <div class="pdf-info-txt">
-              <span>📄 ${item.pages || "1 Sayfa"}</span> &bull; 
-              <span>💾 ${item.fileSize || item.file_size || "105 KB"}</span>
+              <span> ${item.pages || "1 Sayfa"}</span> &bull; 
+              <span> ${item.fileSize || item.file_size || "105 KB"}</span>
             </div>
 
             <div class="pdf-btn-group">
               <button class="btn btn-secondary btn-sm preview-btn" data-id="${item.id}" title="Önizle ve Canlı İncele">
-                👁️ İncele
+                İncele
               </button>
-              <a href="https://wa.me/?text=${encodeURIComponent('Merhaba! Merdiye Hocam\'ın ' + item.title + ' LGS Matematik föyünü inceleyebilirsin: ' + new URL(fileLink, window.location.href).href)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="WhatsApp ile Paylaş" style="padding: 6px 10px; color: #16A34A; border-color: #86EFAC;">
-                💬
+              <a href="mailto:?subject=${encodeURIComponent(item.title + ' - LGS Matematik Föyü')}&body=${encodeURIComponent('Merhaba, Merdiye Hocam LGS Matematik föyünü inceleyebilirsin: ' + new URL(fileLink, window.location.href).href)}" class="btn btn-secondary btn-sm" title="E-posta ile Paylaş" style="padding: 6px 10px; color: var(--primary); border-color: var(--primary-border);">
+                E-posta
               </a>
               <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm download-btn" data-id="${item.id}">
-                📥 İndir
+                İndir
               </a>
             </div>
           </div>
@@ -425,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     downloadBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-id");
-        showToast("PDF başarıyla indiriliyor! İyi çalışmalar dileriz 🚀", "success");
+        showToast("PDF başarıyla indiriliyor! İyi çalışmalar dileriz ", "success");
         try {
           if (window.MH_DB && typeof window.MH_DB.recordPdfDownload === "function") {
             window.MH_DB.recordPdfDownload(id);
@@ -448,9 +448,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const modalBody = document.getElementById("modalBody");
     const fileLink = item.fileUrl || item.file_url || `assets/pdf/${item.filename}`;
-    const topicsList = (item.topics || []).map(t => `<li style="margin-bottom: 6px;">🔹 <b>${t}</b></li>`).join("");
+    const topicsList = (item.topics || []).map(t => `<li style="margin-bottom: 6px;"> <b>${t}</b></li>`).join("");
     const fullFileUrl = new URL(fileLink, window.location.href).href;
-    const waShareUrl = `https://wa.me/?text=${encodeURIComponent('Merdiye Hocam LGS Matematik Föyü: ' + item.title + ' - ' + fullFileUrl)}`;
 
     modalBody.innerHTML = `
       <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
@@ -463,9 +462,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <!-- Modal Tab Başlıkları -->
       <div class="pdf-modal-tabs">
-        <button class="pdf-modal-tab active" data-modaltab="preview">📄 Canlı Föy Önizleme</button>
-        <button class="pdf-modal-tab" data-modaltab="topics">📌 Kazanım &amp; Konular</button>
-        <button class="pdf-modal-tab" data-modaltab="sample">💡 Örnek Soru &amp; Taktik</button>
+        <button class="pdf-modal-tab active" data-modaltab="preview"> Canlı Föy Önizleme</button>
+        <button class="pdf-modal-tab" data-modaltab="topics"> Kazanım &amp; Konular</button>
+        <button class="pdf-modal-tab" data-modaltab="sample"> Örnek Soru &amp; Taktik</button>
       </div>
 
       <!-- Tab 1: Canlı Önizleme -->
@@ -474,14 +473,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <iframe src="${fileLink}#toolbar=0" title="PDF Önizleme"></iframe>
         </div>
         <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: -10px; margin-bottom: 14px;">
-          💡 Tarayıcınızda doğrudan PDF görüntülenmektedir. Dosyayı cihazınıza kaydetmek için aşağıdaki indir butonunu kullanabilirsiniz.
+           Tarayıcınızda doğrudan PDF görüntülenmektedir. Dosyayı cihazınıza kaydetmek için aşağıdaki indir butonunu kullanabilirsiniz.
         </p>
       </div>
 
       <!-- Tab 2: Konular & Kazanımlar -->
       <div id="modalTabTopics" class="pdf-modal-content-panel" style="display: none;">
         <div style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary); margin-bottom: 10px;">📌 Bu Föyde Öğreneceğiniz MEB Kazanımları:</h4>
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary); margin-bottom: 10px;"> Bu Föyde Öğreneceğiniz MEB Kazanımları:</h4>
           <ul style="list-style: none; font-size: 0.92rem; color: var(--text-secondary); line-height: 1.7;">
             ${topicsList}
           </ul>
@@ -491,12 +490,12 @@ document.addEventListener("DOMContentLoaded", () => {
       <!-- Tab 3: Örnek Soru & Taktik -->
       <div id="modalTabSample" class="pdf-modal-content-panel" style="display: none;">
         <div style="background: #FAF8FE; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">🎯 Tipik Sınav Sorusu Modeli:</h4>
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;"> Tipik Sınav Sorusu Modeli:</h4>
           <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
             MEB LGS sınavlarında bu üniteden gelen sorular temel işlemden ziyade <b>şekil modelleme ve metin analizi</b> üzerine kuruludur.
           </p>
           <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: var(--radius-sm); padding: 12px; font-size: 0.88rem; color: #92400E; font-weight: 700;">
-            ⚡ Merdiye Hoca Uyarısı: Soru kökünü okumadan şekle dalmayın. Sorunun sizden "en az" mı "en çok" mu istediğini ilk önce çizin!
+             Merdiye Hoca Uyarısı: Soru kökünü okumadan şekle dalmayın. Sorunun sizden "en az" mı "en çok" mu istediğini ilk önce çizin!
           </div>
         </div>
       </div>
@@ -507,11 +506,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <span>Boyut: <b>${item.fileSize || item.file_size || "105 KB"}</b></span>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="${waShareUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="color: #16A34A; border-color: #86EFAC;">
-            💬 WhatsApp ile Paylaş
+          <a href="mailto:?subject=${encodeURIComponent(item.title + ' - LGS Matematik Föyü')}&body=${encodeURIComponent('Merhaba, Merdiye Hocam LGS Matematik föyünü inceleyebilirsin: ' + new URL(fileLink, window.location.href).href)}" class="btn btn-secondary btn-sm" style="color: var(--primary); border-color: var(--primary-border);">
+            E-posta ile Paylaş
           </a>
           <a href="${fileLink}" target="_blank" class="btn btn-secondary btn-sm">Tarayıcıda Aç</a>
-          <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm">📥 Hemen İndir</a>
+          <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm"> Hemen İndir</a>
         </div>
       </div>
     `;
@@ -566,7 +565,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!toastContainer) return;
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
+    const icon = type === "success" ? "" : type === "error" ? "" : "ℹ";
     toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     toastContainer.appendChild(toast);
     setTimeout(() => {
@@ -654,17 +653,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (adviceDisplay && recDisplay) {
         if (net >= 18) {
-          adviceDisplay.textContent = "🏆 Muazzam Performans! Galatasaray, Kabataş ve Fen Liseleri kapılarını aralıyorsun. Soru kaçırma payını sıfıra indirmek için 'Yeni Nesil Pro Deneme' ve zaman turlaması yap.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>LGS Yeni Nesil Pro Deneme-1</a>";
+          adviceDisplay.textContent = " Muazzam Performans! Galatasaray, Kabataş ve Fen Liseleri kapılarını aralıyorsun. Soru kaçırma payını sıfıra indirmek için 'Yeni Nesil Pro Deneme' ve zaman turlaması yap.";
+          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>LGS Yeni Nesil Pro Deneme-1</a>";
         } else if (net >= 14) {
-          adviceDisplay.textContent = "⭐ Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına (Cebirsel İfadeler & Geometrik Cisimler) odaklan.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Cebirsel İfadeler ve Özdeşlikler Föyü</a>";
+          adviceDisplay.textContent = " Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına (Cebirsel İfadeler & Geometrik Cisimler) odaklan.";
+          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Cebirsel İfadeler ve Özdeşlikler Föyü</a>";
         } else if (net >= 8) {
-          adviceDisplay.textContent = "📈 Yükseliş Potansiyeli Yüksek! Temel kazanımların var ancak yeni nesil paragraf sorularında tuzaklara düşüyorsun. 'Kareköklü İfadeler' ve 'Eğim' taktiklerini gözden geçir.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/03_Karekoklu_Ifadeler_Yeni_Nesil.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Kareköklü İfadeler & Yaklaşık Değer</a>";
+          adviceDisplay.textContent = " Yükseliş Potansiyeli Yüksek! Temel kazanımların var ancak yeni nesil paragraf sorularında tuzaklara düşüyorsun. 'Kareköklü İfadeler' ve 'Eğim' taktiklerini gözden geçir.";
+          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/03_Karekoklu_Ifadeler_Yeni_Nesil.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Kareköklü İfadeler & Yaklaşık Değer</a>";
         } else {
-          adviceDisplay.textContent = "💪 Harekete Geçme Zamanı! Korkacak hiçbir şey yok; matematikte doğru metot ve birebir takip ile 3-4 ayda 12-15 nete çıkmak mümkün. Temel kamp föylerinden başla ve özel ders desteği al.";
-          recDisplay.innerHTML = "🎯 <b>Önerilen Föy:</b> <a href='assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Çarpanlar ve Katlar & EBOB-EKOK Temel Föyü</a>";
+          adviceDisplay.textContent = " Harekete Geçme Zamanı! Korkacak hiçbir şey yok; matematikte doğru metot ve birebir takip ile 3-4 ayda 12-15 nete çıkmak mümkün. Temel kamp föylerinden başla ve özel ders desteği al.";
+          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Çarpanlar ve Katlar & EBOB-EKOK Temel Föyü</a>";
         }
       }
     }
@@ -723,15 +722,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (estimatedTotalScore >= school.minScore) {
         statusClass = "qualified";
-        statusText = "🟢 Kazanabilirsin! Puanın Yeterli";
+        statusText = " Kazanabilirsin! Puanın Yeterli";
       } else if (diff <= 12.0) {
         const neededNet = Math.max(1, Math.ceil(diff / 5.0));
         statusClass = "borderline";
-        statusText = `🟡 Sınırda (${neededNet} Matematik Neti Daha Gerekli)`;
+        statusText = ` Sınırda (${neededNet} Matematik Neti Daha Gerekli)`;
       } else {
         const neededNet = Math.max(1, Math.ceil(diff / 5.0));
         statusClass = "need-work";
-        statusText = `🔴 +${neededNet} Matematik Neti Gelişim Şart`;
+        statusText = ` +${neededNet} Matematik Neti Gelişim Şart`;
       }
 
       return `
@@ -753,7 +752,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
 
           <button type="button" class="btn btn-secondary btn-sm plan-school-btn" data-school="${school.name}" style="width: 100%; margin-top: 10px;">
-            🎯 Bu Hedefe Özel Ders Planı Yap
+             Bu Hedefe Özel Ders Planı Yap
           </button>
         </div>
       `;
@@ -880,23 +879,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!questionText || !optionsGrid) return;
 
-    // Supabase'den soruları çek
+    // Günlük soruları dinamik olarak API'den veya Supabase'den çek
     try {
-      if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
-        const dbQuestions = await window.MH_DB.getQuizQuestions();
-        if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
-          activeQuizList = dbQuestions.map((q, idx) => ({
+      const res = await fetch("/api/quiz-questions/daily");
+      if (res.ok) {
+        const dailyQuestions = await res.json();
+        if (Array.isArray(dailyQuestions) && dailyQuestions.length > 0) {
+          activeQuizList = dailyQuestions.map((q, idx) => ({
             id: q.id || idx + 1,
             unit: q.unit || `Soru ${idx + 1}`,
             question: q.question,
             options: q.options,
             correctIndex: q.correctIndex,
-            solution: q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
-            tactic: "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda altını çizerek belirleyin!"
+            solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
+            tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
           }));
         }
+      } else if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
+        const dbQuestions = await window.MH_DB.getQuizQuestions();
+        if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
+          activeQuizList = dbQuestions.slice(0, 5);
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      // Çevrimdışı / GitHub Pages için güne göre deterministik soru seçimi
+      const todayStr = new Date().toISOString().slice(0, 10);
+      let hash = 0;
+      for (let i = 0; i < todayStr.length; i++) {
+        hash = (hash << 5) - hash + todayStr.charCodeAt(i);
+        hash |= 0;
+      }
+      activeQuizList = [...QUIZ_QUESTIONS].sort((a, b) => {
+        const hA = (a.id * 9301 + hash) % 49297;
+        const hB = (b.id * 9301 + hash) % 49297;
+        return hA - hB;
+      }).slice(0, 5);
+    }
 
     let selectedOptionIndex = null;
 
@@ -912,11 +930,11 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.classList.toggle("correct", ans.isCorrect);
           btn.classList.toggle("wrong", !ans.isCorrect);
           const iconSpan = btn.querySelector("span");
-          if (iconSpan) iconSpan.textContent = ans.isCorrect ? "✅" : "❌";
+          if (iconSpan) iconSpan.textContent = ans.isCorrect ? " [Doğru]" : " [Yanlış]";
         } else {
           btn.classList.remove("correct", "wrong");
           const iconSpan = btn.querySelector("span");
-          if (iconSpan) iconSpan.textContent = "⚪";
+          if (iconSpan) iconSpan.textContent = "";
         }
       });
 
@@ -968,7 +986,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (solutionText) solutionText.innerHTML = q.solution;
         if (tacticText) tacticText.textContent = q.tactic;
         if (resultHeading) {
-          resultHeading.textContent = isCorr ? "🎉 Harika! Doğru Cevap" : "⚠️ Yanlış Cevap - Detaylı Çözümü İnceleyin";
+          resultHeading.textContent = isCorr ? "Doğru Cevap" : "Yanlış Cevap - Detaylı Çözümü İnceleyin";
           resultHeading.style.color = isCorr ? "#059669" : "#DC2626";
         }
         if (resultPill) {
@@ -1005,18 +1023,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const iconEl = document.getElementById("completionIcon");
       const titleEl = document.getElementById("completionTitle");
       const adviceBox = document.getElementById("completionAdviceBox");
-      const waBtn = document.getElementById("quizShareWhatsAppBtn");
+      const emailBtn = document.getElementById("quizShareEmailBtn");
 
       if (scoreVal) scoreVal.textContent = `${score} / 100`;
       if (correctVal) correctVal.textContent = `${correctCount} / 5 Doğru`;
 
       let levelText = "";
       let adviceHtml = "";
-      let icon = "🏆";
+      let icon = "";
 
       if (score === 100) {
         levelText = "Galatasaray & Fen Liseleri";
-        icon = "🏆";
+        icon = "";
         adviceHtml = `
           <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #065F46; line-height: 1.6;">
             <b>Muhteşem Başarı! 5'te 5 Yaptınız (%100).</b><br>
@@ -1025,7 +1043,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       } else if (score >= 80) {
         levelText = "Nitelikli Fen Lisesi";
-        icon = "⭐";
+        icon = "";
         adviceHtml = `
           <div style="background: #FAF8FE; border: 1.5px solid var(--primary-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: var(--text-main); line-height: 1.6;">
             <b>Tebrikler! Güçlü Bir Fen Lisesi Adayısınız (%${score}).</b><br>
@@ -1034,7 +1052,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       } else if (score >= 60) {
         levelText = "Nitelikli Anadolu Lisesi";
-        icon = "📈";
+        icon = "";
         adviceHtml = `
           <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #92400E; line-height: 1.6;">
             <b>İyi Bir Temeliniz Var, Gelişim Alanları Mevcut (%${score}).</b><br>
@@ -1043,7 +1061,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       } else {
         levelText = "Gelişim Desteği Gerekli";
-        icon = "💪";
+        icon = "";
         adviceHtml = `
           <div style="background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #991B1B; line-height: 1.6;">
             <b>Temel Konuları Güçlendirme Zamanı (%${score})!</b><br>
@@ -1057,9 +1075,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (titleEl) titleEl.textContent = `Tebrikler! Mini Deneme Tamamlandı: %${score} Başarı`;
       if (adviceBox) adviceBox.innerHTML = adviceHtml;
 
-      if (waBtn) {
-        const text = encodeURIComponent(`Merhaba Merdiye Hocam, web sitenizdeki LGS mini denemesini çözdüm. Skorum: ${score}/100 (${correctCount}/5 Doğru). Eksik konularım ve 1'e 1 özel ders koçluğunuz hakkında bilgi alabilir miyim?`);
-        waBtn.href = `https://wa.me/905300000000?text=${text}`;
+      if (emailBtn) {
+        const subject = encodeURIComponent(`LGS Mini Deneme Sonucum (${score}/100)`);
+        const body = encodeURIComponent(`Merhaba Merdiye Hocam,\n\nWeb sitenizdeki LGS mini denemesini tamamladım.\nSkorum: ${score}/100 (${correctCount}/5 Doğru).\nEksik konularım ve 1'e 1 özel ders koçluğunuz hakkında bilgi alabilir miyim?`);
+        emailBtn.href = `mailto:merdiyehocam@gmail.com?subject=${subject}&body=${body}`;
+        emailBtn.textContent = "Sonucumu E-posta ile Danış";
       }
 
       completionCard.style.display = "block";
@@ -1125,9 +1145,9 @@ document.addEventListener("DOMContentLoaded", () => {
         userAnswers[currentQuizIndex] = { selectedIndex: selectedOptionIndex, isCorrect };
 
         if (isCorrect) {
-          showToast("Tebrikler, doğru cevap! +20 Puan kazandınız 🏆", "success");
+          showToast("Tebrikler, doğru cevap! +20 Puan kazandınız ", "success");
         } else {
-          showToast("Yanlış cevap. Çözüm taktiğini mutlaka inceleyin 💡", "info");
+          showToast("Yanlış cevap. Çözüm taktiğini mutlaka inceleyin ", "info");
         }
 
         renderQuestion(currentQuizIndex);
@@ -1187,10 +1207,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 9. Özel Ders Ön Başvuru Formu & Akıllı WhatsApp Entegrasyonu
+  // 9. Özel Ders Ön Başvuru Formu & E-posta Bildirimi
   function initTutoringForm() {
     const form = document.getElementById("tutoringForm");
-    const sendWhatsappBtn = document.getElementById("sendWhatsappBtn");
 
     function getFormData() {
       const name = document.getElementById("formName")?.value.trim() || "";
@@ -1202,37 +1221,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const notes = document.getElementById("formNotes")?.value.trim() || "";
 
       return { name, role, phone, city, currentNet, targetSchool, notes };
-    }
-
-    function buildWhatsAppUrl(data) {
-      const phoneNum = "905300000000";
-      const text = 
-        `*Merdiye Hocam - LGS Özel Ders & Koçluk Başvurusu*\n\n` +
-        `👤 *Ad Soyad:* ${data.name}\n` +
-        `🏷️ *Başvuran:* ${data.role}\n` +
-        `📞 *İletişim Tel:* ${data.phone}\n` +
-        `📍 *Şehir / İlçe:* ${data.city || 'Belirtilmedi'}\n` +
-        `📊 *Mevcut Matematik Neti:* ${data.currentNet}\n` +
-        `🎯 *Hedef Lise:* ${data.targetSchool}\n` +
-        `📝 *Ek Bilgi / Not:* ${data.notes || 'Yok'}\n\n` +
-        `LGS Matematik 1'e 1 özel ders süreci ve uygun saatler hakkında bilgi almak istiyorum. Teşekkürler!`;
-
-      return `https://wa.me/${phoneNum}?text=${encodeURIComponent(text)}`;
-    }
-
-    if (sendWhatsappBtn) {
-      sendWhatsappBtn.addEventListener("click", () => {
-        const data = getFormData();
-        if (!data.name || !data.phone) {
-          showToast("Lütfen Ad Soyad ve Telefon alanlarını doldurunuz.", "info");
-          document.getElementById("formName")?.focus();
-          return;
-        }
-
-        const url = buildWhatsAppUrl(data);
-        window.open(url, "_blank");
-        showToast("WhatsApp uygulamasına yönlendiriliyorsunuz...", "success");
-      });
     }
 
     if (form) {
@@ -1269,12 +1257,12 @@ document.addEventListener("DOMContentLoaded", () => {
             form.reset();
           } else {
             saveLocalLead(data);
-            showToast("Başvurunuz kaydedildi! WhatsApp ile de anında mesaj atabilirsiniz.", "success");
+            showToast("Başvurunuz kaydedildi! Merdiye Hocam en kısa sürede iletişime geçecektir.", "success");
             form.reset();
           }
         } catch (err) {
           saveLocalLead(data);
-          showToast("Başvurunuz kaydedildi! WhatsApp üzerinden iletişime geçebilirsiniz.", "success");
+          showToast("Başvurunuz kaydedildi! Merdiye Hocam en kısa sürede iletişime geçecektir.", "success");
         }
       });
     }
@@ -1321,11 +1309,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 12. Hero Instant WhatsApp Trial Button
+  // 12. Hero Instant Email Trial Button
   const heroInstantTrialBtn = document.getElementById("heroInstantTrialBtn");
   if (heroInstantTrialBtn) {
     heroInstantTrialBtn.addEventListener("click", () => {
-      showToast("LGS Pro Deneme Sınavı için WhatsApp açılıyor...", "success");
+      showToast("LGS Pro Deneme Sınavı için e-posta açılıyor...", "success");
       try {
         fetch("/api/analytics/visit", {
           method: "POST",

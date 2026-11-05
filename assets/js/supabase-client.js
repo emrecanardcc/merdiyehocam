@@ -29,8 +29,8 @@
     { id: "pdf-10", unit: "5. Ünite", term: "2. Dönem", category: "term2", title: "Pisagor Bağıntısı ve Özel Üçgenler", subtitle: "Dik Üçgende Pisagor Teoremi, 3-4-5, 5-12-13, 8-15-17 Özel Üçgenleri", difficulty: "En Çok Soru Çıkan Geometri Konusu", filename: "10_Pisagor_Bagintisi_ve_Ozel_Ucgenler.pdf", file_url: "assets/pdf/10_Pisagor_Bagintisi_ve_Ozel_Ucgenler.pdf", file_size: "105 KB", pages: "1 Sayfa (Özet & Soru)", badge: "En Çok Soru Çıkan", popular: true, topics: ["a²+b²=c²", "3-4-5 Üçgeni", "5-12-13 Üçgeni", "8-15-17 Üçgeni", "Hipotenüs"] },
     { id: "pdf-11", unit: "5. Ünite", term: "2. Dönem", category: "term2", title: "Eşlik ve Benzerlik Kuralları", subtitle: "Eş Çokgenler, Benzer Çokgenler, Benzerlik Oranı ve Alan/Çevre İlişkisi", difficulty: "Görsel Algı & Oran-Orantı", filename: "11_Eslik_ve_Benzerlik.pdf", file_url: "assets/pdf/11_Eslik_ve_Benzerlik.pdf", file_size: "104 KB", pages: "1 Sayfa (Özet & Soru)", badge: "Şekil Yorumlama", popular: false, topics: ["Eşlik Sembolü", "Benzerlik Oranı k", "Çevre Oranı", "Alan Oranı k²", "Ölçek"] },
     { id: "pdf-12", unit: "6. Ünite", term: "2. Dönem", category: "term2", title: "Geometrik Cisimler (Prizma, Silindir, Koni)", subtitle: "Dik Prizmalar, Silindirin Açınımı, Alan & Hacim, Dik Piramit ve Koni Bağıntısı", difficulty: "3 Boyutlu Düşünme & Sınav Soruları", filename: "12_Geometrik_Cisimler.pdf", file_url: "assets/pdf/12_Geometrik_Cisimler.pdf", file_size: "105 KB", pages: "1 Sayfa (Özet & Soru)", badge: "LGS Son Ünite", popular: false, topics: ["Prizmalar", "Silindir Açınımı", "Yanal Alan 2πrh", "Hacim πr²h", "Koni r/l=α/360"] },
-    { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", subtitle: "8. Sınıf Müfredatının Eksiksiz Formül Özeti, Hızlı Çözüm İpuçları ve Zaman Yönetimi", difficulty: "Tüm Öğrenciler İçin Başvuru", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_url: "assets/pdf/13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", pages: "Tüm Formüller Tek Sayfada", badge: "⭐ EN ÇOK İNDİRİLEN", popular: true, topics: ["Tüm Formüller", "Hızlı Taktikler", "Süre Yönetimi", "Turlama Tekniği", "Hap Notlar"] },
-    { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", subtitle: "MEB Sınav Formatına %100 Uyumlu, Beceri Temelli 20 Soru & Ayrıntılı Cevap Anahtarı", difficulty: "LGS Gerçek Sınav Provası", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_url: "assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", pages: "20 Soru + Cevap Anahtarı", badge: "🔥 2025/2026 PROVA", popular: true, topics: ["20 Yeni Nesil Soru", "Cevap Anahtarı", "Optik Form Rehberi", "Net Skalası", "MEB Uyum"] }
+    { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", subtitle: "8. Sınıf Müfredatının Eksiksiz Formül Özeti, Hızlı Çözüm İpuçları ve Zaman Yönetimi", difficulty: "Tüm Öğrenciler İçin Başvuru", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_url: "assets/pdf/13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", pages: "Tüm Formüller Tek Sayfada", badge: "EN ÇOK İNDİRİLEN", popular: true, topics: ["Tüm Formüller", "Hızlı Taktikler", "Süre Yönetimi", "Turlama Tekniği", "Hap Notlar"] },
+    { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", subtitle: "MEB Sınav Formatına %100 Uyumlu, Beceri Temelli 20 Soru & Ayrıntılı Cevap Anahtarı", difficulty: "LGS Gerçek Sınav Provası", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_url: "assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", pages: "20 Soru + Cevap Anahtarı", badge: "2025/2026 PROVA", popular: true, topics: ["20 Yeni Nesil Soru", "Cevap Anahtarı", "Optik Form Rehberi", "Net Skalası", "MEB Uyum"] }
   ];
 
   class SupabaseDataAdapter {
@@ -455,37 +455,7 @@
         }
       } catch (e) {}
 
-      // Başlangıç Mock Başvuruları
-      return [
-        {
-          id: "lead_demo_1",
-          created_at: new Date().toISOString(),
-          timestamp: new Date().toISOString(),
-          name: "Selin Karaca",
-          role: "Öğrenci",
-          phone: "05321234567",
-          city: "İstanbul / Beşiktaş",
-          current_net: "12 - 16 Net",
-          target_school: "Kabataş Erkek Lisesi",
-          notes: "Geometri ve Pisagor konularında takviye istiyor.",
-          admin_notes: "Veli ile görüşüldü, haftalık 2 saat online ders planlanacak.",
-          status: "Yeni"
-        },
-        {
-          id: "lead_demo_2",
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          name: "Mehmet Demir (Veli)",
-          role: "Veli",
-          phone: "05429876543",
-          city: "Ankara / Çankaya",
-          current_net: "6 - 11 Net",
-          target_school: "Ankara Fen Lisesi",
-          notes: "Denemelerde süre yetiştiremiyor.",
-          admin_notes: "Seviye tespit testi gönderildi.",
-          status: "Görüşüldü"
-        }
-      ];
+      return [];
     }
 
     async updateLead(id, updates) {
