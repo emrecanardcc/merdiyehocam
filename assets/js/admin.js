@@ -827,18 +827,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.MH_DB) {
       const mode = typeof window.MH_DB.getMode === "function" ? window.MH_DB.getMode() : "";
       if (mode === "supabase_cloud") {
-        serverModeStatus.innerHTML = " 🟢 Supabase Bulut DB Aktif";
+        serverModeStatus.innerHTML = " Supabase Bulut DB Aktif";
         serverModeStatus.style.color = "#059669";
         if (badge) {
-          badge.textContent = "🟢 Canlı Bulut DB Aktif";
+          badge.textContent = "Canlı Bulut DB Aktif";
           badge.className = "pdf-badge gold";
         }
         return;
       } else if (mode === "supabase_auth_ready") {
-        serverModeStatus.innerHTML = " 🟡 Supabase Auth Aktif (Tablolar Bekleniyor)";
+        serverModeStatus.innerHTML = " Supabase Auth Aktif (Tablolar Bekleniyor)";
         serverModeStatus.style.color = "#D97706";
         if (badge) {
-          badge.textContent = "🟡 Auth Aktif (Tablolar Bekleniyor)";
+          badge.textContent = "Auth Aktif (Tablolar Bekleniyor)";
           badge.className = "pdf-badge";
         }
         return;
@@ -903,7 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast(`Eşitleme uyarısı: ${err.message}`, "error");
       } finally {
         syncAllToSupabaseBtn.disabled = false;
-        syncAllToSupabaseBtn.textContent = "🔄 Tüm Verileri Supabase'e Eşitle";
+        syncAllToSupabaseBtn.textContent = "Tüm Verileri Supabase'e Eşitle";
       }
     });
   }

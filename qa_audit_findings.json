@@ -21,7 +21,7 @@
     "Responsive Header Düzeni: 1024px tablet/laptop ekranlarında menü kayması engellendi, hamburger menüye bağlandı.",
     "Admin Tabloları Koruma Altında: .table-responsive ile sütunların daralması engellendi (min-width: 680px).",
     "Tüm 14 LGS Matematik PDF Föyü Fiziksel Olarak Diskte Mevcut ve Doğrulandı!",
-    "Özel Ders Formu API Testi Başarılı! (Lead ID: lead_1793912546806)",
+    "Özel Ders Formu API Testi Başarılı! (Lead ID: lead_1793912765287)",
     "Öğretmen Notu & Durum Güncelleme API (PATCH /api/admin/inquiries) Başarılı.",
     "Talep Silme API (DELETE /api/admin/inquiries) Başarılı.",
     "Günün Sorusu & İnteraktif Mini Deneme Test Çözücü Aktif (5 Canlı Soru, Stepper ve Çözüm Taktiği).",
