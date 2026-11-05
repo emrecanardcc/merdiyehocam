@@ -59,6 +59,32 @@ def _write_json(file_path: Path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+DEFAULT_SUPABASE_URL = "https://sttcifugzytmvlwhcxla.supabase.co"
+DEFAULT_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0dGNpZnVnenl0bXZsd2hjeGxhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzkwMjAwNSwiZXhwIjoyMTA5NDc4MDA1fQ.p5Eh4_usEO2CJrrZQilVE4WSom9HNZxCxWaBWXUkwVE"
+
+
+def _sync_supabase(endpoint: str, data: dict = None, method: str = "POST"):
+    """Sync record to Supabase PostgREST asynchronously without blocking server loop."""
+    import threading
+    def _run():
+        try:
+            target_url = f"{DEFAULT_SUPABASE_URL.rstrip('/')}/rest/v1/{endpoint}"
+            headers = {
+                "apikey": DEFAULT_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {DEFAULT_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal"
+            }
+            body = json.dumps(data, ensure_ascii=False).encode("utf-8") if data is not None else None
+            req = urllib.request.Request(target_url, data=body, headers=headers, method=method)
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                pass
+        except Exception:
+            pass
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+
 def _init_analytics():
     """Ensure baseline analytics structure exists."""
     if not ANALYTICS_FILE.exists():
@@ -464,6 +490,18 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             inquiries.insert(0, lead_record)
             _write_json(INQUIRIES_FILE, inquiries)
 
+            # Supabase Bulut DB Senkronizasyonu
+            _sync_supabase("mh_leads", {
+                "name": name,
+                "phone": phone,
+                "role": role,
+                "city": city,
+                "current_net": current_net,
+                "target_school": target_school,
+                "notes": notes,
+                "status": "Yeni"
+            })
+
             return self._send_json_response(200, {
                 "status": "success",
                 "message": "Özel ders talebiniz başarıyla kaydedildi.",
@@ -529,6 +567,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
 
             pdfs.append(new_pdf)
             _write_json(PDFS_JSON_FILE, pdfs)
+            _sync_supabase("mh_pdfs", new_pdf)
             return self._send_json_response(201, {"status": "created", "pdf": new_pdf})
 
         # 3b. Admin: Upload Physical PDF File
@@ -660,6 +699,15 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 }
                 questions.append(new_q)
                 _write_json(QUESTIONS_FILE, questions)
+                _sync_supabase("mh_quiz_questions", {
+                    "unit": new_q["unit"],
+                    "question_text": new_q["question"],
+                    "options": new_q["options"],
+                    "correct_index": new_q["correctIndex"],
+                    "explanation": new_q["solution"],
+                    "difficulty": "LGS Ayarı",
+                    "is_active": True
+                })
                 return self._send_json_response(201, {"status": "success", "question": new_q, "total": len(questions)})
 
         self._send_json_response(404, {"error": "API endpoint not found"})
@@ -693,6 +741,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 return self._send_json_response(404, {"error": "PDF bulunamadı"})
 
             _write_json(PDFS_JSON_FILE, pdfs)
+            _sync_supabase(f"mh_pdfs?id=eq.{target_id}", payload, method="PATCH")
             return self._send_json_response(200, {"status": "updated", "pdf": payload})
 
         self._send_json_response(404, {"error": "API endpoint not found"})
@@ -733,6 +782,11 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 return self._send_json_response(404, {"error": "Talep bulunamadı"})
 
             _write_json(INQUIRIES_FILE, inquiries)
+            if updated_item:
+                _sync_supabase(f"mh_leads?name=eq.{urllib.parse.quote(updated_item.get('name', ''))}", {
+                    "status": updated_item.get("status"),
+                    "admin_notes": updated_item.get("admin_notes")
+                }, method="PATCH")
             return self._send_json_response(200, {"status": "updated", "inquiry": updated_item})
 
         self._send_json_response(404, {"error": "API endpoint not found"})
@@ -766,6 +820,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 return self._send_json_response(404, {"error": "Silinecek talep bulunamadı"})
 
             _write_json(INQUIRIES_FILE, inquiries)
+            _sync_supabase(f"mh_leads?name=eq.{urllib.parse.quote(str(target_id))}", None, method="DELETE")
             return self._send_json_response(200, {"status": "deleted", "id": target_id, "remaining": len(inquiries)})
 
         # Admin: Delete PDF
@@ -793,6 +848,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 return self._send_json_response(404, {"error": "Silinecek PDF bulunamadı"})
 
             _write_json(PDFS_JSON_FILE, pdfs)
+            _sync_supabase(f"mh_pdfs?id=eq.{target_id}", None, method="DELETE")
             return self._send_json_response(200, {"status": "deleted", "id": target_id, "remaining": len(pdfs)})
 
         # Admin: Delete Quiz Question
@@ -815,6 +871,7 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
             if len(questions) == initial_count:
                 return self._send_json_response(404, {"error": "Silinecek soru bulunamadı"})
             _write_json(QUESTIONS_FILE, questions)
+            _sync_supabase(f"mh_quiz_questions?id=eq.{target_id}", None, method="DELETE")
             return self._send_json_response(200, {"status": "deleted", "id": target_id, "remaining": len(questions)})
 
         self._send_json_response(404, {"error": "API endpoint not found"})
@@ -928,6 +985,15 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
         posts = _read_json(POSTS_FILE, [])
         posts.insert(0, post_record)
         _write_json(POSTS_FILE, posts)
+        _sync_supabase("mh_posts", {
+            "id": post_id,
+            "title": title,
+            "description": description,
+            "platforms": platforms,
+            "video_url": video_url,
+            "privacy": privacy,
+            "results": results
+        })
 
         return self._send_json_response(200, {
             "status": "success",

@@ -49,6 +49,8 @@
       this.client = null;
       this.config = this._loadConfig();
       this.isOnline = false;
+      this.tablesOnline = false;
+      this.authOnline = false;
       this.initPromise = this._init();
     }
 
@@ -79,26 +81,37 @@
       if (this.config.url && this.config.anonKey && window.supabase && typeof window.supabase.createClient === "function") {
         try {
           this.client = window.supabase.createClient(this.config.url, this.config.anonKey);
-          // Ping test with quick timeout
+
+          // 1. Supabase Auth kullanılabilirlik testi
+          try {
+            await this.client.auth.getSession();
+            this.authOnline = true;
+          } catch (authErr) {
+            this.authOnline = false;
+          }
+
+          // 2. PostgREST tablo erişim testi (mh_pdfs varlık sorgusu)
           try {
             const { error } = await Promise.race([
               this.client.from("mh_pdfs").select("id").limit(1),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3500))
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000))
             ]);
             if (!error) {
+              this.tablesOnline = true;
               this.isOnline = true;
             } else {
-              // Verify auth session capability
-              const sessionRes = await this.client.auth.getSession().catch(() => null);
-              this.isOnline = Boolean(sessionRes);
+              this.tablesOnline = false;
+              this.isOnline = false;
             }
           } catch (pingErr) {
-            const sessionRes = await this.client.auth.getSession().catch(() => null);
-            this.isOnline = Boolean(sessionRes);
+            this.tablesOnline = false;
+            this.isOnline = false;
           }
         } catch (err) {
           console.warn("[MH_DB] Supabase init hatası:", err);
           this.isOnline = false;
+          this.tablesOnline = false;
+          this.authOnline = false;
         }
       }
       return this.isOnline;
@@ -109,7 +122,8 @@
     }
 
     getMode() {
-      if (this.isOnline) return "supabase_cloud";
+      if (this.tablesOnline) return "supabase_cloud";
+      if (this.authOnline) return "supabase_auth_ready";
       if (this.isConfigured()) return "supabase_connecting";
       return "local_fallback";
     }
@@ -610,6 +624,151 @@
       ];
     }
 
+    async addQuizQuestion(q) {
+      await this.initPromise;
+      const formatted = {
+        unit: q.unit || "LGS Matematik",
+        question_text: q.question || q.question_text || "",
+        options: Array.isArray(q.options) ? q.options : [],
+        correct_index: Number(q.correctIndex ?? q.correct_index ?? 0),
+        explanation: q.explanation || q.solution || "",
+        difficulty: q.difficulty || "LGS Ayarı",
+        is_active: true
+      };
+
+      if (this.client && this.tablesOnline) {
+        try {
+          const { data, error } = await this.client.from("mh_quiz_questions").insert([formatted]).select();
+          if (!error && data && data.length > 0) return data[0];
+        } catch (e) {
+          console.warn("[MH_DB] addQuizQuestion Supabase hatası:", e);
+        }
+      }
+
+      // Local fallback
+      try {
+        const local = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+        const item = { id: Date.now(), ...formatted, question: formatted.question_text, correctIndex: formatted.correct_index };
+        local.push(item);
+        localStorage.setItem("merdiye_custom_questions", JSON.stringify(local));
+        return item;
+      } catch (e) {
+        return formatted;
+      }
+    }
+
+    async deleteQuizQuestion(id) {
+      await this.initPromise;
+      if (this.client && this.tablesOnline) {
+        try {
+          await this.client.from("mh_quiz_questions").delete().eq("id", id);
+          return true;
+        } catch (e) {}
+      }
+      try {
+        const local = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+        const filtered = local.filter(q => String(q.id) !== String(id));
+        localStorage.setItem("merdiye_custom_questions", JSON.stringify(filtered));
+      } catch (e) {}
+      return true;
+    }
+
+    async bulkAddQuizQuestions(questions) {
+      await this.initPromise;
+      if (!Array.isArray(questions) || questions.length === 0) return [];
+      const rows = questions.map(q => ({
+        unit: q.unit || "LGS Matematik",
+        question_text: q.question || q.question_text || "",
+        options: Array.isArray(q.options) ? q.options : [],
+        correct_index: Number(q.correctIndex ?? q.correct_index ?? 0),
+        explanation: q.explanation || q.solution || "",
+        difficulty: q.difficulty || "LGS Ayarı",
+        is_active: true
+      }));
+
+      if (this.client && this.tablesOnline) {
+        try {
+          const { data, error } = await this.client.from("mh_quiz_questions").insert(rows).select();
+          if (!error && data) return data;
+        } catch (e) {}
+      }
+
+      try {
+        const local = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+        const mapped = rows.map((r, i) => ({ id: Date.now() + i, ...r, question: r.question_text, correctIndex: r.correct_index }));
+        local.push(...mapped);
+        localStorage.setItem("merdiye_custom_questions", JSON.stringify(local));
+        return mapped;
+      } catch (e) {
+        return rows;
+      }
+    }
+
+    // =========================================================================
+    // 3b. SOSYAL MEDYA YAYINLANAN GÖNDERİLER (POSTS)
+    // =========================================================================
+    async getPosts() {
+      await this.initPromise;
+      if (this.client && this.tablesOnline) {
+        try {
+          const { data, error } = await this.client.from("mh_posts").select("*").order("created_at", { ascending: false });
+          if (!error && Array.isArray(data) && data.length > 0) {
+            return data.map(p => ({
+              ...p,
+              timestamp: p.created_at || new Date().toISOString()
+            }));
+          }
+        } catch (e) {}
+      }
+
+      // API fallback
+      try {
+        const res = await fetch("/api/admin/posts");
+        if (res.ok) {
+          const apiPosts = await res.json();
+          if (Array.isArray(apiPosts) && apiPosts.length > 0) return apiPosts;
+        }
+      } catch (e) {}
+
+      // Local fallback
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY_LOCAL_POSTS) || "[]");
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async createPost(post) {
+      await this.initPromise;
+      const row = {
+        id: post.id || `post_${Date.now()}`,
+        title: String(post.title || "").trim(),
+        description: String(post.description || "").trim(),
+        platforms: Array.isArray(post.platforms) ? post.platforms : [],
+        video_url: String(post.video_url || "").trim(),
+        privacy: post.privacy || "public",
+        results: post.results || {}
+      };
+
+      if (this.client && this.tablesOnline) {
+        try {
+          const { data, error } = await this.client.from("mh_posts").insert([row]).select();
+          if (!error && data && data.length > 0) return data[0];
+        } catch (e) {}
+      }
+
+      // Local fallback
+      try {
+        const current = JSON.parse(localStorage.getItem(STORAGE_KEY_LOCAL_POSTS) || "[]");
+        const entry = { ...row, timestamp: new Date().toISOString() };
+        current.unshift(entry);
+        localStorage.setItem(STORAGE_KEY_LOCAL_POSTS, JSON.stringify(current));
+        return entry;
+      } catch (e) {
+        return row;
+      }
+    }
+
     // =========================================================================
     // 4. ZİYARETÇİ VE İNDİRME ANALİTİĞİ
     // =========================================================================
@@ -783,6 +942,24 @@
           };
           const { error } = await this.client.from("mh_quiz_questions").insert([qRow]);
           if (!error) results.quizMigrated++;
+        }
+      } catch (e) {}
+
+      // 4. Sosyal medya gönderilerini yükle
+      try {
+        const posts = JSON.parse(localStorage.getItem(STORAGE_KEY_LOCAL_POSTS) || "[]");
+        for (const post of posts) {
+          const postRow = {
+            id: String(post.id || `post_${Date.now()}`),
+            title: post.title || "",
+            description: post.description || "",
+            platforms: post.platforms || [],
+            video_url: post.video_url || "",
+            privacy: post.privacy || "public",
+            results: post.results || {}
+          };
+          const { error } = await this.client.from("mh_posts").upsert(postRow);
+          if (!error) results.postsMigrated = (results.postsMigrated || 0) + 1;
         }
       } catch (e) {}
 

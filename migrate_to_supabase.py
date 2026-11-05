@@ -69,6 +69,9 @@ def migrate_all(supabase_url: str, supabase_key: str):
     print(f"API Anahtarı       : {supabase_key[:8]}...{supabase_key[-6:]}")
     print("-" * 70)
 
+    tables_failed = 0
+    tables_succeeded = 0
+
     # 1. PDF Kataloğu Göçü
     pdfs = _read_json(PDFS_JSON_FILE, [])
     print(f"[*] {len(pdfs)} adet PDF föyü taranıyor...")
@@ -95,8 +98,10 @@ def migrate_all(supabase_url: str, supabase_key: str):
         res = _supabase_request(supabase_url, supabase_key, "mh_pdfs", pdf_rows)
         if "error" in res:
             print(f"[-] mh_pdfs yüklenirken hata oluştu ({res['status']}): {res['error']}")
+            tables_failed += 1
         else:
             print(f"[+] mh_pdfs tablosuna {len(pdf_rows)} föy başarıyla aktarıldı!")
+            tables_succeeded += 1
     else:
         print("[!] Aktarılacak PDF föyü bulunamadı.")
 
@@ -121,8 +126,10 @@ def migrate_all(supabase_url: str, supabase_key: str):
         res = _supabase_request(supabase_url, supabase_key, "mh_leads", lead_rows)
         if "error" in res:
             print(f"[-] mh_leads yüklenirken hata oluştu ({res['status']}): {res['error']}")
+            tables_failed += 1
         else:
             print(f"[+] mh_leads tablosuna {len(lead_rows)} başvuru başarıyla aktarıldı!")
+            tables_succeeded += 1
     else:
         print("[!] Aktarılacak başvuru kaydı bulunamadı.")
 
@@ -146,8 +153,10 @@ def migrate_all(supabase_url: str, supabase_key: str):
         res = _supabase_request(supabase_url, supabase_key, "mh_posts", post_rows)
         if "error" in res:
             print(f"[-] mh_posts yüklenirken hata oluştu ({res['status']}): {res['error']}")
+            tables_failed += 1
         else:
             print(f"[+] mh_posts tablosuna {len(post_rows)} gönderi başarıyla aktarıldı!")
+            tables_succeeded += 1
 
     # 4. Günün Soruları (Quiz Questions) Göçü
     questions = _read_json(QUESTIONS_FILE, [])
@@ -168,14 +177,24 @@ def migrate_all(supabase_url: str, supabase_key: str):
         res = _supabase_request(supabase_url, supabase_key, "mh_quiz_questions", q_rows)
         if "error" in res:
             print(f"[-] mh_quiz_questions yüklenirken hata oluştu ({res['status']}): {res['error']}")
+            tables_failed += 1
         else:
             print(f"[+] mh_quiz_questions tablosuna {len(q_rows)} soru başarıyla aktarıldı!")
+            tables_succeeded += 1
 
     # 5. Supabase Auth Admin Kullanıcı Denetimi
     ensure_admin_user(supabase_url, supabase_key)
 
     print("-" * 70)
-    print("[MİGRASYON TAMAMLANDI] Supabase bulut veritabanı senkronizasyonu bitti.")
+    if tables_failed > 0:
+        print(f"[!] BİLGİ: {tables_failed} adet tablo henüz Supabase üzerinde mevcut değil (404).")
+        print("[!] Supabase HTTP REST API doğrudan 'CREATE TABLE' çalıştırmaz.")
+        print("[!] Tabloları oluşturmak için 1 dakikalık adım:")
+        print("    1. https://supabase.com/dashboard/project/sttcifugzytmvlwhcxla/sql/new adresini açın.")
+        print("    2. 'website/supabase_schema.sql' dosyasının içeriğini yapıştırıp 'Run' butonuna basın.")
+        print("    3. Ardından bu betiği tekrar çalıştırın.")
+    else:
+        print("[MİGRASYON TAMAMLANDI] Supabase bulut veritabanı senkronizasyonu bitti.")
     print("=" * 70)
 
 

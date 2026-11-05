@@ -17,16 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const AUTH_STORAGE_KEY = "merdiye_admin_auth_token";
   const DEFAULT_ADMIN_PASS = "merdiye2026!";
-  const VALID_PASSWORDS = [
-    "merdiye2026!",
-    "merdiye2026",
-    "Merdiye2026!",
-    "Merdiye2026",
-    "admin",
-    "merdiye"
-  ];
-
   async function checkAdminAuth() {
+    // 1. Canlı Supabase Auth oturum belirteci denetimi
     if (window.MH_DB && typeof window.MH_DB.checkAdminSession === "function") {
       try {
         const session = await window.MH_DB.checkAdminSession();
@@ -40,21 +32,23 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (e) {}
     }
 
+    // 2. Depolanmış JWT oturum belirteci denetimi
     const token = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
-    if (token && token.startsWith("mh_admin_")) {
+    if (token && token.startsWith("mh_admin_ey")) {
       if (adminAuthOverlay) {
         adminAuthOverlay.classList.remove("active");
         adminAuthOverlay.style.display = "none";
       }
       return true;
-    } else {
-      if (adminAuthOverlay) {
-        adminAuthOverlay.classList.add("active");
-        adminAuthOverlay.style.display = "flex";
-        setTimeout(() => adminPasswordInput?.focus(), 150);
-      }
-      return false;
     }
+
+    // Kimlik doğrulanmadı -> Giriş Penceresini Göster
+    if (adminAuthOverlay) {
+      adminAuthOverlay.classList.add("active");
+      adminAuthOverlay.style.display = "flex";
+      setTimeout(() => adminPasswordInput?.focus(), 150);
+    }
+    return false;
   }
 
   if (adminLoginForm) {
@@ -63,8 +57,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const enteredUser = adminUsernameInput ? adminUsernameInput.value.trim() : "admin";
       const enteredPass = adminPasswordInput ? adminPasswordInput.value.trim() : "";
 
+      if (!enteredPass) {
+        if (loginErrorMsg) {
+          loginErrorMsg.textContent = "Lütfen şifrenizi giriniz.";
+          loginErrorMsg.style.display = "block";
+        }
+        if (adminPasswordInput) adminPasswordInput.focus();
+        return;
+      }
+
+      const submitBtn = adminLoginForm.querySelector("button[type='submit']");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Doğrulanıyor...";
+      }
+
       let authSuccess = false;
       let token = "";
+      let errorDetail = "";
 
       // 1. Canlı Supabase Veritabanı Doğrulaması (auth.users)
       if (window.MH_DB && typeof window.MH_DB.adminLogin === "function") {
@@ -75,21 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
             token = `mh_admin_${authRes.token}`;
           }
         } catch (authErr) {
+          errorDetail = authErr.message || "";
           console.warn("[AdminAuth] Supabase auth hatası:", authErr.message);
         }
       }
 
-      // 2. Yedek Doğrulama (Çevrimdışı Güvencesi)
-      if (!authSuccess) {
-        const isAuthValid = VALID_PASSWORDS.includes(enteredPass) ||
-          enteredPass.toLowerCase() === "merdiye2026!" ||
-          enteredPass.toLowerCase() === "merdiye2026" ||
-          enteredPass.toLowerCase() === "admin" ||
-          enteredPass.toLowerCase() === "merdiye";
-        if (isAuthValid) {
-          authSuccess = true;
-          token = `mh_admin_${Date.now()}`;
-        }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Yönetim Paneline Giriş Yap";
       }
 
       if (authSuccess) {
@@ -104,9 +107,18 @@ document.addEventListener("DOMContentLoaded", () => {
           adminAuthOverlay.style.display = "none";
         }
         showToast("Hoş geldiniz, Merdiye Hocam! Supabase bulut veritabanı ile yönetim paneli açıldı.", "success");
+        loadAnalytics();
+        loadPDFs();
+        loadSocialStats();
+        loadPublishedHistory();
+        loadLeads();
+        loadQuestions();
       } else {
         if (loginErrorMsg) {
-          loginErrorMsg.textContent = "Hatalı şifre veya kullanıcı adı! Lütfen şifrenizi kontrol ediniz. (Varsayılan: merdiye2026!)";
+          const trError = errorDetail.includes("Invalid login credentials")
+            ? "Hatalı şifre veya kullanıcı adı! Lütfen şifrenizi kontrol ediniz. (Varsayılan: merdiye2026!)"
+            : (errorDetail || "Giriş başarısız. Lütfen bilgilerinizi kontrol ediniz.");
+          loginErrorMsg.textContent = trError;
           loginErrorMsg.style.display = "block";
         }
         if (adminPasswordInput) adminPasswordInput.focus();
@@ -141,16 +153,25 @@ document.addEventListener("DOMContentLoaded", () => {
   let questionList = [];
 
   async function loadQuestions() {
+    let questions = [];
     try {
-      const res = await fetch("/api/quiz-questions");
-      if (res.ok) {
-        questionList = await res.json();
-      } else {
-        questionList = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+      if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
+        questions = await window.MH_DB.getQuizQuestions();
       }
-    } catch (e) {
-      questionList = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+    } catch (e) {}
+
+    if (!questions || questions.length === 0) {
+      try {
+        const res = await fetch("/api/quiz-questions");
+        if (res.ok) questions = await res.json();
+      } catch (e) {}
     }
+
+    if (!questions || questions.length === 0) {
+      questions = JSON.parse(localStorage.getItem("merdiye_custom_questions") || "[]");
+    }
+
+    questionList = questions;
     renderQuestionsTable();
   }
 
@@ -221,6 +242,12 @@ document.addEventListener("DOMContentLoaded", () => {
   async function deleteQuestion(id) {
     if (!confirm(`Soru #${id} soru bankasından silinsin mi?`)) return;
 
+    if (window.MH_DB && typeof window.MH_DB.deleteQuizQuestion === "function") {
+      try {
+        await window.MH_DB.deleteQuizQuestion(id);
+      } catch (e) {}
+    }
+
     try {
       const res = await fetch(`/api/admin/quiz-questions?id=${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -281,6 +308,15 @@ document.addEventListener("DOMContentLoaded", () => {
         tactic
       };
 
+      if (window.MH_DB && typeof window.MH_DB.addQuizQuestion === "function") {
+        try {
+          const dbQ = await window.MH_DB.addQuizQuestion(newQ);
+          if (dbQ && dbQ.id) newQ.id = dbQ.id;
+        } catch (dbErr) {
+          console.warn("[MH_DB] Soru ekleme hatası:", dbErr);
+        }
+      }
+
       try {
         const res = await fetch("/api/admin/quiz-questions", {
           method: "POST",
@@ -289,13 +325,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.question) newQ.id = data.question.id;
-          showToast("Yeni soru başarıyla havuza eklendi!", "success");
+          if (data.question && data.question.id) newQ.id = data.question.id;
         }
-      } catch (err) {
-        showToast("Soru yerel depoya eklendi.", "info");
-      }
+      } catch (err) {}
 
+      showToast("Yeni soru başarıyla soru bankasına eklendi!", "success");
       questionList.push(newQ);
       localStorage.setItem("merdiye_custom_questions", JSON.stringify(questionList));
       questionModal?.classList.remove("active");
@@ -425,6 +459,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const payload = parsedQuestionsBatch.type === "csv"
           ? { action: "bulk_csv", csv_text: parsedQuestionsBatch.data }
           : { action: "bulk_json", questions: parsedQuestionsBatch.data };
+
+        if (window.MH_DB && typeof window.MH_DB.bulkAddQuizQuestions === "function" && parsedQuestionsBatch.type === "json") {
+          try {
+            await window.MH_DB.bulkAddQuizQuestions(parsedQuestionsBatch.data);
+          } catch (e) {}
+        }
 
         const res = await fetch("/api/admin/quiz-questions", {
           method: "POST",
@@ -783,16 +823,89 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateServerStatus(online) {
     if (!serverModeStatus) return;
-    if (window.MH_DB && window.MH_DB.isConfigured()) {
-      serverModeStatus.innerHTML = " 🟢 Supabase Bulut DB Aktif";
-      serverModeStatus.style.color = "#059669";
-    } else if (online) {
+    const badge = document.getElementById("supabaseBadgeStatus");
+    if (window.MH_DB) {
+      const mode = typeof window.MH_DB.getMode === "function" ? window.MH_DB.getMode() : "";
+      if (mode === "supabase_cloud") {
+        serverModeStatus.innerHTML = " 🟢 Supabase Bulut DB Aktif";
+        serverModeStatus.style.color = "#059669";
+        if (badge) {
+          badge.textContent = "🟢 Canlı Bulut DB Aktif";
+          badge.className = "pdf-badge gold";
+        }
+        return;
+      } else if (mode === "supabase_auth_ready") {
+        serverModeStatus.innerHTML = " 🟡 Supabase Auth Aktif (Tablolar Bekleniyor)";
+        serverModeStatus.style.color = "#D97706";
+        if (badge) {
+          badge.textContent = "🟡 Auth Aktif (Tablolar Bekleniyor)";
+          badge.className = "pdf-badge";
+        }
+        return;
+      }
+    }
+    if (online) {
       serverModeStatus.innerHTML = " Sunucu &amp; REST API Aktif";
       serverModeStatus.style.color = "#059669";
     } else {
       serverModeStatus.innerHTML = " Çevrimdışı / GitHub Pages Modu";
       serverModeStatus.style.color = "#D97706";
     }
+    if (badge) {
+      badge.textContent = "⚪ Çevrimdışı / Yerel Mod";
+      badge.className = "pdf-badge";
+    }
+  }
+
+  // Supabase Veritabanı Kontrol Butonları
+  const copySupabaseSqlBtn = document.getElementById("copySupabaseSqlBtn");
+  if (copySupabaseSqlBtn) {
+    copySupabaseSqlBtn.addEventListener("click", async () => {
+      try {
+        const res = await fetch("supabase_schema.sql");
+        const sqlText = res.ok ? await res.text() : "";
+        if (sqlText && navigator.clipboard) {
+          await navigator.clipboard.writeText(sqlText);
+          showToast("SQL şeması panoya kopyalandı! Açılan sayfaya yapıştırıp 'Run' butonuna basın.", "success");
+        } else {
+          showToast("SQL Editor açılıyor.", "info");
+        }
+      } catch (e) {
+        showToast("SQL Editor açılıyor.", "info");
+      }
+      window.open("https://supabase.com/dashboard/project/sttcifugzytmvlwhcxla/sql/new", "_blank");
+    });
+  }
+
+  const syncAllToSupabaseBtn = document.getElementById("syncAllToSupabaseBtn");
+  if (syncAllToSupabaseBtn) {
+    syncAllToSupabaseBtn.addEventListener("click", async () => {
+      if (!window.MH_DB || typeof window.MH_DB.migrateLocalDataToSupabase !== "function") {
+        showToast("Supabase istemcisi hazır değil.", "error");
+        return;
+      }
+      syncAllToSupabaseBtn.disabled = true;
+      syncAllToSupabaseBtn.textContent = "Eşitleniyor...";
+      try {
+        const res = await window.MH_DB.migrateLocalDataToSupabase();
+        const total = (res.pdfsMigrated || 0) + (res.leadsMigrated || 0) + (res.quizMigrated || 0);
+        if (res.errors && res.errors.length > 0) {
+          showToast(`Eşitleme: ${total} kayıt aktarıldı. Uyarı: ${res.errors[0]}`, "info");
+        } else {
+          showToast(`Tüm veriler Supabase'e başarıyla eşitlendi! (${total} kayıt)`, "success");
+        }
+        loadAnalytics();
+        loadPDFs();
+        loadLeads();
+        loadQuestions();
+        loadPublishedHistory();
+      } catch (err) {
+        showToast(`Eşitleme uyarısı: ${err.message}`, "error");
+      } finally {
+        syncAllToSupabaseBtn.disabled = false;
+        syncAllToSupabaseBtn.textContent = "🔄 Tüm Verileri Supabase'e Eşitle";
+      }
+    });
   }
 
   // 5. PDF Kütüphanesi CRUD Motoru
@@ -1376,11 +1489,19 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadPublishedHistory() {
     let posts = [];
     try {
-      const res = await fetch("/api/admin/posts");
-      if (res.ok) posts = await res.json();
+      if (window.MH_DB && typeof window.MH_DB.getPosts === "function") {
+        posts = await window.MH_DB.getPosts();
+      }
     } catch (e) {}
 
-    if (posts.length === 0) {
+    if (!posts || posts.length === 0) {
+      try {
+        const res = await fetch("/api/admin/posts");
+        if (res.ok) posts = await res.json();
+      } catch (e) {}
+    }
+
+    if (!posts || posts.length === 0) {
       posts = JSON.parse(localStorage.getItem("merdiye_published_posts") || "[]");
     }
 
@@ -1442,6 +1563,12 @@ document.addEventListener("DOMContentLoaded", () => {
       submitBtn.innerHTML = " Gönderi Gönderiliyor...";
 
       const payload = { title, description, video_url, privacy, platforms };
+
+      if (window.MH_DB && typeof window.MH_DB.createPost === "function") {
+        try {
+          await window.MH_DB.createPost(payload);
+        } catch (e) {}
+      }
 
       try {
         const res = await fetch("/api/admin/publish", {
@@ -1697,9 +1824,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 9. Başlatma
-  loadAnalytics();
-  loadPDFs();
-  loadSocialStats();
-  loadPublishedHistory();
-  loadLeads();
+  checkAdminAuth().then(isAuthed => {
+    if (isAuthed) {
+      loadAnalytics();
+      loadPDFs();
+      loadSocialStats();
+      loadPublishedHistory();
+      loadLeads();
+      loadQuestions();
+    }
+  });
 });

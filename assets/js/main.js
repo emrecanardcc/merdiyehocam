@@ -933,11 +933,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Günlük soruları dinamik olarak API'den veya Supabase'den çek
     try {
-      const res = await fetch("/api/quiz-questions/daily");
-      if (res.ok) {
-        const dailyQuestions = await res.json();
-        if (Array.isArray(dailyQuestions) && dailyQuestions.length > 0) {
-          activeQuizList = dailyQuestions.map((q, idx) => ({
+      if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
+        const dbQuestions = await window.MH_DB.getQuizQuestions();
+        if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
+          activeQuizList = dbQuestions.slice(0, 5).map((q, idx) => ({
             id: q.id || idx + 1,
             unit: q.unit || `Soru ${idx + 1}`,
             question: q.question,
@@ -947,10 +946,23 @@ document.addEventListener("DOMContentLoaded", () => {
             tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
           }));
         }
-      } else if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
-        const dbQuestions = await window.MH_DB.getQuizQuestions();
-        if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
-          activeQuizList = dbQuestions.slice(0, 5);
+      }
+
+      if (activeQuizList.length === 0) {
+        const res = await fetch("/api/quiz-questions/daily");
+        if (res.ok) {
+          const dailyQuestions = await res.json();
+          if (Array.isArray(dailyQuestions) && dailyQuestions.length > 0) {
+            activeQuizList = dailyQuestions.map((q, idx) => ({
+              id: q.id || idx + 1,
+              unit: q.unit || `Soru ${idx + 1}`,
+              question: q.question,
+              options: q.options,
+              correctIndex: q.correctIndex,
+              solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
+              tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
+            }));
+          }
         }
       }
     } catch (e) {

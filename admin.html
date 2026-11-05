@@ -541,6 +541,29 @@
 
       <!-- ==================== TAB 1: ZİYARETÇİ & SİTE ANALİTİĞİ ==================== -->
       <section id="analyticsTab" class="tab-panel active">
+        <!-- Supabase Cloud DB Status & Control Center -->
+        <div class="data-card" style="margin-bottom: 24px; border-left: 4px solid var(--primary); background: linear-gradient(135deg, #FFFFFF 0%, #F9F5FF 100%);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-main);">Supabase Bulut Veritabanı &amp; Canlı Bağlantı</h3>
+                <span id="supabaseBadgeStatus" class="pdf-badge gold">🟢 Canlı Bulut DB Aktif</span>
+              </div>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+                Proje: <code>sttcifugzytmvlwhcxla.supabase.co</code> &bull; Yönetici: <b>admin@merdiyehocam.com</b> &bull; Tüm işlemler doğrudan bulutta gerçekleşmektedir.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" id="copySupabaseSqlBtn" class="btn btn-secondary btn-sm" title="SQL Şemasını Kopyala ve SQL Editörüne Git">
+                📋 SQL Şemasını Kopyala
+              </button>
+              <button type="button" id="syncAllToSupabaseBtn" class="btn btn-primary btn-sm" title="Tüm Yerel Föy, Veli Başvuruları ve Soruları Supabase'e Yükle">
+                🔄 Tüm Verileri Supabase'e Eşitle
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="metric-grid">
           <div class="metric-card">
             <div class="metric-card-top">
