@@ -3126,3 +3126,70 @@ button, input, select, textarea {
     height: 19px !important;
   }
 }
+
+/* ============================================================
+   21. STANDART A4 ÖĞRETMEN SINAV & ÇALIŞMA KAĞIDI BASKI KURALLARI
+   ============================================================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .navbar, .footer, .floating-whatsapp, .mobile-bottom-bar,
+  .admin-layout, .admin-sidebar, .admin-topbar, .admin-auth-overlay,
+  .tab-panel, .toast-container, .modal-overlay:not(#examPrintModal),
+  .modal-close, .exam-print-toolbar, .no-print {
+    display: none !important;
+  }
+  #examPrintModal {
+    display: block !important;
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+  }
+  #examPrintModal .modal-dialog {
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .printable-sheet-preview-wrap {
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  .exam-sheet-root {
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .exam-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-top: 0 !important;
+    border: none !important;
+    height: 0 !important;
+  }
+  .exam-question-item, .teacher-sol-item {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+

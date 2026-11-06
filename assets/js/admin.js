@@ -568,6 +568,10 @@ document.addEventListener("DOMContentLoaded", () => {
     questionsTab: {
       title: "Günün LGS Soruları & Soru Bankası",
       sub: "Her gün rastgele seçilen LGS sorularını yönetin, yeni sorular ekleyin veya toplu CSV/JSON yükleyin"
+    },
+    aiGeneratorTab: {
+      title: "AI Soru Üretici & Sınav Merkezi (2026 MEB)",
+      sub: "5, 6, 7 ve 8. sınıf kazanımlarına göre yapay zeka ile soru üretin, onaylayın ve anında A4 sınav kağıdı çıktısı alın"
     }
   };
 
@@ -1834,7 +1838,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const dialogModals = [
     document.getElementById("adminPdfModal"),
     document.getElementById("questionModal"),
-    document.getElementById("uploadQuestionsModal")
+    document.getElementById("uploadQuestionsModal"),
+    document.getElementById("examPrintModal")
   ].filter(Boolean);
 
   dialogModals.forEach(modalEl => {
@@ -1853,6 +1858,464 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ============================================================
+  // 10. 2026 MEB AI SORU ÜRETİCİ, ONAY MERKEZİ & A4 SINAV BASKI
+  // ============================================================
+  let currentAiQuestions = [];
+  const STORAGE_KEY_GEMINI_API_KEY = "merdiye_gemini_api_key";
+
+  function escapeHtml(str) {
+    if (typeof str !== "string") return "";
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function initAiQuestionGenerator() {
+    const gradeSelect = document.getElementById("aiGradeSelect");
+    const topicSelect = document.getElementById("aiTopicSelect");
+    const countInput = document.getElementById("aiQuestionCountInput");
+    const diffSelect = document.getElementById("aiDifficultySelect");
+    const generateBtn = document.getElementById("generateQuestionsBtn");
+    const reviewContainer = document.getElementById("aiReviewContainer");
+    const questionsListEl = document.getElementById("aiQuestionsList");
+    const genStatusTxt = document.getElementById("aiGenStatusTxt");
+    const geminiKeyInput = document.getElementById("geminiApiKeyInput");
+    const saveGeminiKeyBtn = document.getElementById("saveGeminiKeyBtn");
+    const geminiRow = document.getElementById("geminiApiKeyRow");
+    const engineRadios = document.querySelectorAll('input[name="aiEngineMode"]');
+
+    if (!gradeSelect || !topicSelect) return;
+
+    // Gemini API Anahtarını Yükle
+    try {
+      const savedKey = localStorage.getItem(STORAGE_KEY_GEMINI_API_KEY) || "";
+      if (geminiKeyInput && savedKey) geminiKeyInput.value = savedKey;
+    } catch (_) {}
+
+    // Motor Değişimi Dinleyicisi
+    engineRadios.forEach(r => {
+      r.addEventListener("change", () => {
+        if (geminiRow) {
+          geminiRow.style.display = r.value === "gemini" && r.checked ? "block" : "none";
+        }
+      });
+    });
+
+    if (saveGeminiKeyBtn && geminiKeyInput) {
+      saveGeminiKeyBtn.addEventListener("click", () => {
+        const val = geminiKeyInput.value.trim();
+        try {
+          localStorage.setItem(STORAGE_KEY_GEMINI_API_KEY, val);
+          showToast("Gemini API anahtarı tarayıcıya güvenle kaydedildi.", "success");
+        } catch (_) {}
+      });
+    }
+
+    // 2026 MEB Müfredat Konularını Sınıfa Göre Doldur
+    function populateTopicsForGrade(grade) {
+      topicSelect.innerHTML = "";
+      const curriculum = window.MH_AI_GENERATOR?.MEB_CURRICULUM_2026?.[grade];
+      if (!curriculum || !Array.isArray(curriculum.topics)) return;
+
+      curriculum.topics.forEach((t, i) => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = `${i + 1}. ${t}`;
+        topicSelect.appendChild(opt);
+      });
+    }
+
+    gradeSelect.addEventListener("change", () => {
+      populateTopicsForGrade(gradeSelect.value);
+    });
+
+    // İlk açılışta seçili sınıfın konularını yükle (varsayılan: 8. Sınıf)
+    populateTopicsForGrade(gradeSelect.value || "8");
+
+    // Hızlı Sınıf Butonu
+    document.getElementById("quickGrade8Btn")?.addEventListener("click", () => {
+      gradeSelect.value = "8";
+      populateTopicsForGrade("8");
+      showToast("8. Sınıf (LGS 2026) müfredatı seçildi.", "info");
+    });
+
+    // Soru Bankasından AI Soru Üreticiye Geçiş Butonu
+    document.getElementById("openAiGeneratorFromQuestionsBtn")?.addEventListener("click", () => {
+      const navItem = document.querySelector('.admin-nav-item[data-tab="aiGeneratorTab"]');
+      if (navItem) navItem.click();
+    });
+
+    // AI'dan Soru Bankasına Geçiş Butonu
+    document.getElementById("openQuestionsTabFromAiBtn")?.addEventListener("click", () => {
+      const navItem = document.querySelector('.admin-nav-item[data-tab="questionsTab"]');
+      if (navItem) navItem.click();
+    });
+
+    // Soru Sayısı Hap Butonları (1, 5, 10, 20 Sınırı)
+    document.querySelectorAll(".count-pill-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".count-pill-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const count = parseInt(btn.dataset.count, 10) || 5;
+        if (countInput) countInput.value = count;
+      });
+    });
+
+    if (countInput) {
+      countInput.addEventListener("input", () => {
+        let val = parseInt(countInput.value, 10) || 1;
+        if (val > 20) val = 20;
+        if (val < 1) val = 1;
+        countInput.value = val;
+        document.querySelectorAll(".count-pill-btn").forEach(b => {
+          b.classList.toggle("active", parseInt(b.dataset.count, 10) === val);
+        });
+      });
+    }
+
+    // Soruları Üret Butonu
+    if (generateBtn) {
+      generateBtn.addEventListener("click", async () => {
+        const grade = gradeSelect.value;
+        const topic = topicSelect.value;
+        const difficulty = diffSelect.value;
+        let count = parseInt(countInput.value, 10) || 5;
+        if (count > 20) count = 20;
+        if (count < 1) count = 1;
+
+        const selectedEngine = document.querySelector('input[name="aiEngineMode"]:checked')?.value || "local";
+        const geminiKey = geminiKeyInput ? geminiKeyInput.value.trim() : "";
+
+        generateBtn.disabled = true;
+        generateBtn.textContent = "Sorular Üretiliyor...";
+        if (genStatusTxt) genStatusTxt.textContent = "Matematik motoru çalışıyor...";
+
+        try {
+          let questions = [];
+          if (selectedEngine === "gemini" && geminiKey) {
+            try {
+              if (genStatusTxt) genStatusTxt.textContent = "Gemini API ile canlı sorular üretiliyor...";
+              questions = await window.MH_AI_GENERATOR.generateGeminiQuestions(geminiKey, grade, topic, difficulty, count);
+              showToast(`${questions.length} adet soru Gemini AI tarafından üretildi.`, "success");
+            } catch (geminiErr) {
+              console.warn("[AI Generator] Gemini API hatası, yerel motor devreye giriyor:", geminiErr);
+              showToast("Gemini API yanıt vermedi, dahili matematik motoruyla üretildi.", "warning");
+              questions = window.MH_AI_GENERATOR.generateLocalQuestions(grade, topic, difficulty, count);
+            }
+          } else {
+            questions = window.MH_AI_GENERATOR.generateLocalQuestions(grade, topic, difficulty, count);
+            showToast(`${questions.length} adet özgün MEB sorusu başarıyla üretildi.`, "success");
+          }
+
+          currentAiQuestions = questions;
+          renderAiQuestions();
+
+          if (reviewContainer) {
+            reviewContainer.style.display = "flex";
+            reviewContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        } catch (err) {
+          console.error("[AI Generator] Soru üretim hatası:", err);
+          showToast("Soru üretilirken bir hata oluştu: " + err.message, "error");
+        } finally {
+          generateBtn.disabled = false;
+          generateBtn.textContent = "Soruları Üret";
+          if (genStatusTxt) genStatusTxt.textContent = "";
+        }
+      });
+    }
+
+    // Soruları Ekrana Basma
+    function renderAiQuestions() {
+      if (!questionsListEl) return;
+      questionsListEl.innerHTML = "";
+
+      updateReviewStats();
+
+      const letters = ["A", "B", "C", "D"];
+
+      currentAiQuestions.forEach((q, idx) => {
+        const card = document.createElement("div");
+        card.className = `ai-question-card ${q.approved ? "is-approved" : ""}`;
+        card.id = `ai-card-${idx}`;
+
+        card.innerHTML = `
+          <div class="ai-question-card-header">
+            <div class="ai-card-title-group">
+              <span class="ai-q-num-pill">Soru ${idx + 1}</span>
+              <span class="pdf-badge gold" style="font-size: 0.76rem;">${escapeHtml(q.gradeLabel)} &bull; ${escapeHtml(q.topic)}</span>
+              <span class="pdf-badge" style="font-size: 0.74rem; background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-color);">${escapeHtml(q.difficultyLabel)}</span>
+              ${q.saved ? '<span class="pdf-badge" style="background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-size: 0.74rem;">Sisteme Kaydedildi</span>' : ''}
+            </div>
+
+            <div class="ai-card-actions">
+              <label class="ai-approve-toggle" title="Bu soruyu onayla">
+                <input type="checkbox" class="ai-card-approve-checkbox" data-idx="${idx}" ${q.approved ? "checked" : ""}>
+                <span>${q.approved ? "Onaylandı" : "Onayla"}</span>
+              </label>
+
+              <button type="button" class="btn btn-secondary btn-sm ai-regenerate-single-btn" data-idx="${idx}" title="Sadece bu soruyu aynı konudan yeniden üret">
+                Soruyu Değiştir
+              </button>
+            </div>
+          </div>
+
+          <div class="ai-q-text">${escapeHtml(q.question).replace(/\n/g, "<br>")}</div>
+
+          <div class="ai-options-grid">
+            ${q.options.map((opt, optIdx) => `
+              <div class="ai-option-item ${optIdx === q.correctIndex ? "is-correct" : ""}">
+                <span class="ai-opt-tag">${letters[optIdx]}</span>
+                <span>${escapeHtml(opt)}</span>
+                ${optIdx === q.correctIndex ? '<span style="margin-left: auto; font-size: 0.74rem; font-weight: 800; color: #059669;">(Doğru Cevap)</span>' : ''}
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="ai-solution-tactic-box">
+            <div><b>Ayrıntılı Çözüm Adımları:</b></div>
+            <div style="margin-top: 4px; color: var(--text-secondary);">${escapeHtml(q.explanation).replace(/\n/g, "<br>")}</div>
+            ${q.tactic ? `<div class="ai-tactic-line"><b>${escapeHtml(q.tactic)}</b></div>` : ""}
+          </div>
+        `;
+
+        // Event listener: Onay toggle
+        const chk = card.querySelector(".ai-card-approve-checkbox");
+        if (chk) {
+          chk.addEventListener("change", () => {
+            q.approved = chk.checked;
+            card.classList.toggle("is-approved", q.approved);
+            const labelSpan = card.querySelector(".ai-approve-toggle span");
+            if (labelSpan) labelSpan.textContent = q.approved ? "Onaylandı" : "Onayla";
+            updateReviewStats();
+          });
+        }
+
+        // Event listener: Tekli yeniden üret
+        const regenBtn = card.querySelector(".ai-regenerate-single-btn");
+        if (regenBtn) {
+          regenBtn.addEventListener("click", () => {
+            const fresh = window.MH_AI_GENERATOR.generateLocalQuestion(q.grade, q.topic, q.difficulty, Math.floor(Math.random() * 200));
+            fresh.approved = false;
+            currentAiQuestions[idx] = fresh;
+            renderAiQuestions();
+            showToast(`Soru ${idx + 1} aynı konudan yeniden üretildi.`, "info");
+          });
+        }
+
+        questionsListEl.appendChild(card);
+      });
+    }
+
+    function updateReviewStats() {
+      const total = currentAiQuestions.length;
+      const approved = currentAiQuestions.filter(q => q.approved).length;
+      const pending = total - approved;
+
+      const tEl = document.getElementById("statTotalCount");
+      const aEl = document.getElementById("statApprovedCount");
+      const pEl = document.getElementById("statPendingCount");
+
+      if (tEl) tEl.textContent = total;
+      if (aEl) aEl.textContent = approved;
+      if (pEl) pEl.textContent = pending;
+
+      const saveBtn = document.getElementById("saveApprovedToDbBtn");
+      if (saveBtn) {
+        saveBtn.textContent = approved > 0 ? `Onaylananları Sisteme Kaydet (${approved})` : "Onaylananları Sisteme Kaydet";
+      }
+    }
+
+    // Toplu Onay & Seçim İşlemleri
+    document.getElementById("approveAllQuestionsBtn")?.addEventListener("click", () => {
+      currentAiQuestions.forEach(q => { q.approved = true; });
+      renderAiQuestions();
+      showToast("Tüm sorular onaylandı.", "success");
+    });
+
+    document.getElementById("clearAllApprovalsBtn")?.addEventListener("click", () => {
+      currentAiQuestions.forEach(q => { q.approved = false; });
+      renderAiQuestions();
+      showToast("Onay seçimleri temizlendi.", "info");
+    });
+
+    // Onaylanmayanları Tek Tuşla Yeniden Üret
+    document.getElementById("regenerateUnapprovedBtn")?.addEventListener("click", () => {
+      const unapprovedIndices = [];
+      currentAiQuestions.forEach((q, i) => {
+        if (!q.approved) unapprovedIndices.push(i);
+      });
+
+      if (unapprovedIndices.length === 0) {
+        showToast("Tüm sorular zaten onaylı durumda.", "info");
+        return;
+      }
+
+      unapprovedIndices.forEach((idx, step) => {
+        const cur = currentAiQuestions[idx];
+        const fresh = window.MH_AI_GENERATOR.generateLocalQuestion(cur.grade, cur.topic, cur.difficulty, step + Math.floor(Math.random() * 50));
+        fresh.approved = false;
+        currentAiQuestions[idx] = fresh;
+      });
+
+      renderAiQuestions();
+      showToast(`${unapprovedIndices.length} adet onaylanmayan soru yeniden üretildi. Onaylı sorularınız korundu.`, "success");
+    });
+
+    // Onaylananları Sisteme Kaydet (Supabase & Yerel Sunucu)
+    document.getElementById("saveApprovedToDbBtn")?.addEventListener("click", async () => {
+      const approvedList = currentAiQuestions.filter(q => q.approved);
+      if (approvedList.length === 0) {
+        showToast("Lütfen kaydetmek için en az 1 soruyu onaylayın.", "warning");
+        return;
+      }
+
+      const saveBtn = document.getElementById("saveApprovedToDbBtn");
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Kaydediliyor...";
+      }
+
+      try {
+        const rowsToSave = approvedList.map(q => ({
+          unit: `${q.grade}. Sınıf - ${q.topic}`,
+          question: q.question,
+          options: q.options,
+          correctIndex: q.correctIndex,
+          explanation: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
+          difficulty: q.difficultyLabel || "LGS Ayarı"
+        }));
+
+        // 1. Supabase ve LocalStorage Veri Katmanı
+        if (window.MH_DB && typeof window.MH_DB.bulkAddQuizQuestions === "function") {
+          await window.MH_DB.bulkAddQuizQuestions(rowsToSave);
+        }
+
+        // 2. Python Sunucu API Eşitlemesi (varsa)
+        try {
+          for (const item of rowsToSave) {
+            await fetch("/api/admin/quiz-questions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "add",
+                unit: item.unit,
+                question: item.question,
+                options: item.options,
+                correct_index: item.correctIndex,
+                solution: item.explanation,
+                tactic: "",
+                difficulty: item.difficulty
+              })
+            });
+          }
+        } catch (_) {}
+
+        approvedList.forEach(q => { q.saved = true; });
+        renderAiQuestions();
+
+        // Soru Bankası Tablosunu Yenile
+        loadQuestions();
+
+        showToast(`${approvedList.length} adet onaylı soru soru bankasına ve veritabanına başarıyla kaydedildi!`, "success");
+      } catch (err) {
+        console.error("[AI Generator] Kayıt hatası:", err);
+        showToast("Sorular kaydedilirken bir hata oluştu: " + err.message, "error");
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          updateReviewStats();
+        }
+      }
+    });
+
+    // ==========================================
+    // A4 ÖĞRETMEN SINAV & ÇALIŞMA KAĞIDI BASKI
+    // ==========================================
+    const printModal = document.getElementById("examPrintModal");
+    const closePrintModalBtn = document.getElementById("closeExamPrintModalBtn");
+    const cancelExamPrintBtn = document.getElementById("cancelExamPrintBtn");
+    const triggerBrowserPrintBtn = document.getElementById("triggerBrowserPrintBtn");
+    const printableArea = document.getElementById("printableExamArea");
+
+    const schoolInput = document.getElementById("printSchoolNameInput");
+    const titleInput = document.getElementById("printExamTitleInput");
+    const filterSelect = document.getElementById("printQuestionsFilterSelect");
+    const layoutSelect = document.getElementById("printLayoutSelect");
+    const answerKeyCheck = document.getElementById("printIncludeAnswerKeyCheck");
+    const scratchCheck = document.getElementById("printIncludeScratchCheck");
+
+    function updatePrintPreview() {
+      if (!printableArea) return;
+
+      const filterMode = filterSelect ? filterSelect.value : "approved_only";
+      let questionsToPrint = currentAiQuestions;
+      if (filterMode === "approved_only") {
+        questionsToPrint = currentAiQuestions.filter(q => q.approved);
+      }
+
+      if (questionsToPrint.length === 0) {
+        printableArea.innerHTML = `
+          <div style="padding: 40px; text-align: center; color: #64748B;">
+            <b>Yazdırılacak soru bulunamadı.</b><br>
+            Lütfen önce soru üretin ve en az bir soruyu onaylayın ya da 'Üretilen Tüm Soruları Yazdır' seçeneğini seçin.
+          </div>
+        `;
+        return;
+      }
+
+      const options = {
+        schoolName: schoolInput ? schoolInput.value : "T.C. MİLLÎ EĞİTİM BAKANLIĞI",
+        examTitle: titleInput ? titleInput.value : "MATEMATİK KAZANIM VE GELİŞİM SINAVI",
+        gradeText: questionsToPrint[0] ? questionsToPrint[0].gradeLabel : "8. Sınıf",
+        topicText: questionsToPrint[0] ? questionsToPrint[0].topic : "Matematik",
+        examDate: new Date().toLocaleDateString("tr-TR"),
+        includeAnswerKey: answerKeyCheck ? answerKeyCheck.checked : true,
+        includeScratchArea: scratchCheck ? scratchCheck.checked : true,
+        layout: layoutSelect ? layoutSelect.value : "two_column"
+      };
+
+      printableArea.innerHTML = window.MH_AI_GENERATOR.buildPrintableExamHtml(questionsToPrint, options);
+    }
+
+    document.getElementById("openPrintExamModalBtn")?.addEventListener("click", () => {
+      if (currentAiQuestions.length === 0) {
+        showToast("Lütfen önce sınav kağıdı için sorular üretin.", "warning");
+        return;
+      }
+
+      // Başlıkları otomatik doldur
+      const firstQ = currentAiQuestions[0];
+      if (firstQ && titleInput) {
+        titleInput.value = `2025 - 2026 EĞİTİM ÖĞRETİM YILI ${firstQ.gradeLabel.toUpperCase()} MATEMATİK KAZANIM SINAVI`;
+      }
+
+      updatePrintPreview();
+      if (printModal) printModal.classList.add("active");
+    });
+
+    [schoolInput, titleInput, filterSelect, layoutSelect, answerKeyCheck, scratchCheck].forEach(el => {
+      if (el) el.addEventListener("input", updatePrintPreview);
+      if (el) el.addEventListener("change", updatePrintPreview);
+    });
+
+    closePrintModalBtn?.addEventListener("click", () => {
+      if (printModal) printModal.classList.remove("active");
+    });
+
+    cancelExamPrintBtn?.addEventListener("click", () => {
+      if (printModal) printModal.classList.remove("active");
+    });
+
+    triggerBrowserPrintBtn?.addEventListener("click", () => {
+      window.print();
+    });
+  }
+
   // 9. Başlatma
   checkAdminAuth().then(isAuthed => {
     if (isAuthed) {
@@ -1862,6 +2325,8 @@ document.addEventListener("DOMContentLoaded", () => {
       loadPublishedHistory();
       loadLeads();
       loadQuestions();
+      initAiQuestionGenerator();
     }
   });
 });
+
