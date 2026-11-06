@@ -2324,10 +2324,14 @@ button, input, select, textarea {
     display: block !important;
     width: 100% !important;
     text-align: center !important;
-    padding: 11px 14px !important;
+    padding: 10px 14px !important;
     font-size: 0.82rem !important;
     line-height: 1.40 !important;
     border-radius: var(--radius-full) !important;
+    background: var(--primary-soft) !important;
+    border: 1px dashed var(--primary-border) !important;
+    color: var(--primary) !important;
+    text-decoration: none !important;
     box-sizing: border-box !important;
   }
 
@@ -2559,17 +2563,25 @@ button, input, select, textarea {
     font-weight: 600 !important;
   }
   .pdf-btn-group {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
+    display: flex !important;
+    gap: 8px !important;
     width: 100% !important;
-    gap: 6px !important;
   }
   .pdf-btn-group .btn {
-    width: 100% !important;
-    padding: 10px 4px !important;
-    font-size: 0.80rem !important;
+    padding: 11px 10px !important;
+    font-size: 0.84rem !important;
     font-weight: 700 !important;
     justify-content: center !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  .pdf-btn-group .preview-btn {
+    flex: 1 !important;
+  }
+  .pdf-btn-group .download-btn {
+    flex: 1.2 !important;
+  }
+  .pdf-btn-group a[title*="E-posta"] {
+    display: none !important;
   }
 
   /* ---- 12. GÜNÜN SORUSU & MİNİ DENEME BÖLÜMÜ ---- */
@@ -2672,11 +2684,31 @@ button, input, select, textarea {
     width: 100% !important;
     box-sizing: border-box !important;
   }
+  .completion-icon {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+  }
   .completion-stats-grid {
     display: grid !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;
     width: 100% !important;
+    margin-bottom: 14px !important;
+  }
+  .completion-stat-box {
+    padding: 10px 4px !important;
+    text-align: center !important;
+  }
+  .completion-stat-box .stat-num {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+  }
+  .completion-stat-box .stat-lbl {
+    font-size: 0.70rem !important;
+    font-weight: 700 !important;
   }
   .completion-actions {
     display: flex !important;

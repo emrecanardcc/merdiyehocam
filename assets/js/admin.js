@@ -598,8 +598,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!toastContainer) return;
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    const icon = type === "success" ? "" : type === "error" ? "" : "ℹ";
-    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    toast.innerHTML = `<span></span> <span>${message}</span>`;
     toastContainer.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = "0";
@@ -1528,8 +1527,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <td><span class="pdf-badge">${platformsStr}</span></td>
           <td><span class="status-pill enrolled">Yayınlandı</span></td>
           <td>
-            ${hasYt ? `<a href="${ytUrl}" target="_blank" style="color: #DC2626; font-weight: 700; margin-right: 8px;">Shorts ↗</a>` : ""}
-            ${hasIg ? `<a href="${igUrl}" target="_blank" style="color: #DB2777; font-weight: 700;">Reels ↗</a>` : ""}
+            ${hasYt ? `<a href="${ytUrl}" target="_blank" style="color: #DC2626; font-weight: 700; margin-right: 8px;">Shorts</a>` : ""}
+            ${hasIg ? `<a href="${igUrl}" target="_blank" style="color: #DB2777; font-weight: 700;">Reels</a>` : ""}
           </td>
         </tr>
       `;

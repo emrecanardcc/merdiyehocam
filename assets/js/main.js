@@ -592,8 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!toastContainer) return;
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    const icon = type === "success" ? "" : type === "error" ? "" : "ℹ";
-    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    toast.innerHTML = `<span></span> <span>${message}</span>`;
     toastContainer.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = "0";
@@ -1103,49 +1102,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let levelText = "";
       let adviceHtml = "";
-      let icon = "";
+      let icon = `${correctCount}/5`;
 
       if (score === 100) {
         levelText = "Galatasaray & Fen Liseleri";
-        icon = "";
+        icon = "5/5";
         adviceHtml = `
-          <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #065F46; line-height: 1.6;">
-            <b>Muhteşem Başarı! 5'te 5 Yaptınız (%100).</b><br>
-            Tüm temel ve yeni nesil MEB kazanımlarına tam hakimsiniz. LGS'de 20'de 20 için sınav anındaki süre turlamasını korumanız yeterli. Liselerinizin simülasyonunu aşağıdan inceleyebilirsiniz.
+          <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #065F46; line-height: 1.6;">
+            <b>Tebrikler! 5'te 5 Tam Başarı (%100).</b><br>
+            Temel ve yeni nesil MEB kazanımlarına tam hakimsin. LGS'de <b>20'de 20 net</b> için sınav anındaki süre turlamasını koruman yeterli. Aşağıdan hedef liselerin durumunu inceleyebilirsin.
           </div>
         `;
       } else if (score >= 80) {
         levelText = "Nitelikli Fen Lisesi";
-        icon = "";
+        icon = "4/5";
         adviceHtml = `
-          <div style="background: #FAF8FE; border: 1.5px solid var(--primary-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: var(--text-main); line-height: 1.6;">
-            <b>Tebrikler! Güçlü Bir Fen Lisesi Adayısınız (%${score}).</b><br>
-            Sadece 1 soruda küçük bir takılma yaşadınız. Taktik çözüm notlarını gözden geçirerek 20'de 20 seviyesine kolayca ulaşabilirsiniz.
+          <div style="background: #FAF8FE; border: 1.5px solid var(--primary-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: var(--text-main); line-height: 1.6;">
+            <b>Güçlü Fen Lisesi Adayısın (%${score}).</b><br>
+            Sadece 1 soruda takılma yaşadın. Sınav taktik çözüm adımlarını gözden geçirerek <b>20'de 20 hedefine</b> kolaylıkla ulaşabilirsin.
           </div>
         `;
       } else if (score >= 60) {
         levelText = "Nitelikli Anadolu Lisesi";
-        icon = "";
+        icon = "3/5";
         adviceHtml = `
-          <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #92400E; line-height: 1.6;">
-            <b>İyi Bir Temeliniz Var, Gelişim Alanları Mevcut (%${score}).</b><br>
-            Yeni nesil modelleme ve şekil sorularında pratik eksikliği görünüyor. Düzenli soru föyü tekrarı ve soru çözüm koçluğu ile netlerinizi hızla 16-18 bandına çıkarabilirsiniz.
+          <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #92400E; line-height: 1.6;">
+            <b>İyi Bir Temelin Var (%${score}).</b><br>
+            Yeni nesil şekil ve grafik sorularında biraz pratik eksikliği görünüyor. Düzenli soru föyü çalışması ve <b>birebir soru takibi</b> ile netlerini hızla <b>16-18 bandına</b> çıkarabilirsin.
           </div>
         `;
       } else {
         levelText = "Gelişim Desteği Gerekli";
-        icon = "";
+        icon = `${correctCount}/5`;
         adviceHtml = `
-          <div style="background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; color: #991B1B; line-height: 1.6;">
-            <b>Temel Konuları Güçlendirme Zamanı (%${score})!</b><br>
-            Bazı kazanımlarda açıklar görünüyor. Korkmayın; haftalık planlı 1'e 1 özel ders desteği ve özet föy çalışmaları ile 2 ayda 12-14 nete ulaşmak çok kolay.
+          <div style="background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #991B1B; line-height: 1.6;">
+            <b>Temel Konuları Güçlendirme Zamanı (%${score}).</b><br>
+            Kazanım eksiklerin bulunuyor. Haftalık planlı <b>1'e 1 özel ders koçluğu</b> ve özet föy çalışmaları ile 2 ayda <b>12-15 net seviyesine</b> rahatlıkla çıkabilirsin.
           </div>
         `;
       }
 
       if (levelVal) levelVal.textContent = levelText;
       if (iconEl) iconEl.textContent = icon;
-      if (titleEl) titleEl.textContent = `Tebrikler! Mini Deneme Tamamlandı: %${score} Başarı`;
+      if (titleEl) titleEl.textContent = `Mini Deneme Sonucu: %${score} Başarı`;
       if (adviceBox) adviceBox.innerHTML = adviceHtml;
 
       if (emailBtn) {
