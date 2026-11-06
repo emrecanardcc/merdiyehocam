@@ -602,26 +602,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4000);
   }
 
-  // 7. LGS Geri Sayım Motoru
+  // 7. LGS Geri Sayım Motoru (Dinamik & Güvenli: Her zaman yaklaşan LGS'yi sayar)
   function initCountdown() {
-    const targetDate = new Date("2026-06-14T09:30:00+03:00").getTime();
     const daysEl = document.getElementById("countdownDays");
     const hoursEl = document.getElementById("countdownHours");
     const minutesEl = document.getElementById("countdownMinutes");
     const secondsEl = document.getElementById("countdownSeconds");
+    const titleEl = document.querySelector(".countdown-title");
+    const dateEl = document.querySelector(".countdown-date");
 
     if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
 
+    // Yaklaşan LGS tarihini hesapla (Her yıl Haziran ayının sınav günü: 14 Haziran 09:30)
+    function getNextLGS() {
+      const now = new Date();
+      let year = now.getFullYear();
+      // Month 5 = Haziran (0-indexed)
+      let target = new Date(year, 5, 14, 9, 30, 0);
+      if (now.getTime() >= target.getTime()) {
+        year += 1;
+        target = new Date(year, 5, 14, 9, 30, 0);
+      }
+      return { targetTime: target.getTime(), year: year };
+    }
+
     function update() {
       const now = new Date().getTime();
-      const distance = targetDate - now;
+      const { targetTime, year } = getNextLGS();
+      let distance = targetTime - now;
 
-      if (distance < 0) {
-        daysEl.textContent = "00";
-        hoursEl.textContent = "00";
-        minutesEl.textContent = "00";
-        secondsEl.textContent = "00";
-        return;
+      if (isNaN(distance) || distance < 0) {
+        distance = 0;
       }
 
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -633,6 +644,13 @@ document.addEventListener("DOMContentLoaded", () => {
       hoursEl.textContent = String(hours).padStart(2, "0");
       minutesEl.textContent = String(minutes).padStart(2, "0");
       secondsEl.textContent = String(seconds).padStart(2, "0");
+
+      if (titleEl && !titleEl.textContent.includes(String(year))) {
+        titleEl.textContent = `LGS ${year} Sınavına Kalan Süre`;
+      }
+      if (dateEl) {
+        dateEl.textContent = `Hedef: 14 Haziran ${year}`;
+      }
     }
 
     update();
