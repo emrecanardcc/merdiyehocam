@@ -1891,9 +1891,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!gradeSelect || !topicSelect) return;
 
     // Gemini API Anahtarını Yükle
-    try {
+        try {
       const savedKey = localStorage.getItem(STORAGE_KEY_GEMINI_API_KEY) || "";
-      if (geminiKeyInput && savedKey) geminiKeyInput.value = savedKey;
+      if (geminiKeyInput && savedKey) {
+        geminiKeyInput.value = savedKey;
+      }
     } catch (_) {}
 
     // Motor Değişimi Dinleyicisi
@@ -2360,7 +2362,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 9. Başlatma
+  // 9. Başlatma: AI Soru Üreticiyi beklemeden hemen başlat
+  initAiQuestionGenerator();
+
   checkAdminAuth().then(isAuthed => {
     if (isAuthed) {
       loadAnalytics();
@@ -2369,7 +2373,6 @@ document.addEventListener("DOMContentLoaded", () => {
       loadPublishedHistory();
       loadLeads();
       loadQuestions();
-      initAiQuestionGenerator();
     }
   });
 });

@@ -1313,7 +1313,7 @@
     }
 
     const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 20);
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+    const candidateModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
 
     const diffPrompt = difficulty === "temel" 
       ? "Temel düzeyde (MEB doğrudan kazanım odaklı, işlem basamaklarını ölçen)"
@@ -1355,18 +1355,34 @@ Kesin kurallar:
       }
     };
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody)
-    });
+    let response = null;
+    let data = null;
+    let lastError = null;
 
-    if (!response.ok) {
-      const errBody = await response.text();
-      throw new Error(`Gemini API Hatası (${response.status}): ${errBody.slice(0, 150)}`);
+    for (const modelName of candidateModels) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody)
+        });
+        if (res.ok) {
+          response = res;
+          data = await res.json();
+          break;
+        } else {
+          const errText = await res.text();
+          lastError = `Model ${modelName} (${res.status}): ${errText.slice(0, 120)}`;
+        }
+      } catch (netErr) {
+        lastError = netErr.message;
+      }
     }
 
-    const data = await response.json();
+    if (!data) {
+      throw new Error(`Gemini API çağrısı tamamlanamadı. Detay: ${lastError || "Bilinmeyen hata"}`);
+    }
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) throw new Error("Gemini API'den boş yanıt döndü.");
 
