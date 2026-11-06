@@ -1965,13 +1965,32 @@
                 </select>
               </div>
 
-              <!-- Zorluk Derecesi -->
+              <!-- Zorluk Derecesi (5 Seviyeli) -->
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="aiDifficultySelect" style="font-weight: 800;">Zorluk Derecesi</label>
+                <label class="form-label" for="aiDifficultySelect" style="font-weight: 800;">Zorluk Tipi *</label>
                 <select id="aiDifficultySelect" class="form-control" style="font-weight: 700;">
-                  <option value="temel">Temel (Kazanım Düzeyi)</option>
-                  <option value="orta">Orta (PISA / TIMSS Tarzı)</option>
-                  <option value="yeni_nesil" selected>Yeni Nesil (LGS / Beceri Temelli)</option>
+                  <option value="temel">1. Temel Kazanım (İşlem &amp; Kavram Becerisi)</option>
+                  <option value="orta">2. Orta Düzey (PISA / Günlük Hayat Kurgulu)</option>
+                  <option value="yeni_nesil" selected>3. Standart LGS (Beceri Temelli &bull; Sınav Ayarı)</option>
+                  <option value="lgs_secici">4. İleri Düzey / Eleyici (LGS %1'lik Dilim &bull; Derece)</option>
+                  <option value="lgs_cikmis">5. Son 3 Yıl LGS Çıkmış Soru Klonu (2022-2024 MEB)</option>
+                </select>
+              </div>
+
+              <!-- LGS Çıkmış Soru Kalıbı Seçimi -->
+              <div class="form-group" style="margin-bottom: 0;" id="aiLgsPatternGroup">
+                <label class="form-label" for="aiLgsPatternSelect" style="font-weight: 800;">LGS Çıkmış Soru Kalıbı</label>
+                <select id="aiLgsPatternSelect" class="form-control" style="font-weight: 700;">
+                  <option value="otomatik" selected>Otomatik (Konuya Göre En Uygun MEB Kalıbı)</option>
+                  <option value="ebob_ekok_raf">2024 LGS: Raf / Koli Dizilimi &amp; EBOB-EKOK Sınır Problemi</option>
+                  <option value="karekok_cetvel">2024 LGS: Kırık Cetvel / Sayı Doğrusunda Kareköklü Yaklaşık Değer</option>
+                  <option value="cebir_kesme">2024 LGS: Geometrik Levhadan Kare Kesme &amp; Özdeşlik Alanı</option>
+                  <option value="uslu_katlama">2023 LGS: Kağıt Katlama &amp; Üslü Sayılarla Alan Oranı</option>
+                  <option value="veri_grafik">2023 LGS: Daire Grafiğinden Sütun Grafiğine Veri Dönüşümü</option>
+                  <option value="olasilik_kart">2023 LGS: Torbadan Kart/Bilye Çekme &amp; Eşit Olasılık Denklemi</option>
+                  <option value="dogrusal_egim">2022-2024 LGS: Su Deposu Boşalma &amp; Rampa Eğim Denklemi</option>
+                  <option value="ucgen_pisagor">2022-2024 LGS: Katlama Çizgisi, Üçgen Eşitsizliği &amp; Pisagor</option>
+                  <option value="benzerlik_kare">2022-2024 LGS: Benzerlik Oranı (k) ve Alanlar Oranı (k²)</option>
                 </select>
               </div>
 

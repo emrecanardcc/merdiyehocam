@@ -1879,6 +1879,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const topicSelect = document.getElementById("aiTopicSelect");
     const countInput = document.getElementById("aiQuestionCountInput");
     const diffSelect = document.getElementById("aiDifficultySelect");
+    const lgsPatternSelect = document.getElementById("aiLgsPatternSelect");
     const generateBtn = document.getElementById("generateQuestionsBtn");
     const reviewContainer = document.getElementById("aiReviewContainer");
     const questionsListEl = document.getElementById("aiQuestionsList");
@@ -2048,7 +2049,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!modal) return null;
 
-      const diffLabel = difficulty === "temel" ? "Temel Düzey" : (difficulty === "orta" ? "Orta Düzey" : "Yeni Nesil (LGS)");
+      const diffLabelsMap = {
+        temel: "Temel Düzey",
+        orta: "Orta Düzey",
+        yeni_nesil: "Yeni Nesil (LGS)",
+        lgs_secici: "LGS Seçici (Derece)",
+        lgs_cikmis: "LGS Çıkmış Soru Klonu"
+      };
+      const diffLabel = diffLabelsMap[difficulty] || "Yeni Nesil (LGS)";
       if (subtitle) {
         subtitle.textContent = `2026 MEB Müfredatı • ${grade}. Sınıf • ${topic} • ${count} Adet ${diffLabel} Soru`;
       }
@@ -2132,6 +2140,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const grade = gradeSelect.value;
         const topic = topicSelect.value;
         const difficulty = diffSelect.value;
+        const pattern = lgsPatternSelect ? lgsPatternSelect.value : "otomatik";
         let count = parseInt(countInput.value, 10) || 5;
         if (count > 20) count = 20;
         if (count < 1) count = 1;
@@ -2150,7 +2159,7 @@ document.addEventListener("DOMContentLoaded", () => {
           let questions = [];
           if (isGeminiMode) {
             try {
-              questions = await window.MH_AI_GENERATOR.generateGeminiQuestions(geminiKey, grade, topic, difficulty, count);
+              questions = await window.MH_AI_GENERATOR.generateGeminiQuestions(geminiKey, grade, topic, difficulty, count, pattern);
               showToast(`${questions.length} adet özgün soru Gemini 2.5 Flash tarafından üretildi.`, "success");
             } catch (geminiErr) {
               console.warn("[AI Generator] Gemini API hatası, yerel motor devreye giriyor:", geminiErr);
@@ -2332,8 +2341,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (selectedEngine === "gemini" && geminiKey) {
           try {
+            const curPattern = lgsPatternSelect ? lgsPatternSelect.value : "otomatik";
             replacementQuestions = await window.MH_AI_GENERATOR.generateGeminiQuestions(
-              geminiKey, curGrade, curTopic, curDiff, unapprovedIndices.length
+              geminiKey, curGrade, curTopic, curDiff, unapprovedIndices.length, curPattern
             );
           } catch (geminiErr) {
             console.warn("[AI Generator] Gemini yeniden üretim hatası, yerel motor kullanılıyor:", geminiErr);

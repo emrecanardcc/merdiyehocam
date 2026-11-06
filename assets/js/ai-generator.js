@@ -1277,7 +1277,9 @@
     const diffLabels = {
       temel: "Temel (Kazanım)",
       orta: "Orta (PISA / TIMSS)",
-      yeni_nesil: "Yeni Nesil (LGS / Beceri Temelli)"
+      yeni_nesil: "Yeni Nesil (LGS)",
+      lgs_secici: "LGS Seçici (Derece / %1)",
+      lgs_cikmis: "LGS Çıkmış Soru Klonu (MEB)"
     };
 
     return {
@@ -1360,7 +1362,7 @@
     return { success: false, error: lastErr || "Baglanti saglanamadi" };
   }
 
-  async function generateGeminiQuestions(apiKey, grade, topic, difficulty, count) {
+  async function generateGeminiQuestions(apiKey, grade, topic, difficulty, count, pattern) {
     const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 20);
     const candidateModels = [
       "gemini-2.5-flash",
@@ -1384,11 +1386,29 @@
     }
     const keysToTry = rawKeys.filter((k, idx, arr) => arr.indexOf(k) === idx);
 
-    const diffPrompt = difficulty === "temel"
-      ? "Temel duzeyde (MEB dogrudan kazanim odakli, islem basamaklarini olcen)"
-      : difficulty === "orta"
-      ? "Orta duzeyde (PISA ve TIMSS tarzi, gunluk yasam senaryolu, tablo/mantik iceren)"
-      : "Yeni nesil duzeyde (LGS beceri temelli, sekil/kurgu analizli, derin muhakeme gerektiren)";
+    const diffDescriptions = {
+      temel: "Temel duzeyde (MEB dogrudan kazanim odakli, temel kavramlari ve islem basamaklarini olcen kolay-orta seviye)",
+      orta: "Orta duzeyde (PISA ve TIMSS tarzi, gunluk yasam senaryolu, tablo/mantik iceren kavramsal soru)",
+      yeni_nesil: "Standart yeni nesil LGS duzeyinde (MEB beceri temelli, sekil/kurgu analizli, derin muhakeme gerektiren gercek LGS sinavi ayari)",
+      lgs_secici: "Ileri duzey / Derece ve %1'lik dilim secici LGS duzeyinde (Ust duzey analiz ve sentez becerisi olcen, birden fazla kazanimin birlestirildigi cok adimli eleyici soru)",
+      lgs_cikmis: "Son 3 Yil (2022, 2023, 2024) MEB LGS Matematik sinavlarinda cikmis gercek sorularin kurgusu, olcme mantigi ve soru uslubuyla %100 birebir ozdes sinav provasi sorusu"
+    };
+
+    const patternDescriptions = {
+      otomatik: "Secilen konunun MEB son 3 yilda en cok sordugu cikmis soru sablonunu temel al.",
+      ebob_ekok_raf: "2024 LGS EBOB-EKOK Kalibi: Iki farkli olcude koli/kutu/fayansin bir rafa veya duvara dizilmesi, aralarinda asallik kurali ve 'en az / en fazla' sinir degeri problemi kurgusu.",
+      karekok_cetvel: "2024 LGS Karekok Kalibi: Sayi dogrusu veya kirik cetvel uzerine konan bir nesnenin uzunlugunun hangi iki tam sayi arasina denk geldigini (yaklasik karekok degeri) olcen kurgu.",
+      cebir_kesme: "2024 LGS Cebirsel Ifadeler Kalibi: Kenari x olan kare/dikdortgen bir kartonun koselerinden es kareler kesilip cikarilmasi veya katlanmasi ile olusan yeni seklin alanini ozdesliklerle ((a-b)^2 veya a^2-b^2) ifade etme kurgusu.",
+      uslu_katlama: "2023 LGS Uslu Sayilar Kalibi: Bir kagidin adim adim katlanarak alaninin 2'nin veya 3'un kuvvetleri seklinde degismesi, kenar uzunluklarinin uslu oranlari ve alan karsilastirmasi kurgusu.",
+      veri_grafik: "2023 LGS Veri Analizi Kalibi: Daire grafigindeki merkez acilar (360 derece) ile sutun grafigindeki urun/kisi sayilari arasinda gecis yapma ve oran-oranti ile denklem cozme kurgusu.",
+      olasilik_kart: "2023 LGS Olasilik Kalibi: Bir kutudan/torbadan cekilen kartlarin renklerine gore olasiliklarinin esitlenmesi icin eklenmesi/cikarilmasi gereken adetleri cebirsel bilinmeyenle buldurma kurgusu.",
+      dogrusal_egim: "2022-2024 LGS Dogrusal Denklemler Kalibi: Sabit hizla su akitan bir muslukla bosalan/dolan su deposunun zaman-hacim grafigi (y = mx + n) veya dikey/yatay uzunluktan rampa/merdiven egimi hesabi kurgusu.",
+      ucgen_pisagor: "2022-2024 LGS Ucgenler Kalibi: Bir ucgenin kenarinin katlama cizgisi boyunca katlanmasi, ucgen esitsizligi (|b-c| < a < b+c) ve dik ucgende Pisagor bagintisi (a^2 + b^2 = c^2) kurgusu.",
+      benzerlik_kare: "2022-2024 LGS Benzerlik Kalibi: Benzer iki sekil/cerceve arasindaki benzerlik orani (k), cevreler orani (k) ve alanlar orani (k^2) iliskisini kullanan kurgu."
+    };
+
+    const diffPrompt = diffDescriptions[difficulty] || diffDescriptions.yeni_nesil;
+    const patternPrompt = patternDescriptions[pattern] || patternDescriptions.otomatik;
 
     const promptText = `Sen Merdiye Hoca'sin (Turkiye'nin onde gelen LGS Matematik Ogretmeni).
 2026 MEB Matematik Mufredatina tam uyumlu, pedagojik olarak kusursuz sorular uret.
@@ -1396,6 +1416,7 @@ Kesin kurallar:
 - Sinif Seviyesi: ${grade}. Sinif
 - Konu / Kazanim: ${topic}
 - Zorluk Derecesi: ${diffPrompt}
+- MEB LGS Soru Kalibi Sablonu: ${patternPrompt}
 - Uretilecek Soru Sayisi: Tam olarak ${safeCount} adet soru
 - Sifir emoji kurali: Cevabinda ASLA ve KESINLIKLE hicbir emoji, simge veya grafik piktogram kullanma!
 - Her sorunun 4 sikki (A, B, C, D) olmali, sadece tek bir sik kesinlikle dogru olmali, diger 3 sik ogrencilerin dusebilecegi gercekci celdiriciler olmali.
@@ -1478,9 +1499,11 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     }
 
     const diffLabels = {
-      temel: "Temel (Kazanim)",
+      temel: "Temel (Kazanım)",
       orta: "Orta (PISA / TIMSS)",
-      yeni_nesil: "Yeni Nesil (LGS / Beceri Temelli)"
+      yeni_nesil: "Yeni Nesil (LGS)",
+      lgs_secici: "LGS Seçici (Derece / %1)",
+      lgs_cikmis: "LGS Çıkmış Soru Klonu (MEB)"
     };
 
     return parsedList.slice(0, safeCount).map((item, idx) => ({
