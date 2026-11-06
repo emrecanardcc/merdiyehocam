@@ -1354,13 +1354,15 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileToggle.addEventListener("click", () => {
       navMenu.classList.toggle("open");
       const isOpen = navMenu.classList.contains("open");
-      mobileToggle.textContent = isOpen ? "✕" : "☰";
+      mobileToggle.innerHTML = isOpen
+        ? '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>';
     });
 
     navMenu.querySelectorAll(".nav-link").forEach(link => {
       link.addEventListener("click", () => {
         navMenu.classList.remove("open");
-        mobileToggle.textContent = "☰";
+        mobileToggle.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>';
       });
     });
   }

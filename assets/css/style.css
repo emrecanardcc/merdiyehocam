@@ -900,7 +900,7 @@ button, input, select, textarea {
 /* ==================== TESTIMONIALS ==================== */
 .testimonials-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 26px;
 }
 
@@ -1267,8 +1267,13 @@ button, input, select, textarea {
   .logo-img {
     height: 46px;
   }
-  .nav-actions .btn {
+  .nav-actions {
     display: none;
+  }
+  /* Nav menu drops from 60px header on mobile */
+  .header .nav-menu {
+    top: 60px !important;
+    z-index: 999;
   }
   .hero-title {
     font-size: 2.1rem;
@@ -1731,7 +1736,7 @@ button, input, select, textarea {
 
 .school-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
   margin-top: 24px;
 }
@@ -2105,6 +2110,11 @@ button, input, select, textarea {
     width: 100%;
   }
 
+  /* Container padding reduced on mobile */
+  .container {
+    padding: 0 16px !important;
+  }
+
   /* Body space for fixed bottom app bar */
   body {
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
@@ -2121,8 +2131,8 @@ button, input, select, textarea {
     display: none;
   }
   .floating-email::before {
-    content: "✉";
-    font-size: 1.3rem;
+    content: "";
+    display: none;
   }
 
   /* Compact Mobile Header */
@@ -2422,5 +2432,148 @@ button, input, select, textarea {
   .quiz-option-card {
     padding: 14px 16px !important;
     min-height: 54px !important;
+  }
+/* Section spacing on mobile */
+  .section {
+    padding: 48px 0 !important;
+  }
+  .section-header {
+    margin-bottom: 28px !important;
+  }
+  .section-title {
+    font-size: 1.55rem !important;
+    letter-spacing: -0.3px !important;
+  }
+  .section-desc {
+    font-size: 0.90rem !important;
+  }
+
+  /* Search box full width */
+  .search-box {
+    max-width: 100% !important;
+  }
+  .search-input {
+    font-size: 0.90rem !important;
+    padding: 13px 20px 13px 46px !important;
+  }
+
+  /* Hero image hidden on mobile to save space */
+  .hero-graphic {
+    display: none !important;
+  }
+
+  /* Social grid: stack on mobile */
+  .social-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .social-card {
+    padding: 22px !important;
+  }
+  .social-stats-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .social-stat-unit .stat-num {
+    font-size: 1.25rem !important;
+  }
+
+  /* Tutoring card full width */
+  .tutoring-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .tutoring-card {
+    padding: 22px !important;
+  }
+  .tutoring-card h3 {
+    font-size: 1.3rem !important;
+  }
+
+  /* Calculator wrapper on mobile */
+  .calc-wrapper {
+    padding: 20px 16px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  .calc-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .calc-number-input {
+    width: 90px !important;
+    font-size: 1.8rem !important;
+  }
+  .calc-net-number {
+    font-size: 2.8rem !important;
+  }
+
+  /* Form on mobile */
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Email instant btn */
+  .btn-email-instant {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.84rem !important;
+    padding: 11px 16px !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+
+  /* School grid */
+  .school-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Testimonials grid */
+  .testimonials-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .testi-card {
+    padding: 20px !important;
+  }
+
+  /* FAQ */
+  .faq-question {
+    font-size: 0.95rem !important;
+    padding: 14px 16px !important;
+  }
+  .faq-answer {
+    padding: 12px 16px !important;
+    font-size: 0.88rem !important;
+  }
+
+  /* Hero stats row */
+  .hero-stats-row {
+    gap: 16px !important;
+    padding-top: 16px !important;
+    justify-content: space-around !important;
+  }
+  .hero-stat-item h4 {
+    font-size: 1.15rem !important;
+  }
+  .hero-stat-item p {
+    font-size: 0.75rem !important;
+  }
+
+  /* Countdown header: stack labels */
+  .countdown-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
+
+  /* Footer grid */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+  .footer-brand {
+    text-align: center !important;
   }
 }
