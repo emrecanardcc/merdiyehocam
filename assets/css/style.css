@@ -3148,7 +3148,7 @@ button, input, select, textarea {
   .modal-close, .exam-print-toolbar, .no-print {
     display: none !important;
   }
-  #examPrintModal {
+  #examPrintModal.active {
     display: block !important;
     position: static !important;
     background: transparent !important;
@@ -3158,7 +3158,10 @@ button, input, select, textarea {
     height: auto !important;
     box-shadow: none !important;
   }
-  #examPrintModal .modal-dialog {
+  #examPrintModal:not(.active) {
+    display: none !important;
+  }
+  #examPrintModal.active .modal-dialog {
     position: static !important;
     max-width: 100% !important;
     width: 100% !important;

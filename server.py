@@ -678,8 +678,25 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 added = []
                 for q in new_items:
                     if q.get("question"):
+                        correct_val = q.get("correctIndex")
+                        if correct_val is None:
+                            correct_val = q.get("correct_index", 0)
+                        try:
+                            correct_idx = int(correct_val)
+                        except (ValueError, TypeError):
+                            correct_idx = 0
+                        q["correctIndex"] = correct_idx
                         q["id"] = len(questions) + len(added) + 1
                         added.append(q)
+                        _sync_supabase("mh_quiz_questions", {
+                            "unit": q.get("unit", "LGS Matematik"),
+                            "question_text": q["question"],
+                            "options": q.get("options", []),
+                            "correct_index": correct_idx,
+                            "explanation": q.get("solution") or q.get("explanation", ""),
+                            "difficulty": q.get("difficulty", "LGS Ayarı"),
+                            "is_active": True
+                        })
                 questions.extend(added)
                 _write_json(QUESTIONS_FILE, questions)
                 return self._send_json_response(200, {"status": "success", "added_count": len(added), "total": len(questions)})
@@ -688,13 +705,20 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                 q_text = payload.get("question", "").strip()
                 if not q_text:
                     return self._send_json_response(400, {"error": "Soru metni zorunludur"})
+                correct_val = payload.get("correctIndex")
+                if correct_val is None:
+                    correct_val = payload.get("correct_index", 0)
+                try:
+                    correct_idx = int(correct_val)
+                except (ValueError, TypeError):
+                    correct_idx = 0
                 new_q = {
                     "id": len(questions) + 1,
                     "unit": payload.get("unit", "LGS Matematik"),
                     "question": q_text,
                     "options": payload.get("options", ["A) ", "B) ", "C) ", "D) "]),
-                    "correctIndex": int(payload.get("correctIndex", 0)),
-                    "solution": payload.get("solution", ""),
+                    "correctIndex": correct_idx,
+                    "solution": payload.get("solution") or payload.get("explanation", ""),
                     "tactic": payload.get("tactic", "")
                 }
                 questions.append(new_q)

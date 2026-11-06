@@ -916,9 +916,9 @@
       text-align: center;
     }
     .exam-questions-container.two-column-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px 22px;
+      columns: 2;
+      column-gap: 22px;
+      column-rule: 1px dashed #CBD5E1;
     }
     .exam-questions-container.single-column-layout {
       display: flex;
@@ -926,11 +926,15 @@
       gap: 16px;
     }
     .exam-question-item {
-      border: 1px solid #E2E8F0;
+      border: 1px solid #CBD5E1;
       border-radius: 6px;
       padding: 10px 12px;
-      break-inside: avoid;
-      page-break-inside: avoid;
+      margin-bottom: 14px;
+      display: inline-block;
+      width: 100%;
+      box-sizing: border-box;
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
     }
     .exam-q-header {
       display: flex;
@@ -1825,11 +1829,13 @@
                 </p>
               </div>
 
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="quickGrade8Btn" class="btn btn-secondary btn-sm" style="font-weight: 800;">
-                  8. Sınıf (LGS) Modu
-                </button>
-                <button type="button" id="openQuestionsTabFromAiBtn" class="btn btn-secondary btn-sm">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 0.80rem; font-weight: 700; color: var(--text-muted);">Hızlı Sınıf:</span>
+                <button type="button" class="btn btn-secondary btn-sm quick-grade-btn" data-grade="5" style="font-weight: 800; padding: 4px 10px;">5. Sınıf</button>
+                <button type="button" class="btn btn-secondary btn-sm quick-grade-btn" data-grade="6" style="font-weight: 800; padding: 4px 10px;">6. Sınıf</button>
+                <button type="button" class="btn btn-secondary btn-sm quick-grade-btn" data-grade="7" style="font-weight: 800; padding: 4px 10px;">7. Sınıf</button>
+                <button type="button" class="btn btn-primary btn-sm quick-grade-btn" data-grade="8" id="quickGrade8Btn" style="font-weight: 800; padding: 4px 10px;">8. Sınıf (LGS)</button>
+                <button type="button" id="openQuestionsTabFromAiBtn" class="btn btn-secondary btn-sm" style="margin-left: 6px;">
                   Soru Bankasını Aç
                 </button>
               </div>

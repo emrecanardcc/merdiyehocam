@@ -1936,11 +1936,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // İlk açılışta seçili sınıfın konularını yükle (varsayılan: 8. Sınıf)
     populateTopicsForGrade(gradeSelect.value || "8");
 
-    // Hızlı Sınıf Butonu
-    document.getElementById("quickGrade8Btn")?.addEventListener("click", () => {
-      gradeSelect.value = "8";
-      populateTopicsForGrade("8");
-      showToast("8. Sınıf (LGS 2026) müfredatı seçildi.", "info");
+    // Hızlı Sınıf Butonları (5, 6, 7 ve 8. Sınıf)
+    document.querySelectorAll(".quick-grade-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const gradeVal = btn.dataset.grade || "8";
+        gradeSelect.value = gradeVal;
+        populateTopicsForGrade(gradeVal);
+        document.querySelectorAll(".quick-grade-btn").forEach(b => {
+          b.classList.remove("btn-primary");
+          b.classList.add("btn-secondary");
+        });
+        btn.classList.remove("btn-secondary");
+        btn.classList.add("btn-primary");
+        showToast(`${gradeVal}. Sınıf 2026 MEB müfredat konuları yüklendi.`, "info");
+      });
     });
 
     // Soru Bankasından AI Soru Üreticiye Geçiş Butonu
@@ -2143,8 +2152,8 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Onay seçimleri temizlendi.", "info");
     });
 
-    // Onaylanmayanları Tek Tuşla Yeniden Üret
-    document.getElementById("regenerateUnapprovedBtn")?.addEventListener("click", () => {
+    // Onaylanmayanları Tek Tuşla Yeniden Üret (Aynı Konu ve Sınıftan)
+    document.getElementById("regenerateUnapprovedBtn")?.addEventListener("click", async () => {
       const unapprovedIndices = [];
       currentAiQuestions.forEach((q, i) => {
         if (!q.approved) unapprovedIndices.push(i);
@@ -2155,15 +2164,55 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      unapprovedIndices.forEach((idx, step) => {
-        const cur = currentAiQuestions[idx];
-        const fresh = window.MH_AI_GENERATOR.generateLocalQuestion(cur.grade, cur.topic, cur.difficulty, step + Math.floor(Math.random() * 50));
-        fresh.approved = false;
-        currentAiQuestions[idx] = fresh;
-      });
+      const regenBtn = document.getElementById("regenerateUnapprovedBtn");
+      if (regenBtn) {
+        regenBtn.disabled = true;
+        regenBtn.textContent = "Yeniden Üretiliyor...";
+      }
 
-      renderAiQuestions();
-      showToast(`${unapprovedIndices.length} adet onaylanmayan soru yeniden üretildi. Onaylı sorularınız korundu.`, "success");
+      const selectedEngine = document.querySelector('input[name="aiEngineMode"]:checked')?.value || "local";
+      const geminiKey = geminiKeyInput ? geminiKeyInput.value.trim() : "";
+
+      try {
+        let replacementQuestions = [];
+        const curTopic = currentAiQuestions[unapprovedIndices[0]]?.topic || topicSelect.value;
+        const curGrade = currentAiQuestions[unapprovedIndices[0]]?.grade || gradeSelect.value;
+        const curDiff = currentAiQuestions[unapprovedIndices[0]]?.difficulty || diffSelect.value;
+
+        if (selectedEngine === "gemini" && geminiKey) {
+          try {
+            replacementQuestions = await window.MH_AI_GENERATOR.generateGeminiQuestions(
+              geminiKey, curGrade, curTopic, curDiff, unapprovedIndices.length
+            );
+          } catch (geminiErr) {
+            console.warn("[AI Generator] Gemini yeniden üretim hatası, yerel motor kullanılıyor:", geminiErr);
+            replacementQuestions = [];
+          }
+        }
+
+        unapprovedIndices.forEach((idx, step) => {
+          const cur = currentAiQuestions[idx];
+          let fresh = replacementQuestions[step];
+          if (!fresh) {
+            fresh = window.MH_AI_GENERATOR.generateLocalQuestion(
+              cur.grade, cur.topic, cur.difficulty, step + Math.floor(Math.random() * 50) + 1
+            );
+          }
+          fresh.approved = false;
+          currentAiQuestions[idx] = fresh;
+        });
+
+        renderAiQuestions();
+        showToast(`${unapprovedIndices.length} adet onaylanmayan soru yeniden üretildi. Onaylı sorularınız korundu.`, "success");
+      } catch (err) {
+        console.error("[AI Generator] Yeniden üretim hatası:", err);
+        showToast("Yeniden üretim sırasında hata: " + err.message, "error");
+      } finally {
+        if (regenBtn) {
+          regenBtn.disabled = false;
+          regenBtn.textContent = "Onaylanmayanları Yeniden Üret (Tek Tuşla)";
+        }
+      }
     });
 
     // Onaylananları Sisteme Kaydet (Supabase & Yerel Sunucu)
@@ -2186,7 +2235,10 @@ document.addEventListener("DOMContentLoaded", () => {
           question: q.question,
           options: q.options,
           correctIndex: q.correctIndex,
+          correct_index: q.correctIndex,
           explanation: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
+          solution: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
+          tactic: q.tactic || "",
           difficulty: q.difficultyLabel || "LGS Ayarı"
         }));
 
@@ -2195,24 +2247,16 @@ document.addEventListener("DOMContentLoaded", () => {
           await window.MH_DB.bulkAddQuizQuestions(rowsToSave);
         }
 
-        // 2. Python Sunucu API Eşitlemesi (varsa)
+        // 2. Python Sunucu API Eşitlemesi (Tek atomik bulk_json isteği)
         try {
-          for (const item of rowsToSave) {
-            await fetch("/api/admin/quiz-questions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                action: "add",
-                unit: item.unit,
-                question: item.question,
-                options: item.options,
-                correct_index: item.correctIndex,
-                solution: item.explanation,
-                tactic: "",
-                difficulty: item.difficulty
-              })
-            });
-          }
+          await fetch("/api/admin/quiz-questions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "bulk_json",
+              questions: rowsToSave
+            })
+          });
         } catch (_) {}
 
         approvedList.forEach(q => { q.saved = true; });

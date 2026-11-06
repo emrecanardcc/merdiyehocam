@@ -1,8 +1,8 @@
 /**
- * Merdiye Hocam LGS Platformu - AI Soru Üretici Motoru & A4 Sınav Çıktı Merkezi
- * 2026 MEB Matematik Müfredatı (5, 6, 7, 8. Sınıf)
+ * Merdiye Hocam LGS Platformu - AI Soru Uretici Motoru & A4 Sinav Cikti Merkezi
+ * 2026 MEB Matematik Mufredati (5, 6, 7 ve 8. Sinif)
  *
- * Kurallar: Axiom Zero Bloat, Katı O(1)/O(n) Algoritma, İçsel Emniyet, SIFIR EMOJİ Politikası.
+ * Kurallar: Axiom Zero Bloat, Kati O(1)/O(n) Algoritma, Icsel Emniyet, SIFIR EMOJI Politikasi.
  */
 
 (function (root, factory) {
@@ -14,7 +14,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  // 1. 2026 MEB Matematik Müfredat Haritası (5, 6, 7 ve 8. Sınıf)
+  // 1. 2026 MEB Matematik Mufredat Haritasi (5, 6, 7 ve 8. Sinif)
   const MEB_CURRICULUM_2026 = {
     "5": {
       name: "5. Sınıf",
@@ -70,7 +70,7 @@
     }
   };
 
-  // Yardımcı Matematiksel Fonksiyonlar (Axiom Zero Bloat & Intrinsic Safety)
+  // 2. Yardimci Matematiksel Fonksiyonlar (Axiom Zero Bloat & Intrinsic Safety)
   function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
@@ -91,6 +91,18 @@
     return Math.abs(a * b) / gcd(a, b);
   }
 
+  function simplifyFrac(p, q) {
+    if (q === 0) return "0";
+    const sign = (p < 0) ^ (q < 0) ? "-" : "";
+    const absP = Math.abs(p);
+    const absQ = Math.abs(q);
+    const g = gcd(absP, absQ);
+    const num = absP / g;
+    const den = absQ / g;
+    if (den === 1) return sign + num;
+    return sign + num + "/" + den;
+  }
+
   function shuffle(array) {
     const arr = array.slice();
     for (let i = arr.length - 1; i > 0; i--) {
@@ -102,34 +114,134 @@
     return arr;
   }
 
+  // Matematiksel zeki celdirici uretici (Asla '(1)' veya 'undefined' uretmez)
+  function generateSmartFallbacks(correctStr, seenSet, neededCount) {
+    const fallbacks = [];
+    const str = String(correctStr).trim();
+
+    // Durum 1: Kesir (Orn: "3/5", "-7/6")
+    const fracMatch = str.match(/^([-+]?\d+)\/(\d+)$/);
+    if (fracMatch) {
+      const p = parseInt(fracMatch[1], 10);
+      const q = parseInt(fracMatch[2], 10);
+      const candidates = [
+        simplifyFrac(p + 1, q),
+        simplifyFrac(p - 1 !== 0 ? p - 1 : p + 2, q),
+        simplifyFrac(q, p !== 0 ? p : q + 1),
+        simplifyFrac(p, q + 1),
+        simplifyFrac(p + 2, q),
+        simplifyFrac(p, q + 2),
+        "1/2", "2/3", "3/4", "1/4", "2/5", "3/5"
+      ];
+      for (const c of candidates) {
+        if (!seenSet.has(c) && !fallbacks.includes(c)) fallbacks.push(c);
+        if (fallbacks.length >= neededCount) return fallbacks;
+      }
+    }
+
+    // Durum 2: Sayi ve birim (Orn: "48 cm²", "12 TL", "70°", "15", "24.750 TL")
+    const numMatch = str.match(/^([-+]?\d+(?:[.,]\d+)?)(.*)$/);
+    if (numMatch) {
+      const rawNum = numMatch[1].replace(",", ".");
+      const val = parseFloat(rawNum);
+      const unit = numMatch[2] || "";
+      if (!isNaN(val)) {
+        const step = Math.abs(val) >= 60 ? 10 : Math.abs(val) >= 10 ? 2 : 1;
+        const candidates = [
+          val + step,
+          val - step > 0 ? val - step : val + step * 2,
+          val + step * 2,
+          val - step * 2 > 0 ? val - step * 2 : val + step * 3,
+          val * 2,
+          Math.floor(val / 2) || (val + 3),
+          val + 1,
+          val - 1 > 0 ? val - 1 : val + 4
+        ];
+        for (const n of candidates) {
+          const formatted = (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "")) + unit;
+          if (!seenSet.has(formatted) && !fallbacks.includes(formatted)) fallbacks.push(formatted);
+          if (fallbacks.length >= neededCount) return fallbacks;
+        }
+      }
+    }
+
+    // Durum 3: Uslu ifade (Orn: "2^11")
+    const powMatch = str.match(/^(\d+)\^([-+]?\d+)$/);
+    if (powMatch) {
+      const b = powMatch[1];
+      const e = parseInt(powMatch[2], 10);
+      const candidates = [
+        `${b}^${e - 1}`,
+        `${b}^${e + 1}`,
+        `${b}^${e - 2}`,
+        `${b}^${e + 2}`,
+        `${b * 2}^${e}`
+      ];
+      for (const c of candidates) {
+        if (!seenSet.has(c) && !fallbacks.includes(c)) fallbacks.push(c);
+        if (fallbacks.length >= neededCount) return fallbacks;
+      }
+    }
+
+    // Durum 4: Koordinat (Orn: "(3, -4)")
+    const coordMatch = str.match(/^\(([-+]?\d+),\s*([-+]?\d+)\)$/);
+    if (coordMatch) {
+      const x = coordMatch[1];
+      const y = coordMatch[2];
+      const candidates = [
+        `(${x}, ${-y})`,
+        `(${-x}, ${y})`,
+        `(${-x}, ${-y})`,
+        `(${y}, ${x})`
+      ];
+      for (const c of candidates) {
+        if (!seenSet.has(c) && !fallbacks.includes(c)) fallbacks.push(c);
+        if (fallbacks.length >= neededCount) return fallbacks;
+      }
+    }
+
+    // Durum 5: Genel yedekler
+    let salt = 1;
+    while (fallbacks.length < neededCount) {
+      const fallback = `${str} + ${salt}`;
+      if (!seenSet.has(fallback)) fallbacks.push(fallback);
+      salt++;
+    }
+
+    return fallbacks;
+  }
+
   function buildOptions(correctStr, distractorsArr) {
     const uniqueDistractors = [];
-    const seen = new Set([correctStr]);
-    for (const d of distractorsArr) {
-      const str = String(d);
-      if (!seen.has(str)) {
+    const correctClean = String(correctStr).trim();
+    const seen = new Set([correctClean]);
+
+    for (const d of distractorsArr || []) {
+      const str = String(d).trim();
+      if (str && !seen.has(str)) {
         seen.add(str);
         uniqueDistractors.push(str);
       }
       if (uniqueDistractors.length >= 3) break;
     }
 
-    // Yetersiz çeldirici kalırsa emniyetli türetim
-    let salt = 1;
-    while (uniqueDistractors.length < 3) {
-      const fallback = String(Number(correctStr) ? Number(correctStr) + salt : correctStr + " (" + salt + ")");
-      if (!seen.has(fallback)) {
-        seen.add(fallback);
-        uniqueDistractors.push(fallback);
+    if (uniqueDistractors.length < 3) {
+      const needed = 3 - uniqueDistractors.length;
+      const smart = generateSmartFallbacks(correctClean, seen, needed);
+      for (const item of smart) {
+        if (!seen.has(item)) {
+          seen.add(item);
+          uniqueDistractors.push(item);
+        }
+        if (uniqueDistractors.length >= 3) break;
       }
-      salt++;
     }
 
     const items = [
-      { text: correctStr, isCorrect: true },
-      { text: uniqueDistractors[0], isCorrect: false },
-      { text: uniqueDistractors[1], isCorrect: false },
-      { text: uniqueDistractors[2], isCorrect: false }
+      { text: correctClean, isCorrect: true },
+      { text: uniqueDistractors[0] || "A", isCorrect: false },
+      { text: uniqueDistractors[1] || "B", isCorrect: false },
+      { text: uniqueDistractors[2] || "C", isCorrect: false }
     ];
 
     const shuffled = shuffle(items);
@@ -139,7 +251,7 @@
     return { options, correctIndex };
   }
 
-  // 2. Kapsamlı Prosedürel Matematik Soru Şablonları (32 Konunun Tamamı)
+  // 3. Kapsamli Prosedurel Matematik Soru Sablonlari (32 Konunun Tamami)
   const QUESTION_GENERATORS = {
     // ==========================================
     // 5. SINIF SORU MOTORLARI
@@ -153,9 +265,9 @@
         return {
           question: `Bir bölme işleminde bölen ${b}, bölüm ${a} ve kalan ${kalan} olduğuna göre, bölünen doğal sayı kaçtır?`,
           correctStr: String(bolunen),
-          distractors: [bolunen - kalan, bolunen + kalan, a * b, bolunen - 10],
+          distractors: [String(bolunen - kalan), String(bolunen + kalan), String(a * b)],
           explanation: `Bölme işleminde temel kural: Bölünen = (Bölen × Bölüm) + Kalan bağıntısıdır.\nBölünen = (${b} × ${a}) + ${kalan} = ${a * b} + ${kalan} = ${bolunen} bulunur.`,
-          tactic: "Merdiye Hoca Sınav Taktiği: Kalanın daima bölenden küçük olması gerektiğini unutmayın. Sağlama yaparken çarpma ve toplamayı adım adım kontrol edin."
+          tactic: "Merdiye Hoca Sınav Taktiği: Kalanın daima bölenden küçük olması gerektiğini unutmayın. Bölünen sayıyı bulurken çarpma ve toplamayı adım adım kontrol edin."
         };
       },
       (diff) => {
@@ -164,50 +276,93 @@
         const taksitSayisi = randInt(4, 8);
         const kalan = fiyat - pesinat;
         const taksit = Math.floor(kalan / taksitSayisi);
-        const duzeltilmisKalan = taksit * taksitSayisi;
-        const netFiyat = pesinat + duzeltilmisKalan;
+        const netFiyat = pesinat + taksit * taksitSayisi;
         return {
           question: `Kerem, etiket fiyatı ${netFiyat} TL olan bir bisikleti satın almak için ${pesinat} TL peşinat vermiş, kalan borcunu ise ${taksitSayisi} eşit taksitle ödemiştir. Buna göre Kerem'in ödediği aylık bir taksit tutarı kaç TL'dir?`,
           correctStr: `${taksit} TL`,
-          distractors: [`${taksit + 20} TL`, `${taksit - 20} TL`, `${Math.floor(netFiyat / taksitSayisi)} TL`],
-          explanation: `Peşinat çıkarıldıktan sonra kalan borç: ${netFiyat} - ${pesinat} = ${duzeltilmisKalan} TL.\nAylık taksit tutarı: ${duzeltilmisKalan} ÷ ${taksitSayisi} = ${taksit} TL olarak hesaplanır.`,
+          distractors: [`${taksit + 25} TL`, `${taksit - 20 > 0 ? taksit - 20 : taksit + 40} TL`, `${Math.floor(netFiyat / taksitSayisi)} TL`],
+          explanation: `Peşinat çıkarıldıktan sonra kalan borç: ${netFiyat} - ${pesinat} = ${netFiyat - pesinat} TL.\nAylık taksit tutarı: ${netFiyat - pesinat} ÷ ${taksitSayisi} = ${taksit} TL olarak hesaplanır.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Problem çözerken önce toplam paradan peşinatı düşmeli, kalan miktarı taksit sayısına bölmelisiniz."
+        };
+      },
+      (diff) => {
+        const a = randInt(25, 75);
+        const b = randInt(12, 35);
+        const c = randInt(5, 15);
+        const sonuc = (a + b) * c;
+        return {
+          question: `(${a} + ${b}) × ${c} işleminin sonucu aşağıdakilerden hangisidir?`,
+          correctStr: String(sonuc),
+          distractors: [String(a + b * c), String((a + b) * (c + 1)), String(sonuc - 20)],
+          explanation: `İşlem önceliğine göre önce parantez içi yapılır:\n1) ${a} + ${b} = ${a + b}\n2) ${a + b} × ${c} = ${sonuc} elde edilir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Parantez daima önceliklidir. Parantezi yapmadan dışarıdaki çarpmayı yaparsanız tuzağa düşersiniz."
         };
       }
     ],
 
     "5_Kesirler": [
       (diff) => {
-        const payda = randInt(6, 12);
-        const pay1 = randInt(1, Math.floor(payda / 2));
-        const pay2 = randInt(1, payda - pay1 - 1);
+        const payda = randInt(7, 12);
+        const pay1 = randInt(1, Math.floor(payda / 3));
+        const pay2 = randInt(1, Math.floor(payda / 3));
         const kalanPay = payda - (pay1 + pay2);
         const toplamSayfa = payda * randInt(15, 30);
         const kalanSayfa = (toplamSayfa / payda) * kalanPay;
         return {
           question: `Zeynep ${toplamSayfa} sayfalık bir matematik soru kitabının birinci gün ${pay1}/${payda}'ini, ikinci gün ise ${pay2}/${payda}'sini çözmüştür. Buna göre Zeynep'in çözmediği kaç sayfa kalmıştır?`,
           correctStr: `${kalanSayfa}`,
-          distractors: [`${kalanSayfa + payda}`, `${kalanSayfa - payda > 0 ? kalanSayfa - payda : kalanSayfa + 12}`, `${(toplamSayfa / payda) * (pay1 + pay2)}`],
+          distractors: [`${kalanSayfa + payda}`, `${kalanSayfa - payda > 0 ? kalanSayfa - payda : kalanSayfa + 14}`, `${(toplamSayfa / payda) * (pay1 + pay2)}`],
           explanation: `Çözülen kesir toplamı: ${pay1}/${payda} + ${pay2}/${payda} = ${pay1 + pay2}/${payda}.\nKalan kesir: ${payda}/${payda} - ${pay1 + pay2}/${payda} = ${kalanPay}/${payda}.\nKalan sayfa sayısı: (${toplamSayfa} ÷ ${payda}) × ${kalanPay} = ${kalanSayfa} sayfadır.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Paydaları eşit olan kesirlerde sadece paylar toplanır veya çıkarılır, paydaya dokunulmaz."
+        };
+      },
+      (diff) => {
+        const payda = randInt(5, 9);
+        const pay = randInt(2, payda - 1);
+        const carpan = randInt(6, 14);
+        const parca = pay * carpan;
+        const butun = payda * carpan;
+        return {
+          question: `Bir depodaki suyun ${pay}/${payda}'i ${parca} litredir. Buna göre deponun tamamı kaç litre su alır?`,
+          correctStr: `${butun} L`,
+          distractors: [`${butun - carpan} L`, `${butun + carpan * 2} L`, `${parca + carpan} L`],
+          explanation: `Parçadan bütüne giderken miktar paya bölünür, çıkan sonuç payda ile çarpılır:\nBirim parça: ${parca} ÷ ${pay} = ${carpan} litre.\nDeponun tamamı: ${carpan} × ${payda} = ${butun} litredir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Parçası verilen bir çokluğun tamamını bulmak için verilen sayıyı paya bölüp payda ile çarparız."
         };
       }
     ],
 
     "5_Ondalık Gösterim": [
       (diff) => {
-        const tam = randInt(12, 45);
+        const tam1 = randInt(15, 45);
         const ondalik1 = randInt(25, 75) / 100;
+        const tam2 = randInt(5, 18);
         const ondalik2 = randInt(10, 45) / 100;
-        const sayi1 = Number((tam + ondalik1).toFixed(2));
-        const sayi2 = Number((randInt(5, 15) + ondalik2).toFixed(2));
+        const sayi1 = Number((tam1 + ondalik1).toFixed(2));
+        const sayi2 = Number((tam2 + ondalik2).toFixed(2));
         const toplam = Number((sayi1 + sayi2).toFixed(2));
+        const para = 100;
+        const paraUstu = Number((para - toplam).toFixed(2));
         return {
-          question: `Kırtasiyeden ${sayi1} TL'ye bir geometri seti ve ${sayi2} TL'ye bir pergel alan Elif, kasaya 100 TL vermiştir. Buna göre Elif kaç TL para üstü alır?`,
-          correctStr: `${(100 - toplam).toFixed(2)} TL`,
-          distractors: [`${toplam.toFixed(2)} TL`, `${(100 - toplam + 1).toFixed(2)} TL`, `${(100 - toplam - 0.5).toFixed(2)} TL`],
-          explanation: `Toplam harcama: ${sayi1} + ${sayi2} = ${toplam.toFixed(2)} TL.\nPara üstü: 100,00 - ${toplam.toFixed(2)} = ${(100 - toplam).toFixed(2)} TL bulunur.`,
+          question: `Kırtasiyeden ${sayi1.toFixed(2)} TL'ye bir geometri seti ve ${sayi2.toFixed(2)} TL'ye bir pergel alan Elif, kasaya ${para} TL vermiştir. Buna göre Elif kaç TL para üstü alır?`,
+          correctStr: `${paraUstu.toFixed(2)} TL`,
+          distractors: [`${toplam.toFixed(2)} TL`, `${(paraUstu + 1.20).toFixed(2)} TL`, `${(paraUstu - 1.50 > 0 ? paraUstu - 1.50 : paraUstu + 2.50).toFixed(2)} TL`],
+          explanation: `Toplam harcama: ${sayi1.toFixed(2)} + ${sayi2.toFixed(2)} = ${toplam.toFixed(2)} TL.\nPara üstü: ${para},00 - ${toplam.toFixed(2)} = ${paraUstu.toFixed(2)} TL bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Ondalık sayılarda çıkarma yaparken tam sayının sonuna virgül ve sıfırlar eklemeyi (100,00) alışkanlık haline getirin."
+        };
+      },
+      (diff) => {
+        const tam = randInt(2, 9);
+        const a = randInt(1, 9);
+        const b = randInt(0, 9);
+        const c = randInt(1, 9);
+        const sayiStr = `${tam}.${a}${b}${c}`;
+        return {
+          question: `${sayiStr} ondalık gösteriminde yüzde birler basamağındaki rakamın basamak değeri kaçtır?`,
+          correctStr: `0.0${b}`,
+          distractors: [`0.${a}`, `0.00${c}`, `0.${b}`],
+          explanation: `Ondalık kısımda basamaklar soldan sağa doğru: Onda birler (${a} -> 0.${a}), Yüzde birler (${b} -> 0.0${b}), Binde birler (${c} -> 0.00${c}) şeklindedir. Dolayısıyla cevap 0.0${b} olur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Virgülden sonraki 1. basamak onda birler, 2. basamak yüzde birler, 3. basamak binde birlerdir."
         };
       }
     ],
@@ -215,15 +370,27 @@
     "5_Yüzdeler": [
       (diff) => {
         const anaPara = randInt(15, 60) * 10;
-        const yuzde = [10, 20, 25, 40, 50][randInt(0, 4)];
+        const yuzde = [10, 20, 25, 30, 40][randInt(0, 4)];
         const indirimMiktari = (anaPara * yuzde) / 100;
         const sonFiyat = anaPara - indirimMiktari;
         return {
-          question: `Bir mağazada ${anaPara} TL değerindeki mont için sezon sonu sebebiyle %${yuzde} indirim uygulanmıştır. İndirimli fiyat kaç TL olur?`,
+          question: `Bir mağazada ${anaPara} TL değerindeki mont için sezon sonu sebebiyle %${yuzde} indirim uygulanmıştır. İndirimli satış fiyatı kaç TL olur?`,
           correctStr: `${sonFiyat} TL`,
-          distractors: [`${sonFiyat + indirimMiktari / 2} TL`, `${indirimMiktari} TL`, `${sonFiyat - 15} TL`],
+          distractors: [`${sonFiyat + 25} TL`, `${indirimMiktari} TL`, `${sonFiyat - 30 > 0 ? sonFiyat - 30 : sonFiyat + 50} TL`],
           explanation: `İndirim miktarı = ${anaPara} × (${yuzde} / 100) = ${indirimMiktari} TL.\nİndirimli yeni fiyat = ${anaPara} - ${indirimMiktari} = ${sonFiyat} TL'dir.`,
           tactic: "Merdiye Hoca Sınav Taktiği: %20 indirimin 5'te 1, %25 indirimin ise 4'te 1 olduğunu bilmek zihinden işlem yaparken inanılmaz hız kazandırır."
+        };
+      },
+      (diff) => {
+        const toplam = randInt(12, 36) * 10;
+        const yuzde = [15, 35, 45, 60][randInt(0, 3)];
+        const miktar = (toplam * yuzde) / 100;
+        return {
+          question: `${toplam} sayfalık bir soru bankasının %${yuzde}'ini çözen Arda, toplam kaç sayfa soru çözmüştür?`,
+          correctStr: `${miktar} sayfa`,
+          distractors: [`${toplam - miktar} sayfa`, `${miktar + 15} sayfa`, `${miktar - 12 > 0 ? miktar - 12 : miktar + 24} sayfa`],
+          explanation: `Sayfa sayısı hesaplama: ${toplam} × (${yuzde} ÷ 100) = ${miktar} sayfa bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Bir sayının yüzdesini bulurken sayıyı 100'e bölüp yüzde oranıyla çarparız veya sadeleştirme uygularız."
         };
       }
     ],
@@ -236,9 +403,22 @@
         return {
           question: `Bir ABC üçgeninde m(A) = ${aci1}° ve m(B) = ${aci2}° olduğuna göre, m(C) açısının ölçüsü kaç derecedir?`,
           correctStr: `${aci3}°`,
-          distractors: [`${aci3 + 10}°`, `${aci3 - 10}°`, `${180 - aci1}°`],
+          distractors: [`${aci3 + 12}°`, `${aci3 - 10 > 0 ? aci3 - 10 : aci3 + 24}°`, `${180 - aci1}°`],
           explanation: `Bir üçgenin iç açıları toplamı daima 180 derecedir.\nm(C) = 180° - (${aci1}° + ${aci2}°) = 180° - ${aci1 + aci2}° = ${aci3}° bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Üçgende iç açılar toplamı 180°, dörtgenlerde ise 360° kuralını her sınavda aklınızda tutun."
+        };
+      },
+      (diff) => {
+        const kisa = randInt(6, 14);
+        const uzun = randInt(kisa + 3, kisa + 10);
+        const cevre = 2 * (kisa + uzun);
+        const alan = kisa * uzun;
+        return {
+          question: `Kısa kenarı ${kisa} cm ve uzun kenarı ${uzun} cm olan bir dikdörtgenin çevresi kaç santimetredir?`,
+          correctStr: `${cevre} cm`,
+          distractors: [`${alan} cm`, `${cevre + 6} cm`, `${kisa + uzun} cm`],
+          explanation: `Dikdörtgenin Çevresi = 2 × (Kısa Kenar + Uzun Kenar) = 2 × (${kisa} + ${uzun}) = 2 × ${kisa + uzun} = ${cevre} cm'dir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Çevre sorularında kenarları sadece toplamak yetmez, her kenardan ikişer adet olduğunu unutmayın."
         };
       }
     ],
@@ -251,9 +431,21 @@
         return {
           question: `Bir okul kütüphanesinde hafta içi günlerde ödünç alınan kitap sayıları sırasıyla: Pazartesi ${sayilar[0]}, Salı ${sayilar[1]}, Çarşamba ${sayilar[2]}, Perşembe ${sayilar[3]} ve Cuma ${sayilar[4]} olarak kaydedilmiştir. Bu hafta kütüphaneden toplam kaç kitap ödünç alınmıştır?`,
           correctStr: `${toplam}`,
-          distractors: [`${toplam - 10}`, `${toplam + 10}`, `${toplam + 5}`],
+          distractors: [`${toplam - 10}`, `${toplam + 12}`, `${toplam + 5}`],
           explanation: `Haftalık toplam ödünç kitap sayısı: ${sayilar[0]} + ${sayilar[1]} + ${sayilar[2]} + ${sayilar[3]} + ${sayilar[4]} = ${toplam} adettir.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Veri tablolarında sayıları alt alta toplarken birler basamağını doğru hizalamak dikkatsizlik hatalarını engeller."
+        };
+      },
+      (diff) => {
+        const minVal = randInt(12, 22);
+        const maxVal = randInt(35, 55);
+        const fark = maxVal - minVal;
+        return {
+          question: `Bir sınıftaki öğrencilerin bir haftada okudukları en fazla sayfa sayısı ${maxVal}, en az sayfa sayısı ise ${minVal} olduğuna göre, bu veri grubunun açıklığı kaçtır?`,
+          correctStr: `${fark}`,
+          distractors: [`${fark + 5}`, `${maxVal + minVal}`, `${fark - 4 > 0 ? fark - 4 : fark + 8}`],
+          explanation: `Açıklık = En Büyük Değer - En Küçük Değer = ${maxVal} - ${minVal} = ${fark} olarak hesaplanır.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Açıklık bir veri grubundaki uç değerlerin farkıdır; en büyük sayıdan en küçük sayıyı çıkararak bulunur."
         };
       }
     ],
@@ -270,11 +462,12 @@
         const cikar = randInt(2, 8);
         const usDeger = Math.pow(taban, us);
         const sonuc = usDeger + carp * ek - cikar;
+        const usSimge = us === 3 ? "³" : "²";
         return {
-          question: `Aşağıdaki işlemin sonucu kaçtır?\n${taban}³ + ${carp} × ${ek} - ${cikar}`,
+          question: `Aşağıdaki işlemin sonucu kaçtır?\n${taban}${usSimge} + ${carp} × ${ek} - ${cikar}`,
           correctStr: `${sonuc}`,
-          distractors: [`${(usDeger + carp) * ek - cikar}`, `${sonuc + 10}`, `${sonuc - 5}`],
-          explanation: `İşlem önceliği sırası: 1) Üslü ifade: ${taban}³ = ${usDeger}.\n2) Çarpma işlemi: ${carp} × ${ek} = ${carp * ek}.\n3) Toplama ve Çıkarma: ${usDeger} + ${carp * ek} - ${cikar} = ${sonuc} elde edilir.`,
+          distractors: [`${(usDeger + carp) * ek - cikar}`, `${sonuc + 10}`, `${sonuc - 8 > 0 ? sonuc - 8 : sonuc + 16}`],
+          explanation: `İşlem önceliği sırası:\n1) Üslü ifade: ${taban}${usSimge} = ${usDeger}.\n2) Çarpma işlemi: ${carp} × ${ek} = ${carp * ek}.\n3) Toplama ve Çıkarma: ${usDeger} + ${carp * ek} - ${cikar} = ${sonuc} elde edilir.`,
           tactic: "Merdiye Hoca Sınav Taktiği: İşlem önceliği sırasını 'ÜPÇT' (Üs, Parantez, Çarpma/Bölme, Toplama/Çıkarma) koduyla hatırlayın."
         };
       },
@@ -289,7 +482,7 @@
           correctStr: `${carpanlar.length}`,
           distractors: [`${carpanlar.length - 2}`, `${carpanlar.length + 2}`, `${carpanlar.length - 1}`],
           explanation: `${sayi} sayısının bölenleri: ${carpanlar.join(", ")} olmak üzere toplam ${carpanlar.length} adettir.`,
-          tactic: "Merdiye Hoca Sınav Taktiği: Çarpanları ikili çiftler halinde (1×${sayi}, 2×...) yazarak listelemek hiçbir çarpanı atlamamanızı sağlar."
+          tactic: "Merdiye Hoca Sınav Taktiği: Çarpanları ikili çiftler halinde yazarak listelemek hiçbir böleni atlamamanızı sağlar."
         };
       }
     ],
@@ -303,9 +496,21 @@
         return {
           question: `A ve B kümeleri için s(A) = ${sA}, s(B) = ${sB} ve s(A ∩ B) = ${sKesisim} olduğuna göre, s(A ∪ B) birleşim kümesinin eleman sayısı kaçtır?`,
           correctStr: `${sBirlesim}`,
-          distractors: [`${sA + sB}`, `${sBirlesim - sKesisim}`, `${sBirlesim + 2}`],
+          distractors: [`${sA + sB}`, `${sBirlesim - sKesisim}`, `${sBirlesim + 3}`],
           explanation: `Kümelerde birleşim kuralı: s(A ∪ B) = s(A) + s(B) - s(A ∩ B).\ns(A ∪ B) = ${sA} + ${sB} - ${sKesisim} = ${sBirlesim} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Kesişim elemanları her iki kümede de sayıldığı için birleşim bulunurken bir defa çıkarılmalıdır."
+        };
+      },
+      (diff) => {
+        const ortak = randInt(3, 7);
+        const yalnizA = randInt(4, 9);
+        const sA = yalnizA + ortak;
+        return {
+          question: `A ve B kümeleri için s(A) = ${sA} ve s(A ∩ B) = ${ortak} olduğuna göre, sadece A kümesinde olup B kümesinde olmayan eleman sayısı s(A \\ B) kaçtır?`,
+          correctStr: `${yalnizA}`,
+          distractors: [`${sA + ortak}`, `${yalnizA + 2}`, `${yalnizA - 2 > 0 ? yalnizA - 2 : yalnizA + 4}`],
+          explanation: `s(A \\ B) = s(A) - s(A ∩ B) = ${sA} - ${ortak} = ${yalnizA} bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: 'Sadece A' demek, A kümesinin tamamından ortak olan kesişim elemanlarını çıkarmak demektir."
         };
       }
     ],
@@ -319,30 +524,61 @@
         return {
           question: `Sayı doğrusunda |${a}| - (+${b}) işleminin sonucu kaçtır?`,
           correctStr: `${fark}`,
-          distractors: [`${a - b}`, `${-fark}`, `${mutlakA + b}`],
+          distractors: [`${a - b}`, `${fark + 4}`, `${mutlakA + b}`],
           explanation: `Mutlak değer daima pozitif veya sıfırdır: |${a}| = ${mutlakA}.\nİşlem: ${mutlakA} - ${b} = ${fark} olarak hesaplanır.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Mutlak değer bir sayının sıfıra olan uzaklığıdır; uzaklık negatif olamayacağından dışarı pozitif çıkar."
+        };
+      },
+      (diff) => {
+        const sayilar = [-randInt(12, 25), -randInt(3, 10), 0, randInt(4, 15)];
+        const minVal = Math.min(...sayilar);
+        return {
+          question: `Aşağıdaki tam sayılardan hangisi sayı doğrusunda en solda yer alır (en küçüktür)?\n${sayilar.join(", ")}`,
+          correctStr: `${minVal}`,
+          distractors: sayilar.filter(x => x !== minVal).map(String),
+          explanation: `Negatif tam sayılarda sıfırdan uzaklaştıkça sayı küçülür. Sayı doğrusunda en soldaki sayı en küçük sayıdır: ${minVal}.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Negatif sayılarda mutlak değeri büyük olan sayı daha küçüktür (-20, -5'ten küçüktür)."
         };
       }
     ],
 
     "6_Kesirler": [
       (diff) => {
-        const p1 = 2;
-        const q1 = 3;
-        const p2 = 3;
-        const q2 = 4;
+        const p1 = randInt(1, 4);
+        const q1 = randInt(p1 + 1, 6);
+        const p2 = randInt(1, 4);
+        const q2 = randInt(p2 + 1, 6);
         const carpimP = p1 * p2;
         const carpimQ = q1 * q2;
-        const sadG = gcd(carpimP, carpimQ);
-        const netP = carpimP / sadG;
-        const netQ = carpimQ / sadG;
+        const sad = simplifyFrac(carpimP, carpimQ);
         return {
-          question: `(2/3) × (3/4) çarpma işleminin en sade hali hangisidir?`,
-          correctStr: `${netP}/${netQ}`,
-          distractors: [`${carpimP}/${carpimQ + 2}`, `1/3`, `2/5`],
-          explanation: `Paylar kendi arasında, paydalar kendi arasında çarpılır: (2 × 3) / (3 × 4) = 6/12.\n6 ile sadeleştirildiğinde 1/2 elde edilir.`,
-          tactic: "Merdiye Hoca Sınav Taktiği: Kesirlerle çarpmada işlem yapmadan önce çapraz sadeleştirme yaparsanız büyük sayılarla uğraşmazsınız."
+          question: `(${p1}/${q1}) × (${p2}/${q2}) çarpma işleminin en sade hali hangisidir?`,
+          correctStr: sad,
+          distractors: [
+            simplifyFrac(p1 + p2, q1 + q2),
+            simplifyFrac(carpimP + 1, carpimQ),
+            simplifyFrac(carpimP, carpimQ + 2)
+          ],
+          explanation: `Kesirlerle çarpma işleminde paylar birbiriyle, paydalar birbiriyle çarpılır:\n(${p1} × ${p2}) / (${q1} × ${q2}) = ${carpimP}/${carpimQ}.\nEn sade hali: ${sad} bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Çarpmadan önce çapraz sadeleştirme yaparsanız büyük sayılarla vakit kaybetmezsiniz."
+        };
+      },
+      (diff) => {
+        const a = randInt(1, 3);
+        const b = randInt(a + 1, 5);
+        const c = randInt(1, 3);
+        const d = randInt(c + 1, 5);
+        const sonuc = simplifyFrac(a * d, b * c);
+        return {
+          question: `(${a}/${b}) ÷ (${c}/${d}) bölme işleminin sonucu kaçtır?`,
+          correctStr: sonuc,
+          distractors: [
+            simplifyFrac(a * c, b * d),
+            simplifyFrac(a * d + 1, b * c),
+            simplifyFrac(b * c, a * d)
+          ],
+          explanation: `Kesirlerle bölme işleminde birinci kesir aynen kalır, ikinci kesir ters çevrilip çarpılır:\n(${a}/${b}) × (${d}/${c}) = (${a} × ${d}) / (${b} × ${c}) = ${sonuc} elde edilir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Bölmeyi çarpmaya çevirirken sadece ikinci kesri ters çevirin, birinciye dokunmayın."
         };
       }
     ],
@@ -351,15 +587,31 @@
       (diff) => {
         const kiz = randInt(12, 18);
         const erkek = randInt(10, 16);
-        const g = gcd(kiz, kiz + erkek);
-        const kP = kiz / g;
-        const tP = (kiz + erkek) / g;
+        const toplam = kiz + erkek;
+        const dogruOran = simplifyFrac(kiz, toplam);
         return {
           question: `Bir sınıfta ${kiz} kız ve ${erkek} erkek öğrenci bulunmaktadır. Buna göre sınıftaki kız öğrenci sayısının tüm sınıf mevcuduna oranı kaçtır?`,
-          correctStr: `${kP}/${tP}`,
-          distractors: [`${kiz}/${erkek}`, `${erkek}/${kiz + erkek}`, `${kP + 1}/${tP}`],
-          explanation: `Tüm sınıf mevcudu: ${kiz} + ${erkek} = ${kiz + erkek}.\nKızların tüm sınıfa oranı: ${kiz} / ${kiz + erkek}.\nHer iki sayı ${g} ile sadeleştirildiğinde ${kP}/${tP} oranı elde edilir.`,
+          correctStr: dogruOran,
+          distractors: [
+            simplifyFrac(kiz, erkek),
+            simplifyFrac(erkek, toplam),
+            simplifyFrac(kiz + 1, toplam)
+          ],
+          explanation: `Tüm sınıf mevcudu = ${kiz} + ${erkek} = ${toplam}.\nKızların tüm sınıfa oranı = ${kiz} / ${toplam}.\nEn sade biçimi = ${dogruOran} olur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Oran sorularında pay ve paydaya hangi çokluğun yazıldığına çok dikkat edin; sadeleştirmeyi asla unutmayın."
+        };
+      },
+      (diff) => {
+        const yol = randInt(18, 36) * 10;
+        const saat = randInt(2, 5);
+        const hiz = Math.floor(yol / saat);
+        const netYol = hiz * saat;
+        return {
+          question: `Bir otomobil ${saat} saatte ${netYol} km yol almıştır. Bu otomobilin aldığı yolun geçen süreye oranı kaç km/sa'tir?`,
+          correctStr: `${hiz} km/sa`,
+          distractors: [`${hiz + 15} km/sa`, `${hiz - 10 > 0 ? hiz - 10 : hiz + 25} km/sa`, `${Math.floor(netYol / (saat + 1))} km/sa`],
+          explanation: `Birimli oran hesaplama:\nOran = Alınan Yol ÷ Geçen Zaman = ${netYol} km ÷ ${saat} sa = ${hiz} km/sa bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Farklı birimlerin birbirine bölünmesiyle oluşan orana birimli oran denir (km/sa gibi)."
         };
       }
     ],
@@ -377,6 +629,17 @@
           explanation: `x yerine ${xDeger} değeri yazılır:\n${katsayi} × ${xDeger} + ${sabit} = ${katsayi * xDeger} + ${sabit} = ${sonuc} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Değişkenin yerine sayı yazarken çarpma işaretini araya koymayı unutmayın (3x demek 3 çarpı x demektir)."
         };
+      },
+      (diff) => {
+        const kat = randInt(2, 5);
+        const eksi = randInt(3, 9);
+        return {
+          question: `"Bir sayının ${kat} katının ${eksi} eksiği" sözel ifadesine karşılık gelen cebirsel ifade hangisidir?`,
+          correctStr: `${kat}x - ${eksi}`,
+          distractors: [`${kat}(x - ${eksi})`, `${kat}x + ${eksi}`, `x / ${kat} - ${eksi}`],
+          explanation: `Bilinmeyen sayı x olsun.\nBu sayının ${kat} katı: ${kat}x\n${eksi} eksiği: ${kat}x - ${eksi} olarak yazılır.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: 'Katının eksiği' denildiğinde parantez gerekmez (kx - m). 'Eksiğinin katı' denseydi parantez gerekirdi: k(x - m)."
+        };
       }
     ],
 
@@ -388,9 +651,20 @@
         return {
           question: `Taban uzunluğu ${taban} cm ve bu tabana ait yüksekliği ${yukseklik} cm olan bir üçgenin alanı kaç santimetrekaredir?`,
           correctStr: `${alan} cm²`,
-          distractors: [`${taban * yukseklik} cm²`, `${alan + taban} cm²`, `${alan - 6} cm²`],
+          distractors: [`${taban * yukseklik} cm²`, `${alan + taban} cm²`, `${alan - 6 > 0 ? alan - 6 : alan + 18} cm²`],
           explanation: `Üçgenin alanı = (Taban × Yükseklik) ÷ 2 formülü ile hesaplanır.\nAlan = (${taban} × ${yukseklik}) ÷ 2 = ${taban * yukseklik} ÷ 2 = ${alan} cm² bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Üçgen alanında 2'ye bölmeyi sakın unutmayın; dikdörtgen ve paralelkenarda 2'ye bölünmez, üçgende bölünür!"
+        };
+      },
+      (diff) => {
+        const aci = randInt(25, 75);
+        const tumler = 90 - aci;
+        return {
+          question: `Ölçüsü ${aci}° olan bir açının tümleri kaç derecedir?`,
+          correctStr: `${tumler}°`,
+          distractors: [`${180 - aci}°`, `${tumler + 10}°`, `${tumler - 10 > 0 ? tumler - 10 : tumler + 20}°`],
+          explanation: `Tümler açıların ölçüleri toplamı 90 derecedir.\nTümler = 90° - ${aci}° = ${tumler}° bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Tümler açılar toplamı 90°, bütünler açılar toplamı 180°'dir. Birbirine karıştırmayın."
         };
       }
     ],
@@ -408,27 +682,61 @@
         return {
           question: `(${a}) × (+${b}) - (${c}) işleminin sonucu kaçtır?`,
           correctStr: `${sonuc}`,
-          distractors: [`${carpim + c}`, `${-sonuc}`, `${sonuc + 4}`],
+          distractors: [`${carpim + c}`, `${-sonuc}`, `${sonuc + 6}`],
           explanation: `1) Çarpma işlemi: (${a}) × (+${b}) = ${carpim}.\n2) Çıkarma işlemi: ${carpim} - (${c}) = ${carpim} + ${-c} = ${sonuc} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: İki eksi yan yana geldiğinde (-(-c)) artıya dönüşür. İşaret hataları 7. sınıfın en büyük puan tuzağıdır."
+        };
+      },
+      (diff) => {
+        const taban = -randInt(2, 4);
+        const usCift = 2;
+        const usTek = 3;
+        const valCift = Math.pow(taban, usCift);
+        const valTek = Math.pow(taban, usTek);
+        const fark = valCift - valTek;
+        return {
+          question: `(${taban})² - (${taban})³ işleminin sonucu kaçtır?`,
+          correctStr: `${fark}`,
+          distractors: [`${valCift + valTek}`, `${-fark}`, `${fark - 8}`],
+          explanation: `Negatif sayıların çift kuvveti pozitif, tek kuvveti negatiftir:\n(${taban})² = ${valCift}\n(${taban})³ = ${valTek}\nİşlem: ${valCift} - (${valTek}) = ${valCift} + ${-valTek} = ${fark} elde edilir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Parantez içindeki negatif sayının çift kuvveti pozitiftir; parantez yoksa işaret değişmez."
         };
       }
     ],
 
     "7_Rasyonel Sayılar": [
       (diff) => {
-        const a = 1;
-        const b = 2;
-        const c = 2;
-        const d = 3;
-        const pay = a * d + b * c;
-        const payda = b * d;
+        const p1 = randInt(1, 3);
+        const q1 = [2, 3, 4, 5][randInt(0, 3)];
+        const p2 = randInt(1, 3);
+        const q2List = [2, 3, 4, 5, 6].filter(x => x !== q1);
+        const q2 = q2List[randInt(0, q2List.length - 1)];
+        const pay = p1 * q2 + p2 * q1;
+        const payda = q1 * q2;
+        const sonuc = simplifyFrac(pay, payda);
         return {
-          question: `(1/2) + (2/3) işleminin sonucu kaçtır?`,
-          correctStr: `${pay}/${payda}`,
-          distractors: [`3/5`, `7/12`, `5/6`],
-          explanation: `Paydalar 6'da eşitlenir: (1×3)/(2×3) + (2×2)/(3×2) = 3/6 + 4/6 = 7/6 bulunur.`,
+          question: `(${p1}/${q1}) + (${p2}/${q2}) işleminin sonucu kaçtır?`,
+          correctStr: sonuc,
+          distractors: [
+            simplifyFrac(p1 + p2, q1 + q2),
+            simplifyFrac(Math.abs(p1 * q2 - p2 * q1), payda),
+            simplifyFrac(pay + 1, payda)
+          ],
+          explanation: `Paydalar eşitlenir (${q1 * q2}'de):\n(${p1} × ${q2}) / (${q1} × ${q2}) + (${p2} × ${q1}) / (${q2} × ${q1}) = ${p1 * q2}/${payda} + ${p2 * q1}/${payda} = ${pay}/${payda} = ${sonuc} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Rasyonel sayılarda toplama ve çıkarma yaparken paydaları eşitlemeden asla işlem yapmayın."
+        };
+      },
+      (diff) => {
+        const tam = randInt(1, 3);
+        const pay = randInt(1, 3);
+        const payda = randInt(pay + 1, 5);
+        const bilesikPay = tam * payda + pay;
+        return {
+          question: `${tam} tam ${pay}/${payda} tam sayılı kesrinin bileşik kesir hali aşağıdakilerden hangisidir?`,
+          correctStr: `${bilesikPay}/${payda}`,
+          distractors: [`${tam * pay}/${payda}`, `${bilesikPay + 1}/${payda}`, `${bilesikPay - 1}/${payda}`],
+          explanation: `Tam sayılı kesri bileşiğe çevirme formülü: (Tam Kısım × Payda + Pay) ÷ Payda = (${tam} × ${payda} + ${pay}) ÷ ${payda} = ${bilesikPay}/${payda} olur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Çarp sonra topla kuralı ile tam sayılı kesirleri kolayca bileşik kesre çevirebilirsiniz."
         };
       }
     ],
@@ -446,21 +754,48 @@
           explanation: `Adım 1: Sabit terimi karşıya eksi olarak atarız: ${katsayi}x = ${sag} - ${sabit} => ${katsayi}x = ${sag - sabit}.\nAdım 2: Her iki tarafı ${katsayi}'e böleriz: x = ${sag - sabit} ÷ ${katsayi} = ${x} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Eşitliğin diğer tarafına geçen terimin işareti daima değişir (+ ise -, - ise + olur)."
         };
+      },
+      (diff) => {
+        const x = randInt(2, 6);
+        const dagit = randInt(2, 4);
+        const icSabit = randInt(1, 5);
+        const sag = dagit * (x + icSabit);
+        return {
+          question: `${dagit}(x + ${icSabit}) = ${sag} denkleminde x kaçtır?`,
+          correctStr: `${x}`,
+          distractors: [`${x + 3}`, `${x - 1 > 0 ? x - 1 : x + 2}`, `${sag / dagit}`],
+          explanation: `1. Yol: Her iki tarafı ${dagit}'e böleriz: x + ${icSabit} = ${sag / dagit} => x = ${sag / dagit} - ${icSabit} = ${x} bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Parantezin dışındaki katsayı sağdaki sayıya tam bölünüyorsa önce bölme yapmak işlemi çok kısaltır."
+        };
       }
     ],
 
     "7_Oran ve Orantı": [
       (diff) => {
         const usta = randInt(3, 6);
-        const gun = randInt(10, 20);
+        const gun = 2 * randInt(6, 12);
         const yeniUsta = usta * 2;
-        const yeniGun = gun / 2;
+        const yeniGun = Math.floor(gun / 2);
         return {
           question: `Bir inşaat işini aynı güçteki ${usta} usta ${gun} günde bitirebilmektedir. Usta sayısı ${yeniUsta}'ye çıkarılırsa aynı iş kaç günde biter?`,
           correctStr: `${yeniGun} gün`,
           distractors: [`${gun * 2} gün`, `${gun + 2} gün`, `${yeniGun + 3} gün`],
           explanation: `İşçi ve usta problemleri TERS ORANTI kuralına tabidir.\nUsta sayısı × Gün sayısı = Sabit iş miktarı.\n${usta} × ${gun} = ${yeniUsta} × x => x = (${usta * gun}) / ${yeniUsta} = ${yeniGun} gün bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Usta sayısı artarsa iş daha kısa sürede biter! Ters orantıda karşılıklı çarpımlar birbirine eşittir."
+        };
+      },
+      (diff) => {
+        const kg1 = randInt(2, 4);
+        const fiyat1 = kg1 * randInt(15, 30);
+        const birimFiyat = fiyat1 / kg1;
+        const kg2 = randInt(5, 9);
+        const fiyat2 = kg2 * birimFiyat;
+        return {
+          question: `${kg1} kg elmanın fiyatı ${fiyat1} TL olduğuna göre, aynı elmadan ${kg2} kg alan bir kişi kaç TL öder?`,
+          correctStr: `${fiyat2} TL`,
+          distractors: [`${fiyat2 + birimFiyat} TL`, `${fiyat2 - birimFiyat} TL`, `${fiyat1 * 2} TL`],
+          explanation: `Doğru orantı kuralı:\n1 kg elma = ${fiyat1} ÷ ${kg1} = ${birimFiyat} TL.\n${kg2} kg elma = ${kg2} × ${birimFiyat} = ${fiyat2} TL bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Alınan miktar arttıkça ödenecek para da artar. Doğru orantıda içler-dışlar çarpımı yapılır."
         };
       }
     ],
@@ -472,11 +807,24 @@
         const artis = (maas * zam) / 100;
         const yeniMaas = maas + artis;
         return {
-          question: `${maas.toLocaleString("tr-TR")} TL maaş alan bir çalışanın maaşına %${zam} zam yapılmıştır. Zam sonrası yeni maaş kaç TL olur?`,
-          correctStr: `${yeniMaas.toLocaleString("tr-TR")} TL`,
-          distractors: [`${(maas + artis / 2).toLocaleString("tr-TR")} TL`, `${artis.toLocaleString("tr-TR")} TL`, `${(yeniMaas + 1000).toLocaleString("tr-TR")} TL`],
+          question: `${maas} TL maaş alan bir çalışanın maaşına %${zam} zam yapılmıştır. Zam sonrası yeni maaş kaç TL olur?`,
+          correctStr: `${yeniMaas} TL`,
+          distractors: [`${maas + Math.floor(artis / 2)} TL`, `${artis} TL`, `${yeniMaas + 1000} TL`],
           explanation: `Zam tutarı = ${maas} × (${zam}/100) = ${artis} TL.\nYeni Maaş = ${maas} + ${artis} = ${yeniMaas} TL olarak hesaplanır.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Zam yapıldığında başlangıç fiyatına ekleme, indirim yapıldığında çıkarma yapılır."
+        };
+      },
+      (diff) => {
+        const maliyet = randInt(10, 40) * 10;
+        const karOrani = [20, 30, 40, 50][randInt(0, 3)];
+        const kar = (maliyet * karOrani) / 100;
+        const satis = maliyet + kar;
+        return {
+          question: `Maliyeti ${maliyet} TL olan bir ürün %${karOrani} kâr ile satılmaktadır. Bu ürünün kârlı satış fiyatı kaç TL'dir?`,
+          correctStr: `${satis} TL`,
+          distractors: [`${kar} TL`, `${satis + 15} TL`, `${satis - 20 > 0 ? satis - 20 : satis + 35} TL`],
+          explanation: `Kâr miktarı = ${maliyet} × (%${karOrani}) = ${kar} TL.\nSatış Fiyatı = Maliyet + Kâr = ${maliyet} + ${kar} = ${satis} TL olur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Kâr maliyetin üzerine eklenir; zarar ise maliyetten düşülür."
         };
       }
     ],
@@ -488,9 +836,21 @@
         return {
           question: `Paralel iki doğruyu kesen bir doğrunun oluşturduğu karşıt durumlu (U kuralı) iki açıdan biri ${darAci}° olduğuna göre, diğer açının ölçüsü kaç derecedir?`,
           correctStr: `${karsiAci}°`,
-          distractors: [`${darAci}°`, `${90 - darAci}°`, `${karsiAci - 10}°`],
+          distractors: [`${darAci}°`, `${90 - darAci}°`, `${karsiAci - 12 > 0 ? karsiAci - 12 : karsiAci + 16}°`],
           explanation: `U kuralında (karşıt durumlu açılar) paralel doğrular arasındaki iç açılar toplamı 180 derecedir.\nİkinci açı = 180° - ${darAci}° = ${karsiAci}° bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: U kuralında toplam 180°, Z kuralında açılar birbirine eşit, M kuralında sola bakanlar sağa bakanlara eşittir."
+        };
+      },
+      (diff) => {
+        const sol1 = randInt(25, 50);
+        const sol2 = randInt(30, 55);
+        const sag = sol1 + sol2;
+        return {
+          question: `Paralel iki doğru arasında oluşan bir M kuralında sola bakan açılar ${sol1}° ve ${sol2}° olduğuna göre, bu iki açının arasında yer alıp sağa bakan açının ölçüsü kaç derecedir?`,
+          correctStr: `${sag}°`,
+          distractors: [`${180 - sag}°`, `${sag - 15}°`, `${sag + 10}°`],
+          explanation: `M kuralı (Zikzak kuralı): Sağa bakan açıların toplamı, sola bakan açıların toplamına eşittir.\nAçı = ${sol1}° + ${sol2}° = ${sag}° bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: M kuralında sivri ucun baktığı yönün tersindeki iki açıyı toplamak doğrudan sonucu verir."
         };
       }
     ],
@@ -504,24 +864,51 @@
         return {
           question: `Yarıçapı r = ${r} cm olan bir dairenin alanı kaç santimetrekaredir? (π = 3 alınız.)`,
           correctStr: `${alan} cm²`,
-          distractors: [`${cevre} cm²`, `${alan + 12} cm²`, `${alan - 18} cm²`],
+          distractors: [`${cevre} cm²`, `${alan + 12} cm²`, `${alan - 18 > 0 ? alan - 18 : alan + 30} cm²`],
           explanation: `Dairenin Alan Formülü = π × r² dir.\nAlan = 3 × ${r}² = 3 × ${r * r} = ${alan} cm² bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Çevre formülü 2πr, Alan formülü πr²'dir. Soru kökünde 'çevre' mi yoksa 'alan' mı sorulduğuna dikkat edin."
+        };
+      },
+      (diff) => {
+        const r = randInt(5, 15);
+        const pi = 3;
+        const cevre = 2 * pi * r;
+        return {
+          question: `Yarıçapı r = ${r} cm olan bir çemberin çevre uzunluğu kaç santimetredir? (π = 3 alınız.)`,
+          correctStr: `${cevre} cm`,
+          distractors: [`${pi * r * r} cm`, `${cevre + 6} cm`, `${cevre - 6 > 0 ? cevre - 6 : cevre + 12} cm`],
+          explanation: `Çemberin Çevresi = 2 × π × r = 2 × 3 × ${r} = ${cevre} cm olarak hesaplanır.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Çember içi boş bir tel gibidir sadece çevresi vardır; daire ise levha gibidir alanı vardır."
         };
       }
     ],
 
     "7_Veri Analizi": [
       (diff) => {
-        const notlar = [70, 80, 90, 85, 75];
+        const hedefOrt = randInt(70, 88);
+        const d1 = randInt(-8, -2);
+        const d2 = randInt(3, 8);
+        const d3 = randInt(-5, -1);
+        const d4 = randInt(2, 6);
+        const d5 = -(d1 + d2 + d3 + d4);
+        const notlar = [hedefOrt + d1, hedefOrt + d2, hedefOrt + d3, hedefOrt + d4, hedefOrt + d5];
         const toplam = notlar.reduce((a, b) => a + b, 0);
-        const ortalama = toplam / notlar.length;
         return {
-          question: `Bir öğrencinin 5 deneme sınavından aldığı matematik notları: 70, 80, 90, 85 ve 75'tir. Bu öğrencinin not ortalaması kaçtır?`,
-          correctStr: `${ortalama}`,
-          distractors: [`${ortalama + 2}`, `${ortalama - 3}`, `82`],
-          explanation: `Aritmetik Ortalama = Verilerin Toplamı ÷ Veri Sayısı.\nOrtalama = (${notlar.join(" + ")}) ÷ 5 = ${toplam} ÷ 5 = ${ortalama} bulunur.`,
+          question: `Bir öğrencinin 5 deneme sınavından aldığı matematik notları sırasıyla: ${notlar.join(", ")} olarak kaydedilmiştir. Bu öğrencinin not ortalaması kaçtır?`,
+          correctStr: `${hedefOrt}`,
+          distractors: [`${hedefOrt + 2}`, `${hedefOrt - 3}`, `${hedefOrt + 5}`],
+          explanation: `Aritmetik Ortalama = Verilerin Toplamı ÷ Veri Sayısı.\nToplam = ${notlar.join(" + ")} = ${toplam}.\nOrtalama = ${toplam} ÷ 5 = ${hedefOrt} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Aritmetik ortalama, medyan (ortanca) ve mod (en çok tekrar eden) kavramlarını birbiriyle karıştırmayın."
+        };
+      },
+      (diff) => {
+        const sayilar = [12, 15, 18, 18, 20, 24, 28];
+        return {
+          question: `12, 15, 18, 18, 20, 24, 28 veri grubunun tepe değeri (modu) ile medyanı (ortancası) sırasıyla hangisidir?`,
+          correctStr: `18 ve 18`,
+          distractors: [`18 ve 20`, `20 ve 18`, `15 ve 18`],
+          explanation: `En çok tekrar eden değer Mod = 18'dir.\nKüçükten büyüğe sıralandığında tam ortadaki değer Medyan = 18'dir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Medyan bulurken verilerin mutlaka küçükten büyüğe sıralanmış olması şarttır."
         };
       }
     ],
@@ -548,12 +935,33 @@
         const x = randInt(6, 12);
         const y = randInt(15, 20);
         const ortakKat = lcm(x, y);
+        const saatArtis = Math.floor(ortakKat / 60);
+        const dkArtis = ortakKat % 60;
+        const saatStr = `${String(8 + saatArtis).padStart(2, "0")}.${String(dkArtis).padStart(2, "0")}`;
         return {
           question: `İki farklı otobüsten biri ${x} dakikada bir, diğeri ise ${y} dakikada bir sefere çıkmaktadır. Saat 08.00'de birlikte sefere çıkan bu iki otobüs, EN ERKEN saat kaçta tekrar birlikte sefere çıkarlar?`,
-          correctStr: `${String(8 + Math.floor(ortakKat / 60)).padStart(2, "0")}.${String(ortakKat % 60).padStart(2, "0")}`,
-          distractors: [`${String(8 + Math.floor((ortakKat + 15) / 60)).padStart(2, "0")}.${String((ortakKat + 15) % 60).padStart(2, "0")}`, `09.00`, `09.30`],
-          explanation: `Birlikte hareket etme periyodu EKOK(${x}, ${y}) ile bulunur.\nEKOK(${x}, ${y}) = ${ortakKat} dakikadır (${Math.floor(ortakKat / 60)} saat ${ortakKat % 60} dakika).\n08.00 + ${Math.floor(ortakKat / 60)} saat ${ortakKat % 60} dk = ${String(8 + Math.floor(ortakKat / 60)).padStart(2, "0")}.${String(ortakKat % 60).padStart(2, "0")} olur.`,
+          correctStr: saatStr,
+          distractors: [
+            `${String(8 + Math.floor((ortakKat + 15) / 60)).padStart(2, "0")}.${String((ortakKat + 15) % 60).padStart(2, "0")}`,
+            "09.00",
+            "09.30"
+          ],
+          explanation: `Birlikte hareket etme periyodu EKOK(${x}, ${y}) ile bulunur.\nEKOK(${x}, ${y}) = ${ortakKat} dakikadır (${saatArtis} saat ${dkArtis} dakika).\n08.00 + ${saatArtis} sa ${dkArtis} dk = ${saatStr} olur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Sefer saatleri, nöbetler ve zil soruları klasik EKOK kurgusudur. Çıkan dakikayı saate çevirmeyi unutmayın."
+        };
+      },
+      (diff) => {
+        const a = randInt(2, 4);
+        const b = randInt(2, 3);
+        const sayi1 = Math.pow(2, a) * Math.pow(3, b);
+        const sayi2 = Math.pow(2, a - 1) * Math.pow(3, b + 1);
+        const ebobVal = Math.pow(2, a - 1) * Math.pow(3, b);
+        return {
+          question: `A = 2^${a} × 3^${b} ve B = 2^${a - 1} × 3^${b + 1} olduğuna göre, EBOB(A, B) değeri kaçtır?`,
+          correctStr: `${ebobVal}`,
+          distractors: [`${ebobVal * 2}`, `${ebobVal * 3}`, `${Math.pow(2, a) * Math.pow(3, b + 1)}`],
+          explanation: `Asal çarpanlarına ayrılmış sayılarda EBOB: Ortak asal çarpanlardan üssü KÜÇÜK olanların çarpımıdır.\nEBOB(A, B) = 2^${a - 1} × 3^${b} = ${ebobVal} bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: EBOB için ortak tabanların küçük üssü, EKOK için ise ortakların büyük üssü ve ortak olmayanlar alınır."
         };
       }
     ],
@@ -569,6 +977,18 @@
           distractors: [`2^${sonucUs - 2}`, `2^${sonucUs + 1}`, `4^${saat}`],
           explanation: `Her saat 4 katına çıkmak demek 2² ile çarpmak demektir.\n${saat} saatte: 2^${baslangicUs} × (2²)^${saat} = 2^${baslangicUs} × 2^${saat * 2} = 2^(${baslangicUs} + ${saat * 2}) = 2^${sonucUs} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Tabanlar eşit olduğunda çarpma işleminde üsler toplanır. 4'ü hemen 2² tabanına dönüştürün."
+        };
+      },
+      (diff) => {
+        const us1 = randInt(12, 20);
+        const us2 = randInt(5, 10);
+        const netUs = us1 - us2;
+        return {
+          question: `(5^${us1}) ÷ (5^${us2}) işleminin sonucu aşağıdakilerden hangisidir?`,
+          correctStr: `5^${netUs}`,
+          distractors: [`5^${us1 + us2}`, `1^${netUs}`, `5^${Math.floor(us1 / us2)}`],
+          explanation: `Tabanları aynı olan üslü ifadelerde bölme işlemi yapılırken payın üssünden paydanın üssü çıkarılır:\n5^(${us1} - ${us2}) = 5^${netUs} elde edilir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Üslü sayılarda bölme yaparken üsleri sakın bölmeyin, üsleri birbirinden çıkarın!"
         };
       }
     ],
@@ -586,6 +1006,18 @@
           explanation: `Karenin bir kenarı √${sayi} cm'dir.\n${kucukKare} < ${sayi} < ${buyukKare} eşitsizliğinde kök alırsak:\n√${kucukKare} < √${sayi} < √${buyukKare} => ${tam} < √${sayi} < ${tam + 1} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Karekök tahminlerinde verilen sayının hangi tam kare sayılara komşu olduğunu bilmek soruyu saniyeler içinde çözdürür."
         };
+      },
+      (diff) => {
+        const a = randInt(2, 5);
+        const b = [2, 3, 5, 7][randInt(0, 3)];
+        const icSayi = a * a * b;
+        return {
+          question: `√${icSayi} kareköklü ifadesinin a√b biçimindeki eşiti aşağıdakilerden hangisidir?`,
+          correctStr: `${a}√${b}`,
+          distractors: [`${b}√${a}`, `${a * 2}√${b}`, `${a}√${b * 2}`],
+          explanation: `√${icSayi} = √(${a * a} × ${b}) = √(${a}²) × √${b} = ${a}√${b} olarak dışarı çıkar.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Kök içindeki sayıyı bir tam kare ile bir sayının çarpımı şeklinde yazarak tam kareyi dışarı fırlatın."
+        };
       }
     ],
 
@@ -597,9 +1029,20 @@
         return {
           question: `360 öğrencinin katıldığı bir ankette en sevilen dersler daire grafiğiyle gösterilmiştir. Matematik dersini gösteren daire diliminin merkez açısı ${aciMat}° olduğuna göre, matematiği seçen öğrenci sayısı kaçtır?`,
           correctStr: `${matSayisi} öğrenci`,
-          distractors: [`${matSayisi - 15} öğrenci`, `${matSayisi + 20} öğrenci`, `${aciMat / 2} öğrenci`],
+          distractors: [`${matSayisi - 15} öğrenci`, `${matSayisi + 20} öğrenci`, `${Math.floor(aciMat / 2)} öğrenci`],
           explanation: `Daire grafiğinin tamamı 360 derecedir.\n360°'ye 360 öğrenci düşüyorsa, her 1° tam olarak 1 öğrenciye karşılık gelir.\nDolayısıyla ${aciMat}° merkez açı = ${matSayisi} öğrenci demektir.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Daire grafiğinde merkez açılar toplamı daima 360°'dir. Doğru orantı kurarak kolayca sonuca gidin."
+        };
+      },
+      (diff) => {
+        const yuzde = [25, 50, 20, 10][randInt(0, 3)];
+        const aci = (360 * yuzde) / 100;
+        return {
+          question: `Bir bütçede eğitime ayrılan pay %${yuzde} olarak belirlenmiştir. Bu veri daire grafiğinde gösterildiğinde eğitime ait dilimin merkez açısı kaç derece olur?`,
+          correctStr: `${aci}°`,
+          distractors: [`${aci + 15}°`, `${aci - 20 > 0 ? aci - 20 : aci + 30}°`, `${yuzde * 2}°`],
+          explanation: `Yüzdeden açıya geçiş:\n%100 -> 360° ise\n%${yuzde} -> x°\nx = (360 × ${yuzde}) / 100 = ${aci}° bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: %25 çeyrek dairedir (90°), %50 yarım dairedir (180°)."
         };
       }
     ],
@@ -610,13 +1053,30 @@
         const sari = randInt(5, 10);
         const kirmizi = randInt(3, 7);
         const toplam = mavi + sari + kirmizi;
-        const g = gcd(mavi, toplam);
+        const gMavi = gcd(mavi, toplam);
+        const gSari = gcd(sari, toplam);
+        const gKirmizi = gcd(kirmizi, toplam);
+        const dogru = `${mavi / gMavi}/${toplam / gMavi}`;
         return {
           question: `Bir torbada aynı büyüklükte ${mavi} mavi, ${sari} sarı ve ${kirmizi} kırmızı bilye bulunmaktadır. Torbadan rastgele çekilen bir bilyenin MAVİ olma olasılığı kaçtır?`,
-          correctStr: `${mavi / g}/${toplam / g}`,
-          distractors: [`${sari / g}/${toplam / g}`, `${mavi}/${sari + kirmizi}`, `1/3`],
-          explanation: `İstenen durum sayısı (mavi bilyeler) = ${mavi}.\nTüm olası durumların sayısı = ${mavi} + ${sari} + ${kirmizi} = ${toplam}.\nOlasılık = ${mavi}/${toplam} = ${mavi / g}/${toplam / g} olarak sadeleşir.`,
+          correctStr: dogru,
+          distractors: [
+            `${sari / gSari}/${toplam / gSari}`,
+            `${kirmizi / gKirmizi}/${toplam / gKirmizi}`,
+            simplifyFrac(mavi + 1, toplam)
+          ],
+          explanation: `İstenen durum sayısı (mavi bilyeler) = ${mavi}.\nTüm olası durumların sayısı = ${mavi} + ${sari} + ${kirmizi} = ${toplam}.\nOlasılık = ${mavi}/${toplam} = ${dogru} olarak sadeleşir.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Olasılık = İstenen / Tüm Durumlar formülüdür. Bulduğunuz kesri en sade haline getirmeyi unutmayın."
+        };
+      },
+      (diff) => {
+        const zarIstenen = [1, 2, 3, 4, 5, 6].filter(x => x % 2 === 0);
+        return {
+          question: `Hilesiz bir zar havaya atıldığında üst yüze gelen sayının ÇİFT sayı olma olasılığı kaçtır?`,
+          correctStr: "1/2",
+          distractors: ["1/3", "1/6", "2/3"],
+          explanation: `Tüm olası durumlar: {1, 2, 3, 4, 5, 6} -> 6 adet.\nİstenen çift sayılar: {2, 4, 6} -> 3 adet.\nOlasılık = 3/6 = 1/2'dir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Zar sorularında örnek uzay daima 6 elemanlıdır; asal sayılar {2, 3, 5}, tek sayılar {1, 3, 5}'tir."
         };
       }
     ],
@@ -637,6 +1097,16 @@
           explanation: `Tam kare açılımı: (Birincinin karesi) + (2 × Birinci × İkinci) + (İkincinin karesi)\n= (${a}x)² + 2 × (${a}x) × (${b}) + (${b})²\n= ${a * a}x² + ${ikiKati}x + ${b * b} bulunur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Tam kare özdeşliğinde ortadaki 'çarpımlarının 2 katı' terimi en sık unutulan yerdir. Asla atlamayın!"
         };
+      },
+      (diff) => {
+        const a = randInt(3, 7);
+        return {
+          question: `x² - ${a * a} ifadesinin çarpanlarına ayrılmış hali aşağıdakilerden hangisidir?`,
+          correctStr: `(x - ${a})(x + ${a})`,
+          distractors: [`(x - ${a})²`, `(x + ${a})²`, `(x - ${a * a})(x + 1)`],
+          explanation: `İki kare farkı özdeşliği: a² - b² = (a - b)(a + b) dir.\nx² - ${a}² = (x - ${a})(x + ${a}) olarak çarpanlarına ayrılır.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: İki kare farkı LGS'nin vazgeçilmezidir. Arada eksi varsa biri eksili biri artılı iki parantez yazılır."
+        };
       }
     ],
 
@@ -644,13 +1114,28 @@
       (diff) => {
         const dikey = randInt(3, 9);
         const yatay = randInt(4, 12);
-        const g = gcd(dikey, yatay);
+        const dogruEğim = simplifyFrac(dikey, yatay);
         return {
           question: `Dikey yüksekliği ${dikey} metre, yatay uzunluğu ${yatay} metre olan bir engelli rampasının eğimi kaçtır?`,
-          correctStr: `${dikey / g}/${yatay / g}`,
-          distractors: [`${yatay / g}/${dikey / g}`, `${(dikey + 1) / g}/${yatay / g}`, `1/2`],
-          explanation: `Eğim (m) = Dikey Uzunluk ÷ Yatay Uzunluk formülüyle hesaplanır.\nEğim = ${dikey} / ${yatay} = ${dikey / g}/${yatay / g} elde edilir.`,
+          correctStr: dogruEğim,
+          distractors: [
+            simplifyFrac(yatay, dikey),
+            simplifyFrac(dikey + 2, yatay),
+            simplifyFrac(dikey, yatay + 2)
+          ],
+          explanation: `Eğim (m) = Dikey Uzunluk ÷ Yatay Uzunluk formülüyle hesaplanır.\nEğim = ${dikey} / ${yatay} = ${dogruEğim} elde edilir.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Eğim daima dikey bölü yataydır (m = Δy / Δx). Sağa yatık doğruların eğimi pozitif, sola yatıkların negatiftir."
+        };
+      },
+      (diff) => {
+        const a = randInt(2, 4);
+        const b = randInt(3, 6);
+        return {
+          question: `y = ${a}x + ${b} doğrusunun eğimi kaçtır?`,
+          correctStr: `${a}`,
+          distractors: [`${b}`, `${simplifyFrac(a, b)}`, `-${a}`],
+          explanation: `y = mx + n biçiminde verilen doğrularda y yalnız bırakıldığında x'in katsayısı doğrudan eğimi (m) verir. Burada eğim = ${a}'dır.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: y tek başına ise x'in katsayısı eğimdir; 2y = 6x + 4 ise önce her yeri 2'ye bölmelisiniz."
         };
       }
     ],
@@ -660,13 +1145,25 @@
         const kat = randInt(2, 4);
         const eklenti = randInt(5, 15);
         const limit = randInt(30, 60);
-        const net = Math.floor((limit - eklenti) / kat);
+        const raw = (limit - eklenti) / kat;
+        const net = Math.floor(raw);
+        const sonuc = (limit - eklenti) % kat === 0 ? net - 1 : net;
         return {
           question: `Hangi sayının ${kat} katının ${eklenti} fazlası ${limit} sayısından küçüktür ifadesini sağlayan en büyük tam sayı değeri kaçtır?`,
-          correctStr: `${(limit - eklenti) % kat === 0 ? net - 1 : net}`,
-          distractors: [`${net + 1}`, `${net + 2}`, `${net - 2}`],
-          explanation: `Eşitsizlik kurulur: ${kat}x + ${eklenti} < ${limit}\n=> ${kat}x < ${limit - eklenti}\n=> x < ${(limit - eklenti) / kat}\nBu eşitsizliği sağlayan en büyük tam sayı değeri bulunur.`,
-          tactic: "Merdiye Hoca Sınav Taktiği: Eşitsizliğin her iki tarafı negatif bir sayı ile çarpılır veya bölünürse eşitsizlik yön değiştirir!"
+          correctStr: `${sonuc}`,
+          distractors: [`${sonuc + 1}`, `${sonuc + 2}`, `${sonuc - 2}`],
+          explanation: `Eşitsizlik kurulur: ${kat}x + ${eklenti} < ${limit}\n=> ${kat}x < ${limit - eklenti}\n=> x < ${(limit - eklenti) / kat}\nBu eşitsizliği sağlayan en büyük tam sayı ${sonuc}'dir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: 'Küçüktür' (<) denildiğinde eşitlik alınmaz, en büyük tam sayı soruluyorsa sınırdan bir önceki tam sayı seçilir."
+        };
+      },
+      (diff) => {
+        const a = randInt(3, 7);
+        return {
+          question: `-2x ≥ ${2 * a} eşitsizliğinin çözüm aralığı aşağıdakilerden hangisidir?`,
+          correctStr: `x ≤ -${a}`,
+          distractors: [`x ≥ -${a}`, `x ≤ ${a}`, `x ≥ ${a}`],
+          explanation: `Eşitsizliğin her iki tarafı negatif bir sayıya (-2) bölündüğünde eşitsizlik işareti YÖN DEĞİŞTİRİR:\nx ≤ ${2 * a} ÷ (-2) => x ≤ -${a} bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Eşitsizlikte eksi bir sayı ile çarpma veya bölme yapıldığında yön değiştirme (≥ ise ≤ olur) LGS'nin en popüler tuzaklarından biridir."
         };
       }
     ],
@@ -685,9 +1182,23 @@
         return {
           question: `Bir dik üçgende dik kenarların uzunlukları ${dik1} cm ve ${dik2} cm olduğuna göre, hipotenüs uzunluğu kaç santimetredir?`,
           correctStr: `${hipo} cm`,
-          distractors: [`${hipo + 2} cm`, `${hipo - 1} cm`, `${dik1 + dik2} cm`],
+          distractors: [`${dik1 + dik2} cm`, `${hipo + 4} cm`, `${hipo - (k > 1 ? 2 : 1)} cm`],
           explanation: `Pisagor bağıntısı: a² + b² = c²\n${dik1}² + ${dik2}² = ${dik1 * dik1} + ${dik2 * dik2} = ${hipo * hipo} = ${hipo}² cm bulunur. (${ozel.a}-${ozel.b}-${ozel.c} özel üçgeninin ${k} katıdır).`,
           tactic: "Merdiye Hoca Sınav Taktiği: 3-4-5, 5-12-13, 8-15-17 özel üçgenlerinin katlarını ezbere bilmek sınavda en az 2 dakika kazandırır."
+        };
+      },
+      (diff) => {
+        const a = randInt(4, 8);
+        const b = randInt(7, 12);
+        const alt = Math.abs(a - b);
+        const ust = a + b;
+        const tamSayiAdedi = ust - alt - 1;
+        return {
+          question: `İki kenar uzunluğu ${a} cm ve ${b} cm olan bir üçgenin üçüncü kenarının alabileceği kaç farklı tam sayı değeri vardır?`,
+          correctStr: `${tamSayiAdedi} adet`,
+          distractors: [`${tamSayiAdedi + 2} adet`, `${tamSayiAdedi - 1} adet`, `${a + b} adet`],
+          explanation: `Üçgen eşitsizliği kuralı: |${a} - ${b}| < x < ${a} + ${b}\n=> ${alt} < x < ${ust}\nBu aralıktaki tam sayı sayısı = ${ust} - ${alt} - 1 = ${tamSayiAdedi} adettir.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Bir kenar uzunluğu diğer iki kenarın farkından büyük, toplamından küçük olmak zorundadır."
         };
       }
     ],
@@ -700,35 +1211,66 @@
           question: `Koordinat sisteminde A(${x}, ${y}) noktasının x eksenine göre yansıması olan noktanın koordinatları aşağıdakilerden hangisidir?`,
           correctStr: `(${x}, ${-y})`,
           distractors: [`(${-x}, ${y})`, `(${-x}, ${-y})`, `(${y}, ${x})`],
-          explanation: `x eksenine göre yansıma kuralında: x koordinatı değişmez, y koordinatı ise işaret değiştirir. (x, y) -> (x, -y). Dolayısıyla (${x}, ${-y}) olur.`,
+          explanation: `x eksenine göre yansıma kuralında: x koordinatı değişmez, y koordinatı ise işaret değiştirir: (x, y) -> (x, -y). Dolayısıyla (${x}, ${-y}) olur.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Hangi eksene göre yansıma alınıyorsa o eksenin değeri sabit kalır, diğer koordinatın işareti tersine döner."
+        };
+      },
+      (diff) => {
+        const x = randInt(1, 5);
+        const y = randInt(2, 6);
+        const saga = randInt(2, 4);
+        const yukari = randInt(2, 4);
+        return {
+          question: `Koordinat düzleminde K(${x}, ${y}) noktası ${saga} birim sağa ve ${yukari} birim yukarı ötelenirse oluşan yeni noktanın koordinatları ne olur?`,
+          correctStr: `(${x + saga}, ${y + yukari})`,
+          distractors: [
+            `(${x - saga}, ${y + yukari})`,
+            `(${x + saga}, ${y - yukari})`,
+            `(${x + yukari}, ${y + saga})`
+          ],
+          explanation: `Öteleme kuralları:\nSağa öteleme: x değerine eklenir -> ${x} + ${saga} = ${x + saga}\nYukarı öteleme: y değerine eklenir -> ${y} + ${yukari} = ${y + yukari}\nYeni nokta: (${x + saga}, ${y + yukari}) olur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Sağa ve yukarı + (artı), sola ve aşağı - (eksi) demektir."
         };
       }
     ],
 
     "8_Geometrik Cisimler": [
       (diff) => {
-        const r = randInt(2, 6);
+        const r = randInt(3, 6);
         const h = randInt(5, 12);
         const pi = 3;
         const hacim = pi * r * r * h;
         return {
           question: `Taban yarıçapı r = ${r} cm ve yüksekliği h = ${h} cm olan bir dik dairesel silindirin hacmi kaç santimetreküptür? (π = 3 alınız.)`,
           correctStr: `${hacim} cm³`,
-          distractors: [`${hacim / 2} cm³`, `${hacim + 24} cm³`, `${2 * pi * r * h} cm³`],
+          distractors: [`${Math.floor(hacim / 2)} cm³`, `${hacim + 36} cm³`, `${pi * r * h} cm³`],
           explanation: `Silindirin Hacmi = Taban Alanı × Yükseklik = (π × r²) × h formülü ile bulunur.\nHacim = 3 × ${r}² × ${h} = 3 × ${r * r} × ${h} = ${hacim} cm³'tür.`,
           tactic: "Merdiye Hoca Sınav Taktiği: Prizma ve silindirlerin hacmi daima 'Taban Alanı × Yükseklik' mantığıyla hesaplanır."
+        };
+      },
+      (diff) => {
+        const r = randInt(3, 7);
+        const h = randInt(4, 10);
+        const pi = 3;
+        const yanalAlan = 2 * pi * r * h;
+        return {
+          question: `Taban yarıçapı r = ${r} cm ve yüksekliği h = ${h} cm olan bir dik dairesel silindirin yanal alanı kaç santimetrekaredir? (π = 3 alınız.)`,
+          correctStr: `${yanalAlan} cm²`,
+          distractors: [`${pi * r * r * h} cm²`, `${yanalAlan + 24} cm²`, `${Math.floor(yanalAlan / 2)} cm²`],
+          explanation: `Silindirin Yanal Alanı = Taban Çevresi × Yükseklik = (2 × π × r) × h.\nYanal Alan = 2 × 3 × ${r} × ${h} = ${yanalAlan} cm² bulunur.`,
+          tactic: "Merdiye Hoca Sınav Taktiği: Silindirin açınımında yanal alan bir dikdörtgendir; bu dikdörtgenin kenarları taban çevresi (2πr) ile yüksekliktir (h)."
         };
       }
     ]
   };
 
-  // 3. Tekli veya Çoklu Soru Üretim Fonksiyonu (Dahili Algoritmik Motor)
+  // 4. Tekli veya Coklu Soru Uretim Fonksiyonu (Dahili Algoritmik Motor)
   function generateLocalQuestion(grade, topic, difficulty, seedIndex) {
     const key = `${grade}_${topic}`;
     const gens = QUESTION_GENERATORS[key] || QUESTION_GENERATORS["8_Çarpanlar ve Katlar (EBOB-EKOK)"];
-    const genFunc = gens[seedIndex % gens.length] || gens[0];
-    const raw = genFunc(difficulty);
+    const idx = (typeof seedIndex === "number" && seedIndex >= 0) ? seedIndex : 0;
+    const genFunc = gens[idx % gens.length] || gens[0];
+    const raw = genFunc(difficulty || "yeni_nesil");
 
     const { options, correctIndex } = buildOptions(raw.correctStr, raw.distractors);
 
@@ -739,18 +1281,18 @@
     };
 
     return {
-      id: "gen-" + Date.now() + "-" + (seedIndex + 1) + "-" + Math.floor(Math.random() * 1000),
+      id: "gen-" + Date.now() + "-" + (idx + 1) + "-" + Math.floor(Math.random() * 1000),
       grade: String(grade),
       gradeLabel: `${grade}. Sınıf`,
       topic: topic,
-      difficulty: difficulty,
-      difficultyLabel: diffLabels[difficulty] || "Yeni Nesil",
+      difficulty: difficulty || "yeni_nesil",
+      difficultyLabel: diffLabels[difficulty] || "Yeni Nesil (LGS)",
       question: raw.question,
       options: options,
       correctIndex: correctIndex,
       explanation: raw.explanation,
       tactic: raw.tactic,
-      approved: false, // Öğretmen onayı için başlangıçta false
+      approved: false,
       saved: false
     };
   }
@@ -764,7 +1306,7 @@
     return results;
   }
 
-  // 4. Gemini API Canlı Bağlantısı (İsteğe Bağlı AI Entegrasyonu)
+  // 5. Gemini API Canli Baglantisi (Istege Bagli AI Entegrasyonu)
   async function generateGeminiQuestions(apiKey, grade, topic, difficulty, count) {
     if (!apiKey || typeof apiKey !== "string" || apiKey.trim().length < 10) {
       throw new Error("Geçerli bir Gemini API anahtarı sağlanmadı.");
@@ -828,7 +1370,6 @@ Kesin kurallar:
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) throw new Error("Gemini API'den boş yanıt döndü.");
 
-    // JSON temizleme (olası markdown backtick blokları için)
     const cleanedJson = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
     const parsedList = JSON.parse(cleanedJson);
 
@@ -863,7 +1404,7 @@ Kesin kurallar:
     }));
   }
 
-  // 5. A4 Öğretmen Sınav & Çalışma Kağıdı HTML Çıktı Oluşturucu
+  // 6. A4 Ogretmen Sinav & Calisma Kagidi HTML Cikti Olusturucu
   function buildPrintableExamHtml(questions, options) {
     const opts = options || {};
     const schoolName = opts.schoolName || "T.C. MILLI EGITIM BAKANLIGI";
@@ -877,7 +1418,7 @@ Kesin kurallar:
 
     let html = `
       <div class="exam-sheet-root">
-        <!-- Sınav Başlığı & Öğrenci Bilgi Formu -->
+        <!-- Sinav Basligi & Ogrenci Bilgi Formu -->
         <header class="exam-header-box">
           <div class="exam-header-top">
             <div class="exam-header-brand">
@@ -914,7 +1455,7 @@ Kesin kurallar:
             <span class="exam-q-number">${qNum}.</span>
             <span class="exam-q-badge">${escapeHtml(q.difficultyLabel || "LGS Ayarı")}</span>
           </div>
-          <div class="exam-q-text">${escapeHtml(q.question).replace(/\\n/g, "<br>")}</div>
+          <div class="exam-q-text">${escapeHtml(q.question).replace(/\n/g, "<br>")}</div>
           <div class="exam-options-grid">
       `;
 
@@ -942,7 +1483,7 @@ Kesin kurallar:
 
     html += `</main>`;
 
-    // Öğretmen Nüshası: Cevap Anahtarı ve Taktik Sayfası
+    // Ogretmen Nushasi: Cevap Anahtari ve Taktik Sayfasi
     if (includeAnswerKey) {
       const letters = ["A", "B", "C", "D"];
       html += `
@@ -953,7 +1494,7 @@ Kesin kurallar:
             <p>${escapeHtml(gradeText)} &bull; ${escapeHtml(topicText)} &bull; Toplam ${questions.length} Soru</p>
           </div>
 
-          <!-- Hızlı Cevap Matrisi -->
+          <!-- Hizli Cevap Matrisi -->
           <div class="exam-answer-matrix">
             <table class="exam-matrix-table">
               <thead>
@@ -982,7 +1523,7 @@ Kesin kurallar:
             </table>
           </div>
 
-          <!-- Ayrıntılı Çözüm ve Merdiye Hoca Taktik Dökümü -->
+          <!-- Ayrintili Cozum ve Merdiye Hoca Taktik Dokumu -->
           <div class="exam-teacher-solutions-list">
             <h4>Ayrıntılı Adım Adım Çözümler ve Sınav Taktikleri</h4>
       `;
@@ -995,7 +1536,7 @@ Kesin kurallar:
             <div class="teacher-sol-title">
               <b>Soru ${qNum} (Doğru Cevap: ${letter})</b> - <small>${escapeHtml(q.difficultyLabel || "")}</small>
             </div>
-            <div class="teacher-sol-explanation">${escapeHtml(q.explanation || "").replace(/\\n/g, "<br>")}</div>
+            <div class="teacher-sol-explanation">${escapeHtml(q.explanation || "").replace(/\n/g, "<br>")}</div>
             ${q.tactic ? `<div class="teacher-sol-tactic"><b>Merdiye Hoca Sınav Taktiği:</b> ${escapeHtml(q.tactic)}</div>` : ""}
           </div>
         `;
