@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf",
       fileUrl: "assets/pdf/13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf",
       fileSize: "106 KB",
-      badge: " EN ÇOK İNDİRİLEN",
+      badge: "EN ÇOK İNDİRİLEN",
       popular: true,
       topics: ["Tüm Formüller", "Hızlı Taktikler", "Süre Yönetimi", "Turlama Tekniği", "Hap Notlar"]
     },
@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
       filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf",
       fileUrl: "assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf",
       fileSize: "104 KB",
-      badge: " 2025/2026 PROVA",
+      badge: "2025/2026 PROVA",
       popular: true,
       topics: ["20 Yeni Nesil Soru", "Cevap Anahtarı", "Optik Form Rehberi", "Net Skalası", "MEB Uyum"]
     }
@@ -504,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <!-- Tab 2: Konular & Kazanımlar -->
       <div id="modalTabTopics" class="pdf-modal-content-panel" style="display: none;">
         <div style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary); margin-bottom: 10px;"> Bu Föyde Öğreneceğiniz MEB Kazanımları:</h4>
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary); margin-bottom: 10px;">Bu Föyde Öğreneceğiniz MEB Kazanımları:</h4>
           <ul style="list-style: none; font-size: 0.92rem; color: var(--text-secondary); line-height: 1.7;">
             ${topicsList}
           </ul>
@@ -514,12 +514,12 @@ document.addEventListener("DOMContentLoaded", () => {
       <!-- Tab 3: Örnek Soru & Taktik -->
       <div id="modalTabSample" class="pdf-modal-content-panel" style="display: none;">
         <div style="background: #FAF8FE; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;"> Tipik Sınav Sorusu Modeli:</h4>
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Tipik Sınav Sorusu Modeli:</h4>
           <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
             MEB LGS sınavlarında bu üniteden gelen sorular temel işlemden ziyade <b>şekil modelleme ve metin analizi</b> üzerine kuruludur.
           </p>
           <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: var(--radius-sm); padding: 12px; font-size: 0.88rem; color: #92400E; font-weight: 700;">
-             Merdiye Hoca Uyarısı: Soru kökünü okumadan şekle dalmayın. Sorunun sizden "en az" mı "en çok" mu istediğini ilk önce çizin!
+            Merdiye Hoca Uyarısı: Soru kökünü okumadan şekle dalmayın. Sorunun sizden "en az" mı "en çok" mu istediğini ilk önce çizin!
           </div>
         </div>
       </div>
@@ -534,7 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
             E-posta ile Paylaş
           </a>
           <a href="${fileLink}" target="_blank" class="btn btn-secondary btn-sm">Tarayıcıda Aç</a>
-          <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm"> Hemen İndir</a>
+          <a href="${fileLink}" download="${item.filename}" class="btn btn-primary btn-sm">Hemen İndir</a>
         </div>
       </div>
     `;
@@ -698,17 +698,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (adviceDisplay && recDisplay) {
         if (net >= 18) {
-          adviceDisplay.textContent = " Muazzam Performans! Galatasaray, Kabataş ve Fen Liseleri kapılarını aralıyorsun. Soru kaçırma payını sıfıra indirmek için 'Yeni Nesil Pro Deneme' ve zaman turlaması yap.";
-          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>LGS Yeni Nesil Pro Deneme-1</a>";
+          adviceDisplay.innerHTML = "<b>Muazzam Performans!</b> Galatasaray, Kabataş ve Fen Liseleri kapılarını aralıyorsun. Soru kaçırma payını sıfıra indirmek için Pro Deneme ve turlama taktiğini uygula.";
+          recDisplay.innerHTML = "<b>Önerilen Föy:</b> <a href='assets/pdf/14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>LGS Yeni Nesil Pro Deneme-1</a>";
         } else if (net >= 14) {
-          adviceDisplay.textContent = " Çok Başarılı! Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına (Cebirsel İfadeler & Geometrik Cisimler) odaklan.";
-          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Cebirsel İfadeler ve Özdeşlikler Föyü</a>";
+          adviceDisplay.innerHTML = "<b>Çok Başarılı!</b> Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına odaklan.";
+          recDisplay.innerHTML = "<b>Önerilen Föy:</b> <a href='assets/pdf/06_Cebirsel_Ifadeler_ve_Ozdeslikler.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Cebirsel İfadeler ve Özdeşlikler Föyü</a>";
         } else if (net >= 8) {
-          adviceDisplay.textContent = " Yükseliş Potansiyeli Yüksek! Temel kazanımların var ancak yeni nesil paragraf sorularında tuzaklara düşüyorsun. 'Kareköklü İfadeler' ve 'Eğim' taktiklerini gözden geçir.";
-          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/03_Karekoklu_Ifadeler_Yeni_Nesil.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Kareköklü İfadeler & Yaklaşık Değer</a>";
+          adviceDisplay.innerHTML = "<b>Yükseliş Potansiyeli Yüksek!</b> Temel kazanımların var; kareköklü ifadeler ve eğim taktikleriyle netlerini 15+ üzerine taşıyabilirsin.";
+          recDisplay.innerHTML = "<b>Önerilen Föy:</b> <a href='assets/pdf/03_Karekoklu_Ifadeler_Yeni_Nesil.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Kareköklü İfadeler & Yaklaşık Değer</a>";
         } else {
-          adviceDisplay.textContent = " Harekete Geçme Zamanı! Korkacak hiçbir şey yok; matematikte doğru metot ve birebir takip ile 3-4 ayda 12-15 nete çıkmak mümkün. Temel kamp föylerinden başla ve özel ders desteği al.";
-          recDisplay.innerHTML = " <b>Önerilen Föy:</b> <a href='assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Çarpanlar ve Katlar & EBOB-EKOK Temel Föyü</a>";
+          adviceDisplay.innerHTML = "<b>Temel Konuları Güçlendirme Zamanı!</b> Doğru metot ve birebir takip ile 3-4 ayda 12-15 nete çıkmak mümkün. Temel kamp föylerinden başla.";
+          recDisplay.innerHTML = "<b>Önerilen Föy:</b> <a href='assets/pdf/01_Carpanlar_ve_Katlar_EBOB_EKOK.pdf' download style='color: var(--primary); text-decoration: underline; font-weight: 800;'>Çarpanlar ve Katlar & EBOB-EKOK Temel Föyü</a>";
         }
       }
     }
@@ -767,15 +767,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (estimatedTotalScore >= school.minScore) {
         statusClass = "qualified";
-        statusText = " Kazanabilirsin! Puanın Yeterli";
+        statusText = "Kazanabilirsin! Puanın Yeterli";
       } else if (diff <= 12.0) {
         const neededNet = Math.max(1, Math.ceil(diff / 5.0));
         statusClass = "borderline";
-        statusText = ` Sınırda (${neededNet} Matematik Neti Daha Gerekli)`;
+        statusText = `Sınırda (${neededNet} Matematik Neti Daha Gerekli)`;
       } else {
         const neededNet = Math.max(1, Math.ceil(diff / 5.0));
         statusClass = "need-work";
-        statusText = ` +${neededNet} Matematik Neti Gelişim Şart`;
+        statusText = `+${neededNet} Matematik Neti Gelişim Şart`;
       }
 
       return `
@@ -797,7 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
 
           <button type="button" class="btn btn-secondary btn-sm plan-school-btn" data-school="${school.name}" style="width: 100%; margin-top: 10px;">
-             Bu Hedefe Özel Ders Planı Yap
+            Bu Hedefe Özel Ders Planı Yap
           </button>
         </div>
       `;
@@ -1218,9 +1218,9 @@ document.addEventListener("DOMContentLoaded", () => {
         userAnswers[currentQuizIndex] = { selectedIndex: selectedOptionIndex, isCorrect };
 
         if (isCorrect) {
-          showToast("Tebrikler, doğru cevap! +20 Puan kazandınız ", "success");
+          showToast("Tebrikler, doğru cevap! +20 Puan kazandınız.", "success");
         } else {
-          showToast("Yanlış cevap. Çözüm taktiğini mutlaka inceleyin ", "info");
+          showToast("Yanlış cevap. Çözüm taktiğini mutlaka inceleyin.", "info");
         }
 
         renderQuestion(currentQuizIndex);

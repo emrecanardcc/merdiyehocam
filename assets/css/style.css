@@ -2079,15 +2079,18 @@ button, input, select, textarea {
     width: 100% !important;
     max-width: 100% !important;
     position: relative !important;
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
     background-attachment: scroll !important; /* Mobil performans ve zıplama önleme */
+    font-size: 15px !important;
+    line-height: 1.62 !important;
+    color: #1E1B4B !important;
   }
 
   .container {
     width: 100% !important;
     max-width: 100% !important;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
     margin-left: auto !important;
     margin-right: auto !important;
     box-sizing: border-box !important;
@@ -2098,7 +2101,12 @@ button, input, select, textarea {
     max-width: 100% !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
-    padding: 32px 0 !important;
+    padding: 36px 0 !important;
+  }
+
+  strong, b {
+    color: #1E1B4B !important;
+    font-weight: 700 !important;
   }
 
   /* ---- 2. MOBİL BUTON RESET (ASLA TAŞMAZ, METİN KIRILIR) ---- */
@@ -2131,10 +2139,10 @@ button, input, select, textarea {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 14px !important;
+    padding: 0 16px !important;
   }
   .logo-img {
-    height: 34px !important;
+    height: 36px !important;
     width: auto !important;
     max-width: 180px !important;
   }
@@ -2179,7 +2187,7 @@ button, input, select, textarea {
 
   /* ---- 5. HERO BÖLÜMÜ (TAM EKRANA OTURAN ESNEK YAPI) ---- */
   .hero-section {
-    padding: 16px 0 20px !important;
+    padding: 24px 0 28px !important;
   }
   .hero-grid {
     display: flex !important;
@@ -2202,26 +2210,33 @@ button, input, select, textarea {
     display: inline-flex !important;
     align-items: center !important;
     max-width: 100% !important;
-    font-size: 0.68rem !important;
-    padding: 5px 10px !important;
-    margin-bottom: 10px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.4px !important;
+    padding: 6px 14px !important;
+    margin-bottom: 12px !important;
     white-space: normal !important;
     line-height: 1.3 !important;
     border-radius: var(--radius-full) !important;
+    background: var(--primary-soft) !important;
+    border: 1px solid var(--primary-border) !important;
+    color: var(--primary) !important;
   }
   .hero-title {
-    font-size: 1.40rem !important;
-    line-height: 1.30 !important;
-    letter-spacing: -0.3px !important;
-    margin-bottom: 10px !important;
+    font-size: 1.55rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.4px !important;
+    margin-bottom: 12px !important;
+    font-weight: 800 !important;
     word-break: break-word !important;
     hyphens: auto !important;
+    color: #1E1B4B !important;
   }
   .hero-desc {
-    font-size: 0.86rem !important;
-    line-height: 1.55 !important;
-    margin-bottom: 14px !important;
-    color: var(--text-muted) !important;
+    font-size: 0.94rem !important;
+    line-height: 1.60 !important;
+    margin-bottom: 16px !important;
+    color: #475569 !important;
     word-break: break-word !important;
   }
 
@@ -2229,26 +2244,30 @@ button, input, select, textarea {
   .countdown-box {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 12px 10px !important;
-    margin-bottom: 12px !important;
-    border-radius: 14px !important;
+    padding: 14px 12px !important;
+    margin-bottom: 16px !important;
+    border-radius: 16px !important;
+    background: #FFFFFF !important;
+    border: 1.5px solid var(--primary-border) !important;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.06) !important;
     box-sizing: border-box !important;
   }
   .countdown-header {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    margin-bottom: 8px !important;
-    font-size: 0.78rem !important;
+    margin-bottom: 10px !important;
+    font-size: 0.82rem !important;
   }
   .countdown-title {
-    font-size: 0.80rem !important;
+    font-size: 0.84rem !important;
     font-weight: 800 !important;
     color: var(--primary) !important;
   }
   .countdown-date {
-    font-size: 0.72rem !important;
-    color: var(--text-muted) !important;
+    font-size: 0.76rem !important;
+    color: #64748B !important;
+    font-weight: 600 !important;
   }
   .countdown-grid {
     display: grid !important;
@@ -2259,25 +2278,25 @@ button, input, select, textarea {
   }
   .countdown-item {
     min-width: 0 !important;
-    padding: 8px 2px !important;
-    border-radius: 10px !important;
+    padding: 10px 4px !important;
+    border-radius: 12px !important;
     text-align: center !important;
     background: var(--primary-soft) !important;
     border: 1px solid var(--primary-border) !important;
     box-sizing: border-box !important;
   }
   .countdown-val {
-    font-size: 1.30rem !important;
+    font-size: 1.40rem !important;
     font-weight: 900 !important;
     line-height: 1.05 !important;
     color: var(--primary) !important;
   }
   .countdown-lbl {
-    font-size: 0.62rem !important;
+    font-size: 0.65rem !important;
     font-weight: 800 !important;
-    color: var(--text-muted) !important;
+    color: #64748B !important;
     text-transform: uppercase !important;
-    margin-top: 2px !important;
+    margin-top: 3px !important;
   }
 
   /* ---- 7. HERO AKSİYON BUTONLARI & ANINDA FÖY TALEBİ ---- */
@@ -2285,29 +2304,29 @@ button, input, select, textarea {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
   }
   .hero-actions .btn {
     width: 100% !important;
-    padding: 12px 14px !important;
-    font-size: 0.88rem !important;
-    font-weight: 800 !important;
+    padding: 13px 18px !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
     justify-content: center !important;
     border-radius: var(--radius-full) !important;
     box-sizing: border-box !important;
   }
   .hero-trial-bar {
     width: 100% !important;
-    margin: 8px 0 12px !important;
+    margin: 10px 0 14px !important;
   }
   .btn-email-instant {
     display: block !important;
     width: 100% !important;
     text-align: center !important;
-    padding: 10px 12px !important;
-    font-size: 0.80rem !important;
-    line-height: 1.35 !important;
+    padding: 11px 14px !important;
+    font-size: 0.82rem !important;
+    line-height: 1.40 !important;
     border-radius: var(--radius-full) !important;
     box-sizing: border-box !important;
   }
@@ -2320,8 +2339,8 @@ button, input, select, textarea {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
-    margin: 12px 0 14px !important;
-    padding: 4px 0 6px !important;
+    margin: 12px 0 16px !important;
+    padding: 4px 0 !important;
     box-sizing: border-box !important;
   }
   .mobile-app-tray::-webkit-scrollbar {
@@ -2334,12 +2353,12 @@ button, input, select, textarea {
     padding: 2px 2px !important;
   }
   .mobile-tray-chip {
-    position: relative !important; /* Rozetin uçup gitmesini kesin engeller */
+    position: relative !important;
     background: #FFFFFF !important;
     border: 1.5px solid rgba(124, 58, 237, 0.16) !important;
-    border-radius: 12px !important;
-    padding: 8px 12px !important;
-    min-width: 108px !important;
+    border-radius: 14px !important;
+    padding: 9px 13px !important;
+    min-width: 112px !important;
     flex-shrink: 0 !important;
     display: flex !important;
     flex-direction: column !important;
@@ -2366,24 +2385,24 @@ button, input, select, textarea {
     margin-bottom: 2px !important;
   }
   .tray-chip-title {
-    font-size: 0.78rem !important;
+    font-size: 0.80rem !important;
     font-weight: 800 !important;
-    color: var(--text-main) !important;
+    color: #1E1B4B !important;
     line-height: 1.2 !important;
   }
   .tray-chip-sub {
-    font-size: 0.65rem !important;
-    font-weight: 700 !important;
-    color: var(--text-muted) !important;
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    color: #64748B !important;
   }
 
   /* ---- 9. HERO İSTATİSTİK ŞERİDİ ---- */
   .hero-stats-row {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 6px !important;
+    gap: 8px !important;
     width: 100% !important;
-    padding-top: 12px !important;
+    padding-top: 14px !important;
     border-top: 1px solid var(--border-color) !important;
     box-sizing: border-box !important;
   }
@@ -2392,39 +2411,48 @@ button, input, select, textarea {
     min-width: 0 !important;
   }
   .hero-stat-item h4 {
-    font-size: 1.05rem !important;
+    font-size: 1.20rem !important;
     font-weight: 900 !important;
     color: var(--primary) !important;
     line-height: 1.1 !important;
   }
   .hero-stat-item p {
-    font-size: 0.66rem !important;
-    line-height: 1.25 !important;
-    color: var(--text-muted) !important;
+    font-size: 0.72rem !important;
+    line-height: 1.30 !important;
+    color: #64748B !important;
+    font-weight: 600 !important;
   }
 
   /* ---- 10. BÖLÜM BAŞLIKLARI VE ETİKETLERİ ---- */
   .section-header {
-    margin-bottom: 18px !important;
+    margin-bottom: 20px !important;
     text-align: left !important;
     max-width: 100% !important;
   }
   .section-tag {
-    font-size: 0.66rem !important;
-    padding: 3px 8px !important;
-    margin-bottom: 6px !important;
+    font-size: 0.72rem !important;
+    padding: 4px 10px !important;
+    margin-bottom: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 999px !important;
+    background: var(--primary-soft) !important;
+    color: var(--primary) !important;
+    display: inline-block !important;
   }
   .section-title {
-    font-size: 1.30rem !important;
+    font-size: 1.38rem !important;
     line-height: 1.25 !important;
-    margin-bottom: 6px !important;
-    letter-spacing: -0.2px !important;
+    margin-bottom: 8px !important;
+    letter-spacing: -0.3px !important;
     word-break: break-word !important;
+    color: #1E1B4B !important;
+    font-weight: 800 !important;
   }
   .section-desc {
-    font-size: 0.84rem !important;
-    line-height: 1.50 !important;
-    color: var(--text-muted) !important;
+    font-size: 0.90rem !important;
+    line-height: 1.58 !important;
+    color: #475569 !important;
   }
 
   /* ---- 11. PDF PORTALI BÖLÜMÜ ---- */
@@ -2432,8 +2460,8 @@ button, input, select, textarea {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 10px !important;
-    margin-bottom: 16px !important;
+    gap: 12px !important;
+    margin-bottom: 18px !important;
   }
   .search-box {
     width: 100% !important;
@@ -2443,14 +2471,14 @@ button, input, select, textarea {
   }
   .search-input {
     width: 100% !important;
-    padding: 10px 14px 10px 40px !important;
-    font-size: 0.86rem !important;
-    border-radius: 12px !important;
+    padding: 12px 14px 12px 42px !important;
+    font-size: 0.90rem !important;
+    border-radius: 14px !important;
     box-sizing: border-box !important;
   }
   .search-icon {
-    left: 12px !important;
-    font-size: 0.72rem !important;
+    left: 14px !important;
+    font-size: 0.76rem !important;
   }
   .filter-tabs {
     display: flex !important;
@@ -2468,51 +2496,79 @@ button, input, select, textarea {
   .filter-tab {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
-    padding: 6px 12px !important;
-    font-size: 0.78rem !important;
+    padding: 8px 14px !important;
+    font-size: 0.80rem !important;
+    font-weight: 700 !important;
     border-radius: var(--radius-full) !important;
   }
   .pdf-grid {
     display: grid !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
-    gap: 12px !important;
+    gap: 14px !important;
     box-sizing: border-box !important;
   }
   .pdf-card {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 14px !important;
-    border-radius: 14px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(124, 58, 237, 0.12) !important;
+    box-shadow: 0 2px 10px rgba(124, 58, 237, 0.04) !important;
     box-sizing: border-box !important;
   }
   .pdf-title {
-    font-size: 0.96rem !important;
-    line-height: 1.30 !important;
-    margin-bottom: 4px !important;
+    font-size: 1.05rem !important;
+    line-height: 1.35 !important;
+    font-weight: 800 !important;
+    color: #1E1B4B !important;
+    margin-bottom: 6px !important;
   }
   .pdf-subtitle {
-    font-size: 0.80rem !important;
-    line-height: 1.45 !important;
-    margin-bottom: 8px !important;
+    font-size: 0.86rem !important;
+    line-height: 1.50 !important;
+    color: #64748B !important;
+    margin-bottom: 10px !important;
+  }
+  .pdf-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin-bottom: 12px !important;
+  }
+  .pdf-tag {
+    font-size: 0.72rem !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    background: var(--primary-soft) !important;
+    color: var(--primary) !important;
+    font-weight: 600 !important;
   }
   .pdf-card-bottom {
     display: flex !important;
     flex-direction: column !important;
-    gap: 6px !important;
-    padding-top: 10px !important;
+    gap: 8px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--border-color) !important;
     width: 100% !important;
   }
+  .pdf-info-txt {
+    font-size: 0.78rem !important;
+    color: #64748B !important;
+    font-weight: 600 !important;
+  }
   .pdf-btn-group {
-    display: flex !important;
-    flex-direction: column !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
     width: 100% !important;
     gap: 6px !important;
   }
   .pdf-btn-group .btn {
     width: 100% !important;
-    padding: 9px 12px !important;
-    font-size: 0.82rem !important;
+    padding: 10px 4px !important;
+    font-size: 0.80rem !important;
+    font-weight: 700 !important;
     justify-content: center !important;
   }
 
@@ -2530,9 +2586,9 @@ button, input, select, textarea {
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
     width: 100% !important;
-    gap: 6px !important;
-    margin-bottom: 10px !important;
-    padding-bottom: 4px !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 6px !important;
   }
   .quiz-stepper::-webkit-scrollbar {
     display: none !important;
@@ -2541,29 +2597,30 @@ button, input, select, textarea {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
     min-width: 0 !important;
-    padding: 6px 10px !important;
-    font-size: 0.76rem !important;
+    padding: 8px 12px !important;
+    font-size: 0.80rem !important;
+    border-radius: 8px !important;
   }
   .quiz-header-meta {
     display: flex !important;
     flex-direction: column !important;
-    gap: 4px !important;
-    margin-bottom: 10px !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
     width: 100% !important;
   }
   .quiz-topic-badge, .quiz-score-badge {
     width: 100% !important;
-    font-size: 0.76rem !important;
-    padding: 4px 8px !important;
+    font-size: 0.78rem !important;
+    padding: 6px 10px !important;
     border-radius: 8px !important;
     box-sizing: border-box !important;
   }
   .quiz-question-text {
-    font-size: 0.88rem !important;
-    line-height: 1.55 !important;
-    padding: 12px !important;
+    font-size: 0.94rem !important;
+    line-height: 1.62 !important;
+    padding: 14px !important;
     border-radius: 12px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 12px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -2571,14 +2628,14 @@ button, input, select, textarea {
     display: grid !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
   }
   .quiz-option-card {
     width: 100% !important;
-    padding: 10px 12px !important;
-    min-height: 44px !important;
-    font-size: 0.84rem !important;
+    padding: 12px 14px !important;
+    min-height: 48px !important;
+    font-size: 0.88rem !important;
     border-radius: 10px !important;
     box-sizing: border-box !important;
   }
@@ -2586,30 +2643,31 @@ button, input, select, textarea {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 8px !important;
+    gap: 10px !important;
     padding: 8px 0 !important;
   }
   .quiz-action-bar > div:last-child {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 6px !important;
+    gap: 8px !important;
   }
   .quiz-action-bar .btn {
     width: 100% !important;
-    padding: 10px !important;
-    font-size: 0.84rem !important;
+    padding: 12px !important;
+    font-size: 0.88rem !important;
     justify-content: center !important;
   }
   .quiz-solution-box {
-    padding: 12px !important;
+    padding: 14px !important;
     border-radius: 12px !important;
-    font-size: 0.82rem !important;
+    font-size: 0.86rem !important;
+    line-height: 1.6 !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
   .quiz-completion-card {
-    padding: 14px !important;
+    padding: 18px 14px !important;
     border-radius: 14px !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -2617,19 +2675,19 @@ button, input, select, textarea {
   .completion-stats-grid {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 6px !important;
+    gap: 8px !important;
     width: 100% !important;
   }
   .completion-actions {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 6px !important;
+    gap: 8px !important;
   }
   .completion-actions .btn {
     width: 100% !important;
-    padding: 10px !important;
-    font-size: 0.82rem !important;
+    padding: 12px !important;
+    font-size: 0.86rem !important;
   }
 
   /* ---- 13. 1'E 1 ÖZEL DERS BÖLÜMÜ ---- */
@@ -2637,25 +2695,25 @@ button, input, select, textarea {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 14px !important;
+    gap: 16px !important;
   }
   .tutoring-card {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 16px 14px !important;
+    padding: 18px 16px !important;
     border-radius: 16px !important;
     box-sizing: border-box !important;
   }
   .tutoring-card h3 {
-    font-size: 1.10rem !important;
-    margin-bottom: 6px !important;
+    font-size: 1.15rem !important;
+    margin-bottom: 8px !important;
   }
   .tutoring-features {
-    gap: 10px !important;
-    margin: 12px 0 !important;
+    gap: 12px !important;
+    margin: 14px 0 !important;
   }
   .form-group {
-    margin-bottom: 10px !important;
+    margin-bottom: 12px !important;
     width: 100% !important;
   }
   .form-row {
@@ -2666,8 +2724,8 @@ button, input, select, textarea {
   }
   .form-control {
     width: 100% !important;
-    padding: 10px 12px !important;
-    font-size: 0.86rem !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important; /* iOS otomatik zoom engeli */
     border-radius: 10px !important;
     box-sizing: border-box !important;
   }
@@ -2675,12 +2733,12 @@ button, input, select, textarea {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 8px !important;
+    gap: 10px !important;
   }
   #tutoringForm .btn {
     width: 100% !important;
-    padding: 11px 14px !important;
-    font-size: 0.86rem !important;
+    padding: 13px 14px !important;
+    font-size: 0.90rem !important;
     justify-content: center !important;
   }
 
@@ -2690,15 +2748,16 @@ button, input, select, textarea {
     width: 100% !important;
     border-radius: 10px !important;
     overflow: hidden !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
     border: 1.5px solid var(--border-color) !important;
     background: #FFFFFF !important;
   }
   .sim-mode-tab {
     flex: 1 !important;
     text-align: center !important;
-    padding: 8px 6px !important;
-    font-size: 0.80rem !important;
+    padding: 11px 8px !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
     border-radius: 0 !important;
     border: none !important;
     border-right: 1px solid var(--border-color) !important;
@@ -2709,46 +2768,48 @@ button, input, select, textarea {
   .calc-wrapper {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 14px 10px !important;
-    border-radius: 14px !important;
+    padding: 18px 14px !important;
+    border-radius: 16px !important;
     box-sizing: border-box !important;
   }
   .calc-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
+    gap: 10px !important;
     width: 100% !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
   }
   .calc-input-box {
-    padding: 10px 6px !important;
-    border-radius: 10px !important;
+    padding: 12px 8px !important;
+    border-radius: 12px !important;
   }
   .calc-number-input {
     width: 68px !important;
-    height: 44px !important;
-    font-size: 1.45rem !important;
+    height: 46px !important;
+    font-size: 1.5rem !important;
     border-radius: 8px !important;
   }
   .calc-result-box {
-    padding: 14px 10px !important;
-    border-radius: 10px !important;
+    padding: 16px 12px !important;
+    border-radius: 12px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
   .calc-net-number {
-    font-size: 2.2rem !important;
+    font-size: 2.3rem !important;
   }
   .calc-score-sub {
-    font-size: 0.86rem !important;
+    font-size: 0.88rem !important;
   }
   .calc-feedback {
-    font-size: 0.80rem !important;
-    padding: 8px 10px !important;
+    font-size: 0.86rem !important;
+    line-height: 1.55 !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
   }
   #schoolView > div {
     width: 100% !important;
-    padding: 12px !important;
+    padding: 14px !important;
     border-radius: 14px !important;
     box-sizing: border-box !important;
   }
@@ -2759,8 +2820,8 @@ button, input, select, textarea {
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
     width: 100% !important;
-    gap: 6px !important;
-    padding-bottom: 2px !important;
+    gap: 8px !important;
+    padding-bottom: 4px !important;
   }
   .school-filter-bar::-webkit-scrollbar {
     display: none !important;
@@ -2768,17 +2829,18 @@ button, input, select, textarea {
   .school-filter-chip {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
-    padding: 5px 10px !important;
-    font-size: 0.76rem !important;
+    padding: 7px 12px !important;
+    font-size: 0.80rem !important;
+    border-radius: 8px !important;
   }
   .school-grid {
     display: grid !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
-    gap: 10px !important;
+    gap: 12px !important;
   }
   .school-card {
-    padding: 12px !important;
+    padding: 14px !important;
     border-radius: 12px !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -2789,25 +2851,25 @@ button, input, select, textarea {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    gap: 12px !important;
+    gap: 14px !important;
   }
   .social-card {
     width: 100% !important;
-    padding: 16px 14px !important;
+    padding: 18px 16px !important;
     border-radius: 16px !important;
     box-sizing: border-box !important;
   }
   .social-stats-bar {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-    padding: 10px !important;
-    margin: 10px 0 !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    margin: 12px 0 !important;
   }
   .social-card .btn {
     width: 100% !important;
-    padding: 10px 14px !important;
-    font-size: 0.84rem !important;
+    padding: 12px 14px !important;
+    font-size: 0.88rem !important;
     justify-content: center !important;
   }
 
@@ -2819,9 +2881,9 @@ button, input, select, textarea {
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
     width: 100% !important;
-    gap: 6px !important;
-    margin-bottom: 12px !important;
-    padding-bottom: 2px !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+    padding-bottom: 4px !important;
   }
   .testi-filter-bar::-webkit-scrollbar {
     display: none !important;
@@ -2829,25 +2891,26 @@ button, input, select, textarea {
   .testi-filter-btn {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
-    padding: 5px 10px !important;
-    font-size: 0.76rem !important;
+    padding: 7px 14px !important;
+    font-size: 0.80rem !important;
+    border-radius: 8px !important;
   }
   .testimonials-grid {
     display: grid !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
-    gap: 10px !important;
+    gap: 12px !important;
   }
   .testi-card {
-    padding: 14px !important;
-    border-radius: 12px !important;
+    padding: 16px !important;
+    border-radius: 14px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
   .testi-quote {
-    font-size: 0.82rem !important;
-    line-height: 1.50 !important;
-    margin-bottom: 8px !important;
+    font-size: 0.88rem !important;
+    line-height: 1.60 !important;
+    margin-bottom: 10px !important;
   }
 
   /* ---- 17. SIKÇA SORULAN SORULAR (SSS) ---- */
@@ -2856,16 +2919,17 @@ button, input, select, textarea {
     box-sizing: border-box !important;
   }
   .faq-question {
-    padding: 12px 14px !important;
-    font-size: 0.84rem !important;
-    line-height: 1.35 !important;
+    padding: 14px 16px !important;
+    font-size: 0.90rem !important;
+    line-height: 1.40 !important;
+    font-weight: 600 !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
   .faq-answer {
-    padding: 10px 14px !important;
-    font-size: 0.80rem !important;
-    line-height: 1.50 !important;
+    padding: 12px 16px !important;
+    font-size: 0.86rem !important;
+    line-height: 1.60 !important;
   }
 
   /* ---- 18. FOOTER ---- */
