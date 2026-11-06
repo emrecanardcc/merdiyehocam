@@ -3148,6 +3148,14 @@ button, input, select, textarea {
   .modal-close, .exam-print-toolbar, .no-print {
     display: none !important;
   }
+  html, body {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  #examPrintModal,
   #examPrintModal.active {
     display: block !important;
     position: static !important;
@@ -3156,12 +3164,15 @@ button, input, select, textarea {
     margin: 0 !important;
     width: 100% !important;
     height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     box-shadow: none !important;
   }
   #examPrintModal:not(.active) {
     display: none !important;
   }
-  #examPrintModal.active .modal-dialog {
+  #examPrintModal.active .modal-dialog,
+  #examPrintModal .modal-dialog {
     position: static !important;
     max-width: 100% !important;
     width: 100% !important;
@@ -3170,11 +3181,21 @@ button, input, select, textarea {
     background: transparent !important;
     padding: 0 !important;
     margin: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
   }
-  .printable-sheet-preview-wrap {
+  .printable-sheet-preview-wrap,
+  #printableExamArea {
     background: transparent !important;
     padding: 0 !important;
+    margin: 0 !important;
     box-shadow: none !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    display: block !important;
   }
   .exam-sheet-root {
     box-shadow: none !important;
