@@ -1225,6 +1225,7 @@ button, input, select, textarea {
     box-shadow: var(--shadow-lg);
     display: none;
     gap: 8px;
+    z-index: 998;
   }
   .header .nav-menu.open {
     display: flex;
@@ -1260,38 +1261,6 @@ button, input, select, textarea {
   }
   .footer-grid {
     grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .logo-img {
-    height: 46px;
-  }
-  .nav-actions {
-    display: none;
-  }
-  /* Nav menu drops from 60px header on mobile */
-  .header .nav-menu {
-    top: 60px !important;
-    z-index: 999;
-  }
-  .hero-title {
-    font-size: 2.1rem;
-  }
-  .calc-grid {
-    grid-template-columns: 1fr;
-  }
-  .footer-grid {
-    grid-template-columns: 1fr;
-  }
-  .floating-email span,
-  .floating-whatsapp span {
-    display: none;
-  }
-  .floating-email,
-  .floating-whatsapp {
-    padding: 14px;
-    border-radius: 50%;
   }
 }
 
@@ -2059,34 +2028,6 @@ button, input, select, textarea {
   align-items: center;
 }
 
-@media (max-width: 768px) {
-  .modal-dialog {
-    padding: 20px 16px;
-    max-height: 94vh;
-  }
-  .pdf-embed-wrapper {
-    height: 320px;
-  }
-  .completion-stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .completion-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .completion-actions .btn {
-    width: 100%;
-    text-align: center;
-  }
-  .btn-whatsapp-instant {
-    width: 100%;
-    justify-content: center;
-    font-size: 0.86rem;
-    padding: 10px 14px;
-  }
-}
-
-
 /* ==========================================================================
    NATIVE MOBILE APP EXPERIENCE & RESPONSIVE COMPONENT LAYER
    ========================================================================== */
@@ -2103,88 +2044,238 @@ button, input, select, textarea {
 }
 
 /* 2. Mobile Device Active Layer (<= 768px) */
+
+
+/* ==========================================================================
+   MOBIL TAMAMIYLA OZEL TASARIM KATMANI - max-width: 768px
+   Hedef: 360px - 430px telefon genislikleri, piksel kusursuz, tasmasiz
+   ========================================================================== */
+
+/* Desktop-only: mobile nav elements hidden on desktop */
+.mobile-bottom-bar { display: none; }
+.mobile-app-tray   { display: none; }
+.mobile-sheet-handle { display: none; }
+
 @media (max-width: 768px) {
-  /* Prevent horizontal overflow on mobile */
+
+  /* ---- 1. GLOBAL RESET ---- */
   html, body {
     overflow-x: hidden;
     width: 100%;
+    max-width: 100%;
   }
 
-  /* Container padding reduced on mobile */
+  *  { box-sizing: border-box; }
+
   .container {
-    padding: 0 16px !important;
+    padding: 0 14px !important;
+    max-width: 100% !important;
   }
 
-  /* Body space for fixed bottom app bar */
+  /* Extra body padding for fixed bottom nav */
   body {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  /* Floating email repositioned above mobile bottom bar */
-  .floating-email {
-    bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
-    right: 14px !important;
-    padding: 10px 14px !important;
-    font-size: 0.82rem !important;
-  }
-  .floating-email span {
-    display: none;
-  }
-  .floating-email::before {
-    content: "";
-    display: none;
-  }
-
-  /* Compact Mobile Header */
+  /* ---- 2. HEADER ---- */
   .header {
-    height: 60px;
-    background: rgba(255, 255, 255, 0.96);
+    height: 56px !important;
+    background: rgba(255,255,255,0.97) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+  }
+  .header .container {
+    height: 56px !important;
+    padding: 0 14px !important;
   }
   .logo-img {
-    height: 38px;
+    height: 36px !important;
   }
-  .nav-actions .btn-sm {
-    padding: 6px 12px;
-    font-size: 0.80rem;
+  /* Nav menu drops from 56px header */
+  .header .nav-menu {
+    top: 56px !important;
+    padding: 16px 14px !important;
+    gap: 4px !important;
+    max-height: calc(100vh - 56px - 68px);
+    overflow-y: auto;
+  }
+  .nav-link {
+    font-size: 0.95rem !important;
+    padding: 10px 14px !important;
+    display: block;
+    border-radius: 10px !important;
+  }
+  /* Hide desktop action buttons in header */
+  .nav-actions {
+    display: none !important;
+  }
+  /* Show hamburger */
+  .mobile-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    border-radius: 10px;
+    background: var(--primary-soft);
+    color: var(--primary);
   }
 
-  /* Mobile App Quick Action Tray */
+  /* ---- 3. FLOATING EMAIL BUTTON ---- */
+  .floating-email {
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 12px !important;
+    padding: 11px 13px !important;
+    font-size: 0.82rem !important;
+    border-radius: 50% !important;
+    min-width: 0 !important;
+    width: 48px !important;
+    height: 48px !important;
+    justify-content: center !important;
+  }
+  .floating-email span {
+    display: none !important;
+  }
+
+  /* ---- 4. HERO SECTION ---- */
+  .hero-section {
+    padding: 20px 0 24px !important;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    text-align: left !important;
+  }
+  .hero-graphic {
+    display: none !important;
+  }
+  .hero-badge {
+    font-size: 0.72rem !important;
+    padding: 5px 12px !important;
+    margin-bottom: 12px !important;
+    margin-left: 0 !important;
+  }
+  .hero-title {
+    font-size: 1.5rem !important;
+    line-height: 1.28 !important;
+    margin-bottom: 10px !important;
+    letter-spacing: -0.3px !important;
+  }
+  .hero-desc {
+    font-size: 0.88rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 16px !important;
+    color: var(--text-muted) !important;
+  }
+  .hero-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+    justify-content: flex-start !important;
+  }
+  .hero-actions .btn {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 13px 18px !important;
+    font-size: 0.90rem !important;
+    justify-content: center !important;
+  }
+  .hero-trial-bar {
+    margin: 10px 0 14px !important;
+  }
+  .btn-email-instant {
+    display: flex !important;
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: normal !important;
+    font-size: 0.82rem !important;
+    padding: 11px 14px !important;
+    gap: 8px !important;
+  }
+
+  /* LGS Countdown */
+  .countdown-box {
+    padding: 12px 14px !important;
+    margin-bottom: 14px !important;
+    border-radius: 14px !important;
+  }
+  .countdown-header {
+    flex-direction: column !important;
+    gap: 2px !important;
+    margin-bottom: 10px !important;
+    font-size: 0.80rem !important;
+  }
+  .countdown-title {
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+  }
+  .countdown-date {
+    font-size: 0.74rem !important;
+  }
+  .countdown-grid {
+    gap: 6px !important;
+  }
+  .countdown-val {
+    font-size: 1.3rem !important;
+  }
+  .countdown-lbl {
+    font-size: 0.62rem !important;
+  }
+  .countdown-item {
+    padding: 8px 4px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Hero Stats Row */
+  .hero-stats-row {
+    gap: 0 !important;
+    padding-top: 14px !important;
+    justify-content: space-between !important;
+    border-top: 1px solid var(--border-color) !important;
+  }
+  .hero-stat-item {
+    flex: 1;
+    text-align: center;
+  }
+  .hero-stat-item h4 {
+    font-size: 1.1rem !important;
+    font-weight: 900 !important;
+  }
+  .hero-stat-item p {
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Mobile Quick Action Tray */
   .mobile-app-tray {
     display: block !important;
-    margin: 18px -16px 20px;
+    margin: 12px -14px 16px !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  .mobile-app-tray::-webkit-scrollbar {
-    display: none;
-  }
+  .mobile-app-tray::-webkit-scrollbar { display: none; }
   .mobile-tray-scroll {
-    display: flex;
-    gap: 10px;
-    padding: 4px 16px;
-    width: max-content;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 2px 14px !important;
+    width: max-content !important;
   }
   .mobile-tray-chip {
     background: #FFFFFF;
-    border: 1.5px solid rgba(124, 58, 237, 0.16);
-    border-radius: 16px;
-    padding: 10px 14px;
-    min-width: 128px;
-    box-shadow: 0 2px 10px rgba(124, 58, 237, 0.05);
-    text-decoration: none;
-    display: flex;
+    border: 1.5px solid rgba(124,58,237,0.16);
+    border-radius: 14px;
+    padding: 9px 12px;
+    min-width: 110px;
+    display: flex !important;
     flex-direction: column;
-    justify-content: center;
-    position: relative;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    gap: 1px;
+    text-decoration: none;
+    transition: transform 0.18s ease;
   }
-  .mobile-tray-chip:active {
-    transform: scale(0.96);
-  }
+  .mobile-tray-chip:active { transform: scale(0.95); }
   .mobile-tray-chip.pulse-chip {
     background: linear-gradient(135deg, #FAF5FF, #F3E8FF);
     border-color: #D8B4FE;
@@ -2195,222 +2286,120 @@ button, input, select, textarea {
   }
   .mobile-tray-chip.highlight-chip .tray-chip-title,
   .mobile-tray-chip.highlight-chip .tray-chip-sub {
-    color: #FFFFFF !important;
+    color: #FFF !important;
+  }
+  .tray-chip-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 5px #10B981;
+    margin-bottom: 3px;
   }
   .tray-chip-title {
-    font-size: 0.84rem;
-    font-weight: 800;
-    color: var(--text-main);
-    line-height: 1.25;
-    margin-bottom: 2px;
+    font-size: 0.80rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    line-height: 1.2 !important;
   }
   .tray-chip-sub {
-    font-size: 0.70rem;
-    font-weight: 700;
-    color: var(--text-muted);
+    font-size: 0.66rem !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
   }
   .tray-chip-badge {
     position: absolute;
-    top: -6px;
-    right: 8px;
+    top: -5px; right: 6px;
     background: var(--primary);
     color: #FFF;
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     font-weight: 800;
-    padding: 2px 6px;
+    padding: 1px 5px;
     border-radius: 999px;
   }
-  .tray-chip-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #10B981;
-    display: inline-block;
-    margin-bottom: 4px;
-    box-shadow: 0 0 6px #10B981;
-  }
 
-  /* Native Mobile Bottom Navigation Bar */
-  .mobile-bottom-bar {
-    display: flex !important;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(64px + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1.5px solid rgba(124, 58, 237, 0.16);
-    box-shadow: 0 -4px 25px rgba(124, 58, 237, 0.08);
-    z-index: 9999;
-    justify-content: space-around;
-    align-items: center;
-    padding-left: 8px;
-    padding-right: 8px;
+  /* ---- 5. SECTION COMMONS ---- */
+  .section {
+    padding: 36px 0 !important;
   }
-  .mobile-bar-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #64748B;
-    font-size: 0.68rem;
-    font-weight: 700;
-    flex: 1;
-    height: 100%;
-    transition: color 0.2s ease, transform 0.15s ease;
-    gap: 3px;
+  .section-alt {
+    padding: 36px 0 !important;
   }
-  .mobile-bar-item:active {
-    transform: scale(0.92);
-  }
-  .mobile-bar-item.active {
-    color: var(--primary);
-    font-weight: 800;
-  }
-  .mobile-bar-icon-wrap {
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .mobile-bar-icon-wrap svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* Center Elevated Icon for Mini Sınav */
-  .mobile-bar-item.highlight-item {
-    margin-top: -18px;
-  }
-  .mobile-bar-center-pill {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #7C3AED, #9061F9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #FFFFFF;
-    box-shadow: 0 8px 18px rgba(124, 58, 237, 0.35);
-    border: 3px solid #FFFFFF;
-  }
-  .mobile-bar-center-pill svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  /* Native Mobile Bottom Sheet (Modal) */
-  .modal-overlay {
-    align-items: flex-end !important;
-    padding: 0 !important;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(8px);
-  }
-  .modal-dialog {
-    width: 100% !important;
+  .section-header {
+    margin-bottom: 22px !important;
+    text-align: left !important;
     max-width: 100% !important;
-    border-radius: 26px 26px 0 0 !important;
-    margin: 0 !important;
-    max-height: 88vh !important;
-    padding: 16px 20px 34px !important;
-    animation: slideUpSheet 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
   }
-  .mobile-sheet-handle {
-    display: block !important;
-    width: 44px;
-    height: 5px;
-    background: #CBD5E1;
-    border-radius: 999px;
-    margin: 0 auto 14px !important;
+  .section-tag {
+    font-size: 0.68rem !important;
+    padding: 4px 10px !important;
+    margin-bottom: 8px !important;
   }
-  .modal-close {
-    top: 14px !important;
-    right: 18px !important;
-    background: var(--bg-muted) !important;
-    width: 32px !important;
-    height: 32px !important;
-  }
-  .pdf-embed-wrapper {
-    height: 280px !important;
-  }
-
-  @keyframes slideUpSheet {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-
-  /* Hero Adjustments for Mobile */
-  .hero-section {
-    padding: 24px 0 32px;
-  }
-  .hero-title {
-    font-size: 1.65rem !important;
+  .section-title {
+    font-size: 1.4rem !important;
     line-height: 1.25 !important;
+    margin-bottom: 8px !important;
+    letter-spacing: -0.2px !important;
   }
-  .hero-desc {
-    font-size: 0.90rem !important;
+  .section-desc {
+    font-size: 0.86rem !important;
+    line-height: 1.55 !important;
+  }
+
+  /* ---- 6. PDF PORTAL ---- */
+  .pdf-controls {
+    gap: 12px !important;
     margin-bottom: 20px !important;
   }
-  .hero-actions {
-    flex-direction: column !important;
-    gap: 10px !important;
+  .search-box {
+    max-width: 100% !important;
+    margin: 0 !important;
   }
-  .hero-actions .btn {
-    width: 100% !important;
-    text-align: center;
-    padding: 14px 20px !important;
+  .search-input {
+    padding: 11px 16px 11px 44px !important;
+    font-size: 0.88rem !important;
+    border-radius: 12px !important;
   }
-
-  /* Countdown Grid for Mobile */
-  .countdown-box {
-    padding: 16px !important;
+  .search-icon {
+    left: 14px !important;
+    font-size: 0.75rem !important;
   }
-  .countdown-grid {
-    gap: 6px !important;
-  }
-  .countdown-val {
-    font-size: 1.45rem !important;
-  }
-  .countdown-lbl {
-    font-size: 0.68rem !important;
-  }
-
-  /* Category Filter Tabs - Horizontal Swipe */
   .filter-tabs {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
-    padding-bottom: 6px !important;
-    gap: 8px !important;
+    padding-bottom: 4px !important;
+    gap: 6px !important;
+    justify-content: flex-start !important;
   }
-  .filter-tabs::-webkit-scrollbar {
-    display: none !important;
-  }
+  .filter-tabs::-webkit-scrollbar { display: none !important; }
   .filter-tab {
     flex-shrink: 0 !important;
-    padding: 8px 16px !important;
-    font-size: 0.84rem !important;
+    padding: 7px 14px !important;
+    font-size: 0.80rem !important;
+    white-space: nowrap !important;
   }
-
-  /* PDF Card Adjustments for Thumb Tapping */
   .pdf-grid {
     grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    gap: 12px !important;
   }
   .pdf-card {
-    padding: 18px !important;
-    border-radius: 18px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  .pdf-title {
+    font-size: 1.0rem !important;
+    margin-bottom: 6px !important;
+  }
+  .pdf-subtitle {
+    font-size: 0.82rem !important;
+    margin-bottom: 10px !important;
+  }
+  .pdf-card-bottom {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding-top: 12px !important;
+    align-items: stretch !important;
   }
   .pdf-btn-group {
     flex-direction: column !important;
@@ -2419,161 +2408,611 @@ button, input, select, textarea {
   }
   .pdf-btn-group .btn {
     width: 100% !important;
-    text-align: center;
+    text-align: center !important;
     padding: 10px 14px !important;
-    justify-content: center;
-  }
-
-  /* Quiz Option Cards for Mobile */
-  .quiz-options-grid {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-  .quiz-option-card {
-    padding: 14px 16px !important;
-    min-height: 54px !important;
-  }
-/* Section spacing on mobile */
-  .section {
-    padding: 48px 0 !important;
-  }
-  .section-header {
-    margin-bottom: 28px !important;
-  }
-  .section-title {
-    font-size: 1.55rem !important;
-    letter-spacing: -0.3px !important;
-  }
-  .section-desc {
-    font-size: 0.90rem !important;
-  }
-
-  /* Search box full width */
-  .search-box {
-    max-width: 100% !important;
-  }
-  .search-input {
-    font-size: 0.90rem !important;
-    padding: 13px 20px 13px 46px !important;
-  }
-
-  /* Hero image hidden on mobile to save space */
-  .hero-graphic {
-    display: none !important;
-  }
-
-  /* Social grid: stack on mobile */
-  .social-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-  .social-card {
-    padding: 22px !important;
-  }
-  .social-stats-bar {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-  }
-  .social-stat-unit .stat-num {
-    font-size: 1.25rem !important;
-  }
-
-  /* Tutoring card full width */
-  .tutoring-grid {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-  }
-  .tutoring-card {
-    padding: 22px !important;
-  }
-  .tutoring-card h3 {
-    font-size: 1.3rem !important;
-  }
-
-  /* Calculator wrapper on mobile */
-  .calc-wrapper {
-    padding: 20px 16px !important;
-    border-radius: var(--radius-lg) !important;
-  }
-  .calc-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-  .calc-number-input {
-    width: 90px !important;
-    font-size: 1.8rem !important;
-  }
-  .calc-net-number {
-    font-size: 2.8rem !important;
-  }
-
-  /* Form on mobile */
-  .form-row {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-
-  /* Email instant btn */
-  .btn-email-instant {
-    width: 100% !important;
     justify-content: center !important;
     font-size: 0.84rem !important;
-    padding: 11px 16px !important;
-    white-space: normal !important;
-    text-align: center !important;
+  }
+  .pdf-info-txt {
+    font-size: 0.74rem !important;
   }
 
-  /* School grid */
+  /* ---- 7. QUIZ SECTION ---- */
+  .quiz-wrapper {
+    padding: 0 !important;
+  }
+  .quiz-stepper {
+    display: flex !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 12px !important;
+  }
+  .quiz-stepper::-webkit-scrollbar { display: none !important; }
+  .quiz-step-btn {
+    flex-shrink: 0 !important;
+    padding: 7px 12px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+  .quiz-header-meta {
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+  .quiz-topic-badge, .quiz-score-badge {
+    font-size: 0.78rem !important;
+    padding: 5px 10px !important;
+  }
+  .quiz-question-text {
+    font-size: 0.90rem !important;
+    line-height: 1.6 !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+  }
+  .quiz-options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .quiz-option-card {
+    padding: 12px 14px !important;
+    min-height: 48px !important;
+    font-size: 0.88rem !important;
+    border-radius: 12px !important;
+  }
+  .quiz-action-bar {
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 12px 0 !important;
+  }
+  .quiz-action-bar > div:first-child {
+    font-size: 0.80rem !important;
+  }
+  .quiz-action-bar > div:last-child {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .quiz-action-bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 11px 14px !important;
+    font-size: 0.86rem !important;
+  }
+  .quiz-solution-box {
+    padding: 14px !important;
+    border-radius: 14px !important;
+    font-size: 0.84rem !important;
+  }
+  .quiz-tactic-banner {
+    padding: 10px 12px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    margin-top: 10px !important;
+  }
+  /* Completion card */
+  .quiz-completion-card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  .completion-header {
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+  .completion-icon {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 1.3rem !important;
+  }
+  #completionTitle {
+    font-size: 1.05rem !important;
+  }
+  #completionSubtitle {
+    font-size: 0.80rem !important;
+  }
+  .completion-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .completion-stat-box {
+    padding: 10px 12px !important;
+  }
+  .completion-stat-box .stat-num {
+    font-size: 1.15rem !important;
+  }
+  .completion-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .completion-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 0.84rem !important;
+    padding: 11px 14px !important;
+  }
+
+  /* ---- 8. TUTORING / OZEL DERS ---- */
+  .tutoring-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .tutoring-card {
+    padding: 18px !important;
+    border-radius: 18px !important;
+  }
+  .tutoring-card h3 {
+    font-size: 1.15rem !important;
+    margin-bottom: 8px !important;
+  }
+  .tutoring-features {
+    gap: 12px !important;
+    margin: 16px 0 !important;
+  }
+  .tutoring-feature-item {
+    gap: 10px !important;
+  }
+  .feature-icon-box {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.90rem !important;
+    flex-shrink: 0 !important;
+  }
+  .feature-text h5 {
+    font-size: 0.90rem !important;
+    margin-bottom: 2px !important;
+  }
+  .feature-text p {
+    font-size: 0.80rem !important;
+  }
+  /* Form */
+  .form-group {
+    margin-bottom: 12px !important;
+  }
+  .form-label {
+    font-size: 0.82rem !important;
+    margin-bottom: 4px !important;
+  }
+  .form-control {
+    padding: 10px 14px !important;
+    font-size: 0.88rem !important;
+    border-radius: 10px !important;
+  }
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  /* ---- 9. CALCULATOR / SIMULATOR ---- */
+  .sim-mode-tabs {
+    gap: 6px !important;
+    margin-bottom: 16px !important;
+    flex-wrap: wrap !important;
+  }
+  .sim-mode-tab {
+    padding: 8px 14px !important;
+    font-size: 0.84rem !important;
+    flex: 1 !important;
+    text-align: center !important;
+  }
+  .calc-wrapper {
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+  }
+  .calc-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+  .calc-input-box {
+    padding: 14px 10px !important;
+    border-radius: 12px !important;
+  }
+  .calc-input-box label {
+    font-size: 0.76rem !important;
+    margin-bottom: 8px !important;
+  }
+  .calc-number-input {
+    width: 72px !important;
+    height: 50px !important;
+    font-size: 1.6rem !important;
+    border-radius: 10px !important;
+  }
+  .calc-result-box {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+  .calc-net-number {
+    font-size: 2.4rem !important;
+  }
+  .calc-score-sub {
+    font-size: 0.90rem !important;
+  }
+  .calc-feedback {
+    font-size: 0.82rem !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+  }
+  /* School simulator */
+  .school-filter-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px !important;
+  }
+  .school-filter-bar::-webkit-scrollbar { display: none !important; }
+  .school-filter-chip {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+  }
   .school-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .school-card {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+  .school-card-title {
+    font-size: 0.92rem !important;
+  }
+  .school-meta-row {
+    font-size: 0.78rem !important;
+  }
+  .school-status-banner {
+    font-size: 0.78rem !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  /* ---- 10. SOCIAL SECTION ---- */
+  .social-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
+  .social-card {
+    padding: 18px !important;
+    border-radius: 18px !important;
+  }
+  .social-card-header {
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+  .social-icon-circle {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .social-meta h4 {
+    font-size: 1.0rem !important;
+  }
+  .social-meta p {
+    font-size: 0.78rem !important;
+  }
+  .social-stats-bar {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    margin: 12px 0 !important;
+    border-radius: 10px !important;
+  }
+  .social-stat-unit .stat-num {
+    font-size: 1.15rem !important;
+  }
+  .social-stat-unit .stat-lbl {
+    font-size: 0.72rem !important;
+  }
+  .social-card .btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 11px 14px !important;
+    font-size: 0.86rem !important;
+    margin-top: 8px !important;
+  }
 
-  /* Testimonials grid */
+  /* ---- 11. TESTIMONIALS ---- */
   .testimonials-grid {
     grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    gap: 10px !important;
+  }
+  .testi-filter-bar {
+    gap: 6px !important;
+    margin-bottom: 16px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+  }
+  .testi-filter-bar::-webkit-scrollbar { display: none !important; }
+  .testi-filter-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
   }
   .testi-card {
-    padding: 20px !important;
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+  .testi-quote {
+    font-size: 0.84rem !important;
+    line-height: 1.55 !important;
+    margin-bottom: 10px !important;
+  }
+  .testi-stars-clean {
+    font-size: 0.74rem !important;
+  }
+  .testi-author {
+    gap: 8px !important;
+  }
+  .testi-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 0.74rem !important;
+  }
+  .testi-info h5 {
+    font-size: 0.86rem !important;
+  }
+  .testi-info p {
+    font-size: 0.74rem !important;
   }
 
-  /* FAQ */
+  /* ---- 12. FAQ ---- */
+  .faq-wrapper {
+    max-width: 100% !important;
+  }
+  .faq-item {
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+  }
   .faq-question {
-    font-size: 0.95rem !important;
-    padding: 14px 16px !important;
+    padding: 13px 14px !important;
+    font-size: 0.88rem !important;
+    line-height: 1.4 !important;
+  }
+  .faq-icon {
+    font-size: 1.1rem !important;
+    width: 20px !important;
+    height: 20px !important;
+    flex-shrink: 0 !important;
   }
   .faq-answer {
-    padding: 12px 16px !important;
+    padding: 10px 14px !important;
+    font-size: 0.84rem !important;
+    line-height: 1.55 !important;
+  }
+
+  /* ---- 13. FOOTER ---- */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .footer-brand {
+    text-align: left !important;
+  }
+  .footer-brand .logo-img {
+    height: 36px !important;
+    margin-bottom: 10px !important;
+  }
+  .footer-brand p {
+    font-size: 0.82rem !important;
+  }
+  .footer-col h5 {
+    font-size: 0.88rem !important;
+    margin-bottom: 10px !important;
+  }
+  .footer-links li {
+    margin-bottom: 6px !important;
+  }
+  .footer-links a {
+    font-size: 0.82rem !important;
+  }
+  .footer-bottom {
+    flex-direction: column !important;
+    gap: 6px !important;
+    text-align: center !important;
+    font-size: 0.74rem !important;
+    padding-top: 16px !important;
+  }
+
+  /* ---- 14. MODAL / BOTTOM SHEET ---- */
+  .modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+    background: rgba(15,23,42,0.65);
+    backdrop-filter: blur(8px);
+  }
+  .modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    margin: 0 !important;
+    max-height: 90vh !important;
+    padding: 14px 16px calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+    animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    overflow-y: auto;
+  }
+  .mobile-sheet-handle {
+    display: block !important;
+    width: 40px;
+    height: 4px;
+    background: #CBD5E1;
+    border-radius: 999px;
+    margin: 0 auto 12px !important;
+  }
+  .modal-close {
+    top: 12px !important;
+    right: 14px !important;
+    width: 30px !important;
+    height: 30px !important;
+    background: var(--bg-muted) !important;
+    border-radius: 50% !important;
+  }
+  .pdf-embed-wrapper {
+    height: 260px !important;
+    border-radius: 10px !important;
+  }
+  .pdf-modal-tab {
+    font-size: 0.80rem !important;
+    padding: 6px 12px !important;
+  }
+
+  @keyframes slideUpSheet {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  /* ---- 15. NATIVE MOBILE BOTTOM NAV BAR ---- */
+  .mobile-bottom-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1.5px solid rgba(124,58,237,0.14);
+    box-shadow: 0 -4px 20px rgba(124,58,237,0.07);
+    z-index: 9999;
+    justify-content: space-around;
+    align-items: center;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .mobile-bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #94A3B8;
+    font-size: 0.60rem;
+    font-weight: 700;
+    flex: 1;
+    height: 100%;
+    gap: 2px;
+    transition: color 0.2s ease;
+  }
+  .mobile-bar-item.active {
+    color: var(--primary);
+  }
+  .mobile-bar-icon-wrap {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-bar-icon-wrap svg {
+    width: 20px;
+    height: 20px;
+  }
+  /* Center elevated Mini Sinav button */
+  .mobile-bar-item.highlight-item {
+    margin-top: -16px;
+  }
+  .mobile-bar-center-pill {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #9061F9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(124,58,237,0.32);
+    border: 2.5px solid #FFFFFF;
+  }
+  .mobile-bar-center-pill svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ---- 16. MISC OVERRIDES ---- */
+  /* Buttons that should be full-width on mobile inside cards */
+  .tutoring-card > div > .btn,
+  .tutoring-card > .btn,
+  .tutoring-card form .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px 14px !important;
     font-size: 0.88rem !important;
   }
 
-  /* Hero stats row */
-  .hero-stats-row {
-    gap: 16px !important;
-    padding-top: 16px !important;
-    justify-content: space-around !important;
-  }
-  .hero-stat-item h4 {
-    font-size: 1.15rem !important;
-  }
-  .hero-stat-item p {
-    font-size: 0.75rem !important;
+  /* School filter wrapper */
+  .school-filter-bar {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
   }
 
-  /* Countdown header: stack labels */
-  .countdown-header {
+  /* Sim mode tab container */
+  .sim-mode-tabs {
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-white);
+  }
+  .sim-mode-tab {
+    flex: 1;
+    text-align: center;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    font-size: 0.82rem !important;
+    padding: 10px 8px !important;
+  }
+  .sim-mode-tab:last-child { border-right: none; }
+
+  /* School simulator wrapper inner */
+  #schoolView > div {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+  #schoolView h3 {
+    font-size: 1.0rem !important;
+  }
+  #schoolView p {
+    font-size: 0.78rem !important;
+  }
+
+  /* Any inline flex gap resets for mobile safety */
+  .quiz-action-bar > div[style] {
+    gap: 6px !important;
+  }
+
+  /* Wide buttons inside tutoring bottom bar */
+  div[style*="display: flex"][style*="gap: 12px"] {
     flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 2px !important;
+    gap: 8px !important;
+  }
+  div[style*="display: flex"][style*="gap: 12px"] .btn {
+    width: 100% !important;
+    justify-content: center !important;
   }
 
-  /* Footer grid */
-  .footer-grid {
-    grid-template-columns: 1fr !important;
-    gap: 24px !important;
-  }
-  .footer-brand {
-    text-align: center !important;
+  /* Completion advice box */
+  .completion-advice-box {
+    font-size: 0.82rem !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
   }
 }
