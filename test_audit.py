@@ -13,7 +13,7 @@ BASE_URL = "http://127.0.0.1:8080"
 WEBSITE_DIR = Path(__file__).resolve().parent
 
 print("=" * 60)
-print("🔍 MERDİYE HOCAM WEB & ADMIN OTOMATİK QA AUDIT VE TESTİ")
+print("[AUDIT] MERDIYE HOCAM WEB & ADMIN OTOMATIK QA AUDIT VE TESTI")
 print("=" * 60)
 
 passed = []
@@ -21,7 +21,7 @@ issues = []
 
 def report_pass(title):
     passed.append(title)
-    print(f"  ✓ {title}")
+    print(f"  [PASS] {title}")
 
 def report_issue(issue_type, page, title, details, recommendation, severity="ORTA"):
     issues.append({
@@ -32,7 +32,7 @@ def report_issue(issue_type, page, title, details, recommendation, severity="ORT
         "recommendation": recommendation,
         "severity": severity
     })
-    print(f"  ❌ [{severity}] ({page}) {title}")
+    print(f"  [FAIL] [{severity}] ({page}) {title}")
 
 # 1. Test Endpoint Availability
 print("\n--- 1. HTTP Endpoint Testleri ---")
@@ -245,7 +245,7 @@ else:
     report_issue("EKSİK", "index.html", "Yorum Filtreleme Eksik", "Filtreleme butonları bulunamadı.", "Ekleyin.", "ORTA")
 
 print("\n" + "=" * 60)
-print(f"📊 QA AUDIT SONUCU: {len(passed)} TEST GEÇTİ | {len(issues)} HATA BULUNDU")
+print(f"[SONUC] QA AUDIT SONUCU: {len(passed)} TEST GECTI | {len(issues)} HATA BULUNDU")
 print("=" * 60)
 
 with open(WEBSITE_DIR / "qa_audit_findings.json", "w", encoding="utf-8") as f:

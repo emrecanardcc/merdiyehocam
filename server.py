@@ -7,6 +7,7 @@ Zero external bloat: standard library http.server + internal core services.
 import os
 import sys
 import json
+import time
 import mimetypes
 from datetime import datetime, date
 from pathlib import Path
@@ -32,6 +33,7 @@ INQUIRIES_FILE = STORAGE_DIR / "inquiries.json"
 ANALYTICS_FILE = STORAGE_DIR / "analytics.json"
 POSTS_FILE = STORAGE_DIR / "published_posts.json"
 QUESTIONS_FILE = STORAGE_DIR / "questions.json"
+WEEKLY_EXAM_FILE = STORAGE_DIR / "weekly_exam.json"
 
 # Configure mimetypes
 mimetypes.add_type("application/pdf", ".pdf")
@@ -145,6 +147,34 @@ def _get_daily_questions():
     indices = list(range(len(questions)))
     rng.shuffle(indices)
     return [questions[i] for i in indices[:5]]
+
+
+def _get_default_weekly_exam():
+    """Returns the active weekly 20-question trial exam or builds a balanced 20-question trial across LGS topics."""
+    saved = _read_json(WEEKLY_EXAM_FILE, None)
+    if saved and isinstance(saved, dict) and len(saved.get("questions", [])) >= 1:
+        return saved
+
+    questions = _read_json(QUESTIONS_FILE, [])
+    trial_questions = []
+    if questions:
+        for i in range(20):
+            base_q = dict(questions[i % len(questions)])
+            base_q["id"] = i + 1
+            trial_questions.append(base_q)
+
+    return {
+        "id": "weekly_trial_active",
+        "title": "Haftalık Özel LGS Matematik Deneme Sınavı",
+        "subtitle": "2026 MEB Beceri Temelli 20 Soru • 40 Dakika",
+        "difficulty": "yeni_nesil",
+        "difficultyLabel": "Standart LGS Ayarı (Beceri Temelli)",
+        "duration_minutes": 40,
+        "question_count": len(trial_questions),
+        "questions": trial_questions,
+        "published_at": date.today().isoformat(),
+        "active": True
+    }
 
 
 _CURATED_REAL_SHORTS = [
@@ -406,6 +436,10 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
 
         if clean_path == "/api/quiz-questions/daily":
             return self._send_json_response(200, _get_daily_questions())
+
+        # 1c. Public & Admin: Get Weekly LGS Trial Exam
+        if clean_path in ("/api/weekly-exam", "/api/admin/weekly-exam"):
+            return self._send_json_response(200, _get_default_weekly_exam())
 
         # 2. Admin: Get Visitor Analytics
         if clean_path in ("/api/analytics", "/api/admin/analytics"):
@@ -733,6 +767,26 @@ class MerdiyeHocamRequestHandler(SimpleHTTPRequestHandler):
                     "is_active": True
                 })
                 return self._send_json_response(201, {"status": "success", "question": new_q, "total": len(questions)})
+
+        # 6. Admin: Publish / Update Weekly LGS Trial Exam
+        if clean_path in ("/api/weekly-exam", "/api/admin/weekly-exam"):
+            try:
+                exam_payload = {
+                    "id": payload.get("id") or f"weekly_{int(time.time())}",
+                    "title": payload.get("title") or "Haftalık Özel LGS Matematik Deneme Sınavı",
+                    "subtitle": payload.get("subtitle") or "2026 MEB Beceri Temelli 20 Soru",
+                    "difficulty": payload.get("difficulty") or "yeni_nesil",
+                    "difficultyLabel": payload.get("difficultyLabel") or "Standart LGS Ayarı",
+                    "duration_minutes": int(payload.get("duration_minutes") or payload.get("durationMinutes") or 40),
+                    "durationMinutes": int(payload.get("duration_minutes") or payload.get("durationMinutes") or 40),
+                    "questions": payload.get("questions") or [],
+                    "published_at": date.today().isoformat(),
+                    "active": True
+                }
+                _write_json(WEEKLY_EXAM_FILE, exam_payload)
+                return self._send_json_response(200, {"status": "success", "exam": exam_payload})
+            except Exception as e:
+                return self._send_json_response(400, {"error": str(e)})
 
         self._send_json_response(404, {"error": "API endpoint not found"})
 

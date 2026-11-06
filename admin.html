@@ -1409,7 +1409,7 @@
           <button>Özel Ders Talepleri</button>
         </li>
         <li class="admin-nav-item" data-tab="questionsTab">
-          <button>Soru Bankası &amp; Günün Soruları</button>
+          <button>Soru Kütüphanesi &amp; Sınavlar</button>
         </li>
         <li class="admin-nav-item" data-tab="aiGeneratorTab">
           <button>AI Soru Üretici (5-8. Sınıf)</button>
@@ -1944,27 +1944,28 @@
       </section>
 
             <!-- ==================== TAB: GÜNÜN SORULARI & SORU BANKASI ==================== -->
+      <!-- ==================== TAB: SORU KÜTÜPHANESİ & SINAV MERKEZİ ==================== -->
       <section id="questionsTab" class="tab-panel">
         <div class="data-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
             <div>
-              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">Günün LGS Soruları &amp; Soru Bankası</h2>
-              <p style="font-size: 0.88rem; color: var(--text-muted);">
-                Ana sayfadaki 'Günün LGS Sorusu &amp; İnteraktif Mini Deneme' bölümünde her gün veritabanından rastgele 5 soru gösterilir.
+              <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main);">Soru Kütüphanesi &amp; Sınav Merkezi</h2>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+                Onayladığınız tüm sorular burada birikir. Dilediğiniz soruları seçerek anında A4 Sınavı oluşturabilir veya Haftalık Online Deneme yayınlayabilirsiniz.
               </p>
             </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="downloadCsvTemplateBtn" type="button" class="btn btn-secondary btn-sm" title="Örnek CSV İndir">
-                CSV Şablonu İndir
+                CSV Şablonu
               </button>
               <button id="downloadJsonTemplateBtn" type="button" class="btn btn-secondary btn-sm" title="Örnek JSON İndir">
-                JSON Şablonu İndir
+                JSON Şablonu
               </button>
               <button id="openUploadQuestionsModalBtn" type="button" class="btn btn-secondary btn-sm">
-                Toplu Soru Yükle (CSV / JSON)
+                Toplu Soru Yükle
               </button>
               <button id="openAiGeneratorFromQuestionsBtn" type="button" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #7C3AED, #9061F9);">
-                AI ile Yeni Soru Üret (5-8. Sınıf)
+                AI ile Yeni Soru Üret
               </button>
               <button id="openAddQuestionModalBtn" type="button" class="btn btn-secondary btn-sm">
                 Manuel Soru Ekle
@@ -1972,35 +1973,62 @@
             </div>
           </div>
 
-          <!-- Format Bilgilendirme Bannerı -->
-          <div style="background: var(--primary-soft); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 22px;">
-            <div style="font-weight: 800; font-size: 0.94rem; color: var(--text-main); margin-bottom: 6px;">
-              Soru Yükleme Format Rehberi (CSV veya JSON)
+          <!-- Soru Kütüphanesi Seçim & Sınav Aksiyon Barı -->
+          <div style="background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" id="libSelectAllBtn" class="btn btn-secondary btn-sm" style="font-weight: 700;">Tümünü Seç</button>
+              <button type="button" id="libClearSelectionBtn" class="btn btn-secondary btn-sm" style="font-weight: 700;">Seçimleri Kaldır</button>
+              <span id="libSelectedCountBadge" class="pdf-badge gold" style="font-weight: 800; font-size: 0.82rem;">0 Soru Seçildi</span>
             </div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
-              <b>CSV Sütun Başlıkları:</b> <code>unit,question,optionA,optionB,optionC,optionD,correct,solution,tactic</code><br>
-              <b>Doğru Şık Formatı:</b> A, B, C veya D harfi belirtilmelidir.<br>
-              <b>Çalışma Prensibi:</b> Eklenen tüm sorular havuza kaydedilir; sistem her gün tarih algoritmasıyla rastgele 5 soru seçerek öğrencilere sunar.
+
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" id="libCreateExamBtn" class="btn btn-primary btn-sm" style="background: #1E293B; border-color: #0F172A; font-weight: 800;">
+                Seçilenlerden A4 Sınavı Oluştur (PDF)
+              </button>
+              <button type="button" id="libPublishWeeklyBtn" class="btn btn-primary btn-sm" style="background: #059669; border-color: #047857; font-weight: 800;">
+                Seçilenlerden Haftalık Deneme Yayınla (20 Soru)
+              </button>
+              <button type="button" id="libDeleteSelectedBtn" class="btn btn-secondary btn-sm" style="color: #DC2626; border-color: #FECACA; font-weight: 700;">
+                Seçilenleri Sil
+              </button>
             </div>
           </div>
 
+          <!-- Arama & Filtreleme Barı -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-secondary);">
-              Havuzdaki Toplam Soru: <span id="totalQuestionCountBadge" class="pdf-badge" style="background: var(--primary); color: #fff;">0</span>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <span style="font-size: 0.86rem; font-weight: 700; color: var(--text-secondary);">
+                Toplam Soru: <span id="totalQuestionCountBadge" class="pdf-badge" style="background: var(--primary); color: #fff;">0</span>
+              </span>
+              <select id="libGradeFilter" class="form-control" style="width: auto; font-size: 0.84rem; font-weight: 700; padding: 6px 12px;">
+                <option value="all" selected>Tüm Sınıflar</option>
+                <option value="5">5. Sınıf</option>
+                <option value="6">6. Sınıf</option>
+                <option value="7">7. Sınıf</option>
+                <option value="8">8. Sınıf (LGS)</option>
+              </select>
+              <select id="libTypeFilter" class="form-control" style="width: auto; font-size: 0.84rem; font-weight: 700; padding: 6px 12px;">
+                <option value="all" selected>Tüm Soru Biçimleri</option>
+                <option value="visual">Sadece Görselli / Şekilli Sorular</option>
+                <option value="text">Sadece Metin / Kurgu Soruları</option>
+              </select>
             </div>
-            <input type="text" id="adminQuestionSearch" class="form-control" style="max-width: 320px;" placeholder="Soru metni veya ünite ara...">
+            <input type="text" id="adminQuestionSearch" class="form-control" style="max-width: 300px;" placeholder="Soru metni veya ünite ara...">
           </div>
 
           <div class="table-responsive">
             <table class="admin-table">
               <thead>
                 <tr>
+                  <th style="width: 40px; text-align: center;">
+                    <input type="checkbox" id="libHeaderSelectAllCheckbox" title="Hepsini Seç">
+                  </th>
                   <th style="width: 50px;">ID</th>
                   <th style="width: 180px;">Ünite / Kazanım</th>
-                  <th>Soru Metni</th>
+                  <th>Soru Metni &amp; Şekil</th>
                   <th style="width: 80px;">Doğru</th>
                   <th>Çözüm &amp; Taktik</th>
-                  <th style="width: 90px;">İşlem</th>
+                  <th style="width: 140px;">İşlemler</th>
                 </tr>
               </thead>
               <tbody id="adminQuestionsTableBody">
@@ -2093,6 +2121,16 @@
                 </select>
               </div>
 
+              <!-- Soru Biçimi (Görselli / Metin Seçimi) -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="aiVisualModeSelect" style="font-weight: 800;">Soru Biçimi &amp; Şekil Tercihi *</label>
+                <select id="aiVisualModeSelect" class="form-control" style="font-weight: 700;">
+                  <option value="auto" selected>Otomatik / Karma (Müfredata Göre En Uygun Format)</option>
+                  <option value="visual">Görselli / Şekilli Sorular (Geometri, Grafik, Sayı Doğrusu, Şema)</option>
+                  <option value="text">Metin / Kurgu Soruları (Hikayeli, PISA Tarzı Problem)</option>
+                </select>
+              </div>
+
               <!-- LGS Çıkmış Soru Kalıbı Seçimi -->
               <div class="form-group" style="margin-bottom: 0;" id="aiLgsPatternGroup">
                 <label class="form-label" for="aiLgsPatternSelect" style="font-weight: 800;">LGS Çıkmış Soru Kalıbı</label>
@@ -2126,48 +2164,38 @@
               </div>
             </div>
 
-            <!-- AI Motor Seçimi & İsteğe Bağlı Gemini Yapılandırması -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; margin-top: 14px; margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-                <div style="font-weight: 800; font-size: 0.92rem; color: var(--text-main);">
-                  Soru Üretim Motoru:
-                </div>
-                <div style="display: flex; gap: 16px; align-items: center; font-size: 0.88rem;">
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; color: var(--text-secondary);">
-                    <input type="radio" name="aiEngineMode" value="local">
-                    <span>Merdiye Hoca Dahili Matematik Motoru (Sıfır Hata &bull; Hızlı &bull; Çevrimdışı)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; color: var(--primary);">
-                    <input type="radio" name="aiEngineMode" value="gemini" checked>
-                    <span>Google Gemini Canlı AI (API Key ile)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div id="geminiApiKeyRow" style="display: block; padding-top: 14px; border-top: 1px dashed var(--border-color); margin-top: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-                  <span style="font-weight: 800; font-size: 0.86rem; color: var(--text-main);">
-                    Gemini API Anahtarı (Google AI Studio):
+            <!-- AI Motor Seçimi (Temiz & Sadeliğe Odaklı) -->
+            <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; margin-top: 14px; margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                  <span style="font-weight: 800; font-size: 0.92rem; color: var(--text-main);">
+                    Soru Üretim Motoru:
                   </span>
-                  <span id="geminiApiStatusBadge" class="pdf-badge" style="background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-size: 0.74rem;">
+                  <div style="display: flex; gap: 16px; align-items: center; font-size: 0.88rem;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; color: var(--primary);">
+                      <input type="radio" name="aiEngineMode" value="gemini" checked>
+                      <span>Google Gemini 2.5 Flash (Canlı AI &bull; Önerilen)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; color: var(--text-secondary);">
+                      <input type="radio" name="aiEngineMode" value="local">
+                      <span>Dahili Matematik Motoru (Çevrimdışı / Hızlı)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <span id="geminiApiStatusBadge" class="pdf-badge" style="background: #ECFDF5; color: #065F46; border: 1.5px solid #A7F3D0; font-size: 0.80rem; font-weight: 800; padding: 5px 14px; border-radius: 999px;">
                     Canlı AI Bağlantısı Aktif (Gemini 2.5 Flash)
                   </span>
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <input type="password" id="geminiApiKeyInput" class="form-control" style="flex: 1; min-width: 260px; font-family: monospace; font-size: 0.86rem;" placeholder="Gemini API Anahtarı (örn: AIzaSy... / AQ...)" autocomplete="off">
-                  <button type="button" id="toggleApiKeyVisibilityBtn" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-weight: 700;">
-                    Göster
-                  </button>
-                  <button type="button" id="testGeminiConnectionBtn" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-weight: 800;">
-                    Bağlantıyı Test Et
-                  </button>
-                  <button type="button" id="saveGeminiKeyBtn" class="btn btn-primary btn-sm" style="white-space: nowrap; font-weight: 800;">
-                    Kaydet
-                  </button>
-                </div>
-                <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 6px;">
-                  * Anahtarınız güvenle tarayıcınızda saklanır. Sistem çift seviyeli model yedeklemesi sayesinde soru üretimini kesintisiz canlı AI ile gerçekleştirir.
-                </div>
+              </div>
+
+              <!-- Arka Planda Güvenli Tutulan Anahtar Alanı (Arayüzde Gereksiz Kalabalık Yapmaz) -->
+              <div id="geminiApiKeyRow" style="display: none !important;">
+                <input type="password" id="geminiApiKeyInput" autocomplete="off">
+                <button type="button" id="toggleApiKeyVisibilityBtn">Göster</button>
+                <button type="button" id="testGeminiConnectionBtn">Bağlantıyı Test Et</button>
+                <button type="button" id="saveGeminiKeyBtn">Kaydet</button>
               </div>
             </div>
 
@@ -2220,6 +2248,9 @@
                 </button>
                 <button type="button" id="openPrintExamModalBtn" class="btn btn-secondary btn-sm" style="background: #1E293B; color: #FFFFFF; border-color: #0F172A; font-weight: 800;" title="A4 Sınav ve Çalışma Kağıdı Baskı Önizlemesi">
                   A4 Sınav Kağıdı / PDF Çıktısı Al
+                </button>
+                <button type="button" id="publishFromAiToWeeklyBtn" class="btn btn-secondary btn-sm" style="background: #059669; color: #FFFFFF; border-color: #047857; font-weight: 800;" title="Bu sorularla Haftalık Online Deneme Yayınla">
+                  Haftalık Deneme Yayınla
                 </button>
               </div>
             </div>
@@ -2670,7 +2701,7 @@
 
         <!-- Sağ Taraf Kontrol Kutusu -->
         <div class="story-controls-box">
-          <h4 style="font-size: 1rem; font-weight: 900; color: var(--text-main); margin-bottom: 12px;">Story Ayarları</h4>
+          <h4 style="font-size: 1rem; font-weight: 900; color: var(--text-main); margin-bottom: 12px;">Story &amp; Paylaşım Ayarları</h4>
           
           <div class="form-group">
             <label class="form-label" style="font-size: 0.80rem; font-weight: 800;">Hangi Soru Paylaşılacak?</label>
@@ -2680,23 +2711,34 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" style="font-size: 0.80rem; font-weight: 800;">Story Sayfası (Karusel)</label>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" id="storyTabSlide1Btn" class="btn btn-primary btn-sm" style="flex: 1; font-weight: 800;">1. Sayfa: Soru Kartı</button>
-              <button type="button" id="storyTabSlide2Btn" class="btn btn-secondary btn-sm" style="flex: 1; font-weight: 800;">2. Sayfa: Çözüm &amp; Taktik</button>
+            <label class="form-label" style="font-size: 0.80rem; font-weight: 800;">Story / Slayt Formatı</label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" id="storyTabSlide1Btn" class="btn btn-primary btn-sm" style="flex: 1; font-weight: 800; min-width: 90px;">1. Soru Kartı</button>
+              <button type="button" id="storyTabSlide2Btn" class="btn btn-secondary btn-sm" style="flex: 1; font-weight: 800; min-width: 90px;">2. Altın Taktik</button>
+              <button type="button" id="storyTabSlide3Btn" class="btn btn-secondary btn-sm" style="flex: 1; font-weight: 800; min-width: 90px;">3. Reels / Anket</button>
             </div>
           </div>
 
-          <div style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
-            <b>İpucu:</b> 1. sayfayı takipçilerinizin soruyu çözmesi için hikayenize ekleyin, ardından 2. sayfayı paylaşarak doğru cevabı ve <b>Merdiye Hoca Altın Taktiği</b>ni gösterin!
+          <div style="background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+            <b>İpucu:</b> 1. slayt sadece temiz soru ve Instagram anket çıkartması yerleşim alanından oluşur. 2. slaytta ise <b>Merdiye Hoca Altın Taktiği</b> yer alır ve bağımsız olarak indirilebilir!
           </div>
 
-          <!-- İndirme & Paylaşma Butonları -->
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button type="button" id="downloadStoryPngBtn" class="btn btn-primary" style="font-weight: 900; padding: 12px; background: linear-gradient(135deg, #EC4899, #8B5CF6); border: none;">
-              Instagram Story İndir (1080x1920 HD PNG)
+          <!-- Ayrı İndirme Butonları -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" id="downloadStorySlide1Btn" class="btn btn-primary" style="font-weight: 800; padding: 10px; background: linear-gradient(135deg, #7C3AED, #6D28D9); border: none;">
+              1. Soru Kartını İndir (PNG)
             </button>
-            <button type="button" id="copyStoryClipboardBtn" class="btn btn-secondary" style="font-weight: 800; padding: 10px;">
+            <button type="button" id="downloadStorySlide2Btn" class="btn btn-primary" style="font-weight: 800; padding: 10px; background: linear-gradient(135deg, #D97706, #B45309); border: none;">
+              2. Merdiye Hoca Altın Taktiğini İndir (PNG)
+            </button>
+            <button type="button" id="downloadStorySlide3Btn" class="btn btn-secondary" style="font-weight: 800; padding: 9px;">
+              3. Reels / Anket Şablonunu İndir (PNG)
+            </button>
+            <button type="button" id="downloadStoryAllBtn" class="btn btn-secondary" style="font-weight: 800; padding: 9px; background: #F3E8FF; color: #6B21A8; border-color: #D8B4FE;">
+              Tüm Kartları İndir (Soru + Taktik Paketi)
+            </button>
+            <button type="button" id="downloadStoryPngBtn" style="display: none;">Mevcut Slaytı İndir</button>
+            <button type="button" id="copyStoryClipboardBtn" class="btn btn-secondary" style="font-weight: 700; padding: 8px;">
               Görseli Panoya Kopyala
             </button>
           </div>
@@ -2741,6 +2783,109 @@
         <button type="button" id="cancelCustomVisualBtn" class="btn btn-secondary btn-sm">Vazgeç</button>
         <button type="button" id="removeCustomVisualBtn" class="btn btn-secondary btn-sm" style="color: #DC2626;">Şekli Kaldır</button>
         <button type="button" id="saveCustomVisualBtn" class="btn btn-primary btn-sm" style="font-weight: 800;">Şekli Soruya Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. AI İLE SORU DÜZELT / REVİZE ET MODALI ==================== -->
+  <div class="modal-overlay" id="aiRevisionModal">
+    <div class="modal-dialog" style="max-width: 640px; width: 95%;">
+      <button class="modal-close" id="closeAiRevisionModalBtn">&times;</button>
+      <div style="margin-bottom: 14px;">
+        <h2 style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px;">
+          Soruyu AI ile Revize Et / Düzelt
+        </h2>
+        <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
+          Düzeltilmesini istediğiniz noktayı yazın; Gemini 2.5 Flash bu soruyu MEB kazanımlarına tam sadık kalarak anında yeniden düzenlesin.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;">
+        <div style="font-size: 0.76rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">
+          Mevcut Soru Önizlemesi:
+        </div>
+        <div id="aiRevisionOriginalPreview" style="font-size: 0.88rem; color: var(--text-main); line-height: 1.45; max-height: 90px; overflow-y: auto;">
+          Soru metni yükleniyor...
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="aiRevisionPromptInput" style="font-weight: 800;">
+          Öğretmen Düzeltme Notu / Promptu *
+        </label>
+        <textarea id="aiRevisionPromptInput" class="form-control" rows="3" placeholder="Örn: Sayıları küçült, doğru cevabı C şıkkı yap, senaryoyu spor salonu yerine kütüphane yap, soru kökünü olumsuz ('değildir') yap..."></textarea>
+      </div>
+
+      <!-- Hızlı Düzeltme İpuçları (Chips) -->
+      <div style="margin-bottom: 18px;">
+        <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Hızlı Şablonlar:</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary btn-sm ai-rev-chip" data-prompt="Sayıları daha küçük ve işlem hatası riskini azaltacak şekilde sadeleştir.">Sayıları Sadeleştir</button>
+          <button type="button" class="btn btn-secondary btn-sm ai-rev-chip" data-prompt="Doğru cevabı B şıkkı olacak şekilde sayıları ve çözümü ayarla.">Doğru Şıkkı B Yap</button>
+          <button type="button" class="btn btn-secondary btn-sm ai-rev-chip" data-prompt="Senaryoyu günlük hayat kurgulu bir spor turnuvası veya kütüphane bağlamına taşı.">Senaryoyu Güncelle</button>
+          <button type="button" class="btn btn-secondary btn-sm ai-rev-chip" data-prompt="Soru kökünü 'buna göre aşağıdakilerden hangisi olamaz / yanlıştır?' formatında olumsuz yap.">Kökü Olumsuz Yap</button>
+          <button type="button" class="btn btn-secondary btn-sm ai-rev-chip" data-prompt="Soruya uygun temiz ve net bir geometrik SVG çizimi ekle.">Görsel / Çizim Ekle</button>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" id="cancelAiRevisionBtn" class="btn btn-secondary btn-sm">Vazgeç</button>
+        <button type="button" id="confirmAiRevisionBtn" class="btn btn-primary btn-sm" style="font-weight: 800; background: linear-gradient(135deg, #7C3AED, #9061F9);">
+          AI ile Soruyu Düzelt ve Yenile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 5. HAFTALIK LGS DENEME YAYINLAMA MODALI ==================== -->
+  <div class="modal-overlay" id="publishWeeklyExamModal">
+    <div class="modal-dialog" style="max-width: 620px; width: 95%;">
+      <button class="modal-close" id="closePublishWeeklyModalBtn">&times;</button>
+      <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px;">
+          Haftalık Özel LGS Deneme Sınavı Yayınla
+        </h2>
+        <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
+          Öğrencilerin ana sayfada canlı çözeceği 20 soruluk haftalık denemeyi yapılandırın. Sınav sonunda öğrencilere özel Deneme Karnesi ve Veli Bilgilendirme Raporu sunulur.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="weeklyExamTitleInput" style="font-weight: 800;">Deneme Sınavı Başlığı *</label>
+        <input type="text" id="weeklyExamTitleInput" class="form-control" value="Haftalık Özel LGS Matematik Deneme Sınavı - 2026 MEB Uyumlu">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="weeklyExamDiffSelect" style="font-weight: 800;">Sınav Zorluğu *</label>
+          <select id="weeklyExamDiffSelect" class="form-control" style="font-weight: 700;">
+            <option value="temel">Temel Seviye (Kazanım Pekistirme)</option>
+            <option value="orta">Orta Seviye (PISA / TIMSS)</option>
+            <option value="yeni_nesil" selected>Standart LGS Ayarı (Beceri Temelli / Gerçek Sınav)</option>
+            <option value="lgs_secici">İleri Düzey / Eleyici (%1 Derece Hedefi)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="weeklyExamDurationInput" style="font-weight: 800;">Süre (Dakika) *</label>
+          <input type="number" id="weeklyExamDurationInput" class="form-control" value="40" min="15" max="80" style="font-weight: 700;">
+        </div>
+      </div>
+
+      <div style="background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px;">
+        <div style="font-weight: 800; font-size: 0.88rem; color: #166534; margin-bottom: 4px;">
+          Sınav Soru Havuzu:
+        </div>
+        <div id="weeklyExamQuestionsInfo" style="font-size: 0.84rem; color: #15803D; line-height: 1.45;">
+          Seçilen 20 soru müfredattaki tüm temel LGS konularını dengeli şekilde kapsayacaktır.
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" id="cancelPublishWeeklyBtn" class="btn btn-secondary btn-sm">Vazgeç</button>
+        <button type="button" id="confirmPublishWeeklyBtn" class="btn btn-primary btn-sm" style="font-weight: 800; background: #059669; border-color: #047857;">
+          Haftalık Denemeyi Canlıya Yayınla
+        </button>
       </div>
     </div>
   </div>

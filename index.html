@@ -219,7 +219,28 @@
         </p>
       </div>
 
+      <!-- Sınav Modu Seçimi: Günlük 5 Soru / Haftalık 20 Soru Özel LGS Denemesi -->
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-primary btn-sm" id="quizModeDailyBtn" style="font-weight: 800; border-radius: 999px; padding: 8px 22px;">
+          Günün 5 Soruluk Mini Sınavı
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="quizModeWeeklyBtn" style="font-weight: 800; border-radius: 999px; padding: 8px 22px; background: linear-gradient(135deg, #7C3AED, #9061F9); color: #FFFFFF; border: none;">
+          Haftalık Özel 20 Soruluk LGS Denemesi (Canlı)
+        </button>
+      </div>
+
       <div class="quiz-wrapper">
+        <!-- Haftalık Sınav Canlı Sayaç & Bilgi Çubuğu -->
+        <div id="weeklyExamTimerBar" style="display: none; justify-content: space-between; align-items: center; background: #FEF3C7; border: 1.5px solid #FDE68A; border-radius: 10px; padding: 12px 18px; margin-bottom: 16px; font-weight: 800; color: #92400E; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span id="weeklyExamTitleLabel" style="font-size: 0.96rem;">Haftalık Özel LGS Deneme Sınavı</span>
+            <span class="pdf-badge gold" id="weeklyExamDifficultyBadge">Standart LGS Ayarı</span>
+          </div>
+          <div style="font-size: 1.05rem; font-variant-numeric: tabular-nums; color: #B45309;" id="weeklyExamCountdown">
+            Kalan Süre: 40:00
+          </div>
+        </div>
+
         <!-- Soru İlerleme Adımları -->
         <div class="quiz-stepper" id="quizStepper">
           <button class="quiz-step-btn active" data-qindex="0">Soru 1</button>
@@ -242,6 +263,9 @@
         <div class="quiz-question-text" id="quizQuestionText">
           Kenar uzunlukları 48 metre ve 72 metre olan dikdörtgen şeklindeki bir bahçenin etrafına, köşelerine de dikilmek şartıyla eşit aralıklarla fidan dikilecektir. Bu iş için en az kaç fidana ihtiyaç vardır?
         </div>
+
+        <!-- Soru Vektörel Şekil / SVG / Görsel -->
+        <div id="quizDiagramWrap" style="display: none; justify-content: center; align-items: center; margin-bottom: 16px; max-height: 200px; overflow: hidden; background: #F8FAFC; border-radius: 8px; padding: 10px;"></div>
 
         <!-- Şıklar -->
         <div class="quiz-options-grid" id="quizOptionsGrid">
@@ -327,6 +351,9 @@
           <div class="completion-actions">
             <button type="button" class="btn btn-primary btn-sm" id="quizApplyToSimBtn">
               Liselerin Durumunu Simüle Et
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="printWeeklyReportBtn" style="display: none; font-weight: 800; background: #1E293B; color: #FFFFFF; border-color: #0F172A;">
+              Deneme Karnesini &amp; Veli Raporunu Yazdır
             </button>
             <button type="button" class="btn btn-secondary btn-sm" id="quizTransferToLeadBtn">
               Bu Skorla Özel Ders Başvurusu Yap

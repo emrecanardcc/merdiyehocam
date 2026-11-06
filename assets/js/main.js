@@ -962,6 +962,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const userAnswers = {};
   const userSelections = {};
   let activeQuizList = [...QUIZ_QUESTIONS];
+  let dailyQuestionsList = [...QUIZ_QUESTIONS];
+  let currentQuizMode = "daily"; // "daily" (5 soru) veya "weekly" (20 soru)
+  let weeklyExamTimerInterval = null;
+  let weeklyExamRemainingSec = 40 * 60;
 
   async function initQuiz() {
     const topicBadge = document.getElementById("quizTopicBadge");
@@ -977,7 +981,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const tacticText = document.getElementById("quizTacticText");
     const resultHeading = document.getElementById("quizResultHeading");
     const resultPill = document.getElementById("quizResultPill");
-    const stepBtns = document.querySelectorAll(".quiz-step-btn");
+    const modeDailyBtn = document.getElementById("quizModeDailyBtn");
+    const modeWeeklyBtn = document.getElementById("quizModeWeeklyBtn");
+    const printReportBtn = document.getElementById("printWeeklyReportBtn");
 
     if (!questionText || !optionsGrid) return;
 
@@ -991,19 +997,34 @@ document.addEventListener("DOMContentLoaded", () => {
       card.classList.add("selected");
       selectedOptionIndex = parseInt(card.dataset.optindex, 10);
       userSelections[currentQuizIndex] = selectedOptionIndex;
+      const stepBtns = document.querySelectorAll(".quiz-step-btn");
       if (stepBtns[currentQuizIndex] && !userAnswers[currentQuizIndex]) {
         stepBtns[currentQuizIndex].classList.add("has-selection");
       }
       if (statusMsg) statusMsg.textContent = "Şıkkı işaretlediniz. 'Cevabı Kontrol Et' butonuna basınız.";
     });
 
-    // Günlük soruları dinamik olarak API'den veya Supabase'den çek
+    function rebuildStepper(count) {
+      const stepper = document.getElementById("quizStepper");
+      if (!stepper) return;
+      stepper.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        const btn = document.createElement("button");
+        btn.className = `quiz-step-btn ${i === currentQuizIndex ? "active" : ""}`;
+        btn.dataset.qindex = i;
+        btn.textContent = `Soru ${i + 1}`;
+        btn.addEventListener("click", () => renderQuestion(i));
+        stepper.appendChild(btn);
+      }
+    }
+
+    // Günlük 5 soruyu dinamik olarak API'den veya Supabase'den çek
     let questionsLoaded = false;
     try {
       if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
         const dbQuestions = await window.MH_DB.getQuizQuestions();
         if (Array.isArray(dbQuestions) && dbQuestions.length >= 5) {
-          activeQuizList = dbQuestions.slice(0, 5).map((q, idx) => {
+          dailyQuestionsList = dbQuestions.slice(0, 5).map((q, idx) => {
             const rawOpts = q.options;
             const parsedOpts = Array.isArray(rawOpts) ? rawOpts : (typeof rawOpts === "string" ? JSON.parse(rawOpts || "[]") : []);
             let cIdx = typeof q.correctIndex === "number" ? q.correctIndex : parseInt(q.correctIndex, 10);
@@ -1014,11 +1035,14 @@ document.addEventListener("DOMContentLoaded", () => {
             return {
               id: q.id || idx + 1,
               unit: q.unit || `Soru ${idx + 1}`,
+              topic: q.unit || "LGS Matematik",
               question: q.question || q.question_text,
               options: parsedOpts.length === 4 ? parsedOpts : QUIZ_QUESTIONS[idx % QUIZ_QUESTIONS.length].options,
               correctIndex: cIdx,
               solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
-              tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
+              tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!",
+              diagramSvg: q.diagramSvg || null,
+              imageUrl: q.imageUrl || null
             };
           });
           questionsLoaded = true;
@@ -1032,7 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.ok) {
           const dailyQuestions = await res.json();
           if (Array.isArray(dailyQuestions) && dailyQuestions.length >= 5) {
-            activeQuizList = dailyQuestions.slice(0, 5).map((q, idx) => {
+            dailyQuestionsList = dailyQuestions.slice(0, 5).map((q, idx) => {
               const rawOpts = q.options;
               const parsedOpts = Array.isArray(rawOpts) ? rawOpts : (typeof rawOpts === "string" ? JSON.parse(rawOpts || "[]") : []);
               let cIdx = typeof q.correctIndex === "number" ? q.correctIndex : parseInt(q.correctIndex, 10);
@@ -1043,11 +1067,14 @@ document.addEventListener("DOMContentLoaded", () => {
               return {
                 id: q.id || idx + 1,
                 unit: q.unit || `Soru ${idx + 1}`,
+                topic: q.unit || "LGS Matematik",
                 question: q.question || q.question_text,
                 options: parsedOpts.length === 4 ? parsedOpts : QUIZ_QUESTIONS[idx % QUIZ_QUESTIONS.length].options,
                 correctIndex: cIdx,
                 solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
-                tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
+                tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!",
+                diagramSvg: q.diagramSvg || null,
+                imageUrl: q.imageUrl || null
               };
             });
             questionsLoaded = true;
@@ -1057,19 +1084,164 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!questionsLoaded) {
-      // Çevrimdışı / GitHub Pages için güne göre deterministik soru seçimi
       const todayStr = new Date().toISOString().slice(0, 10);
       let hash = 0;
       for (let i = 0; i < todayStr.length; i++) {
         hash = (hash << 5) - hash + todayStr.charCodeAt(i);
         hash |= 0;
       }
-      activeQuizList = [...QUIZ_QUESTIONS].sort((a, b) => {
+      dailyQuestionsList = [...QUIZ_QUESTIONS].sort((a, b) => {
         const hA = (a.id * 9301 + hash) % 49297;
         const hB = (b.id * 9301 + hash) % 49297;
         return hA - hB;
       }).slice(0, 5);
     }
+
+    activeQuizList = [...dailyQuestionsList];
+
+    // Haftalık 20 Soruluk Denemeyi Getir
+    async function fetchWeeklyExamData() {
+      let weeklyData = null;
+      try {
+        const res = await fetch("/api/weekly-exam");
+        if (res.ok) {
+          weeklyData = await res.json();
+        }
+      } catch (_) {}
+
+      if (!weeklyData || !Array.isArray(weeklyData.questions) || weeklyData.questions.length === 0) {
+        try {
+          const raw = localStorage.getItem("merdiye_weekly_exam");
+          if (raw) weeklyData = JSON.parse(raw);
+        } catch (_) {}
+      }
+
+      if (weeklyData && Array.isArray(weeklyData.questions) && weeklyData.questions.length > 0) {
+        return weeklyData;
+      }
+
+      // Varsayılan: 2026 MEB müfredatındaki 10 konuyu kapsayan 20 soruluk deneme
+      const defaultQuestions = [];
+      const topics = [
+        "Çarpanlar ve Katlar", "Üslü İfadeler", "Kareköklü İfadeler",
+        "Veri Analizi", "Basit Olayların Olma Olasılığı", "Cebirsel İfadeler ve Özdeşlikler",
+        "Doğrusal Denklemler ve Eğim", "Eşitsizlikler", "Üçgenler ve Pisagor",
+        "Geometrik Cisimler"
+      ];
+
+      topics.forEach((t) => {
+        if (window.MH_AI_GENERATOR && typeof window.MH_AI_GENERATOR.generateLocalQuestions === "function") {
+          const qs = window.MH_AI_GENERATOR.generateLocalQuestions("8", t, "yeni_nesil", 2);
+          qs.forEach(q => defaultQuestions.push(q));
+        }
+      });
+
+      return {
+        id: "default_weekly",
+        title: "2026 MEB Uyumlu Haftalık Özel LGS Matematik Deneme Sınavı",
+        difficulty: "yeni_nesil",
+        durationMinutes: 40,
+        questions: defaultQuestions.slice(0, 20)
+      };
+    }
+
+    function startWeeklyExam(exam) {
+      currentQuizMode = "weekly";
+      activeQuizList = exam.questions.map((q, idx) => ({
+        id: q.id || idx + 1,
+        unit: q.topic || q.unit || `Soru ${idx + 1}`,
+        topic: q.topic || q.unit || "LGS Matematik",
+        question: q.question,
+        options: Array.isArray(q.options) ? q.options : ["A", "B", "C", "D"],
+        correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : (parseInt(q.correctIndex, 10) || 0),
+        solution: q.solution || q.explanation || "Adım adım çözüm rehberi.",
+        tactic: q.tactic || "Merdiye Hoca Sınav Taktiği: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!",
+        diagramSvg: q.diagramSvg || null,
+        imageUrl: q.imageUrl || null
+      }));
+
+      for (const k in userAnswers) delete userAnswers[k];
+      for (const k in userSelections) delete userSelections[k];
+
+      const completionCard = document.getElementById("quizCompletionCard");
+      if (completionCard) completionCard.style.display = "none";
+
+      const timerBar = document.getElementById("weeklyExamTimerBar");
+      const titleLbl = document.getElementById("weeklyExamTitleLabel");
+      const diffBadge = document.getElementById("weeklyExamDifficultyBadge");
+      const timerCountdown = document.getElementById("weeklyExamCountdown");
+
+      if (timerBar) timerBar.style.display = "flex";
+      if (titleLbl) titleLbl.textContent = exam.title || "Haftalık Özel LGS Deneme Sınavı";
+      if (diffBadge) diffBadge.textContent = exam.difficulty === "lgs_secici" ? "İleri Düzey (%1 Dilim)" : "Standart LGS Ayarı";
+
+      if (weeklyExamTimerInterval) clearInterval(weeklyExamTimerInterval);
+      weeklyExamRemainingSec = (exam.durationMinutes || exam.duration_minutes || 40) * 60;
+
+      const updateTimerDisplay = () => {
+        const mm = String(Math.floor(weeklyExamRemainingSec / 60)).padStart(2, "0");
+        const ss = String(weeklyExamRemainingSec % 60).padStart(2, "0");
+        if (timerCountdown) timerCountdown.textContent = `Kalan Süre: ${mm}:${ss}`;
+      };
+      updateTimerDisplay();
+
+      weeklyExamTimerInterval = setInterval(() => {
+        weeklyExamRemainingSec--;
+        if (weeklyExamRemainingSec <= 0) {
+          clearInterval(weeklyExamTimerInterval);
+          weeklyExamTimerInterval = null;
+          showToast("Süre doldu! Deneme sınavı sonuçlarınız ve Deneme Karneniz hazırlanıyor...", "info");
+          renderQuizCompletion();
+        } else {
+          updateTimerDisplay();
+        }
+      }, 1000);
+
+      rebuildStepper(activeQuizList.length);
+      renderQuestion(0);
+      showToast(`${activeQuizList.length} soruluk Haftalık Özel LGS Denemesi başladı. Başarılar! (Süre: ${exam.durationMinutes || 40} Dakika)`, "success");
+    }
+
+    function startDailyExam() {
+      currentQuizMode = "daily";
+      if (weeklyExamTimerInterval) {
+        clearInterval(weeklyExamTimerInterval);
+        weeklyExamTimerInterval = null;
+      }
+      const timerBar = document.getElementById("weeklyExamTimerBar");
+      if (timerBar) timerBar.style.display = "none";
+
+      for (const k in userAnswers) delete userAnswers[k];
+      for (const k in userSelections) delete userSelections[k];
+
+      const completionCard = document.getElementById("quizCompletionCard");
+      if (completionCard) completionCard.style.display = "none";
+
+      activeQuizList = [...dailyQuestionsList];
+      rebuildStepper(activeQuizList.length);
+      renderQuestion(0);
+      showToast("Günün 5 soruluk mini sınavına geçildi.", "info");
+    }
+
+    modeDailyBtn?.addEventListener("click", () => {
+      if (currentQuizMode === "daily") return;
+      modeDailyBtn.classList.remove("btn-secondary");
+      modeDailyBtn.classList.add("btn-primary");
+      modeWeeklyBtn.classList.remove("btn-primary");
+      modeWeeklyBtn.classList.add("btn-secondary");
+      startDailyExam();
+    });
+
+    modeWeeklyBtn?.addEventListener("click", async () => {
+      if (currentQuizMode === "weekly") return;
+      modeWeeklyBtn.classList.remove("btn-secondary");
+      modeWeeklyBtn.classList.add("btn-primary");
+      modeDailyBtn.classList.remove("btn-primary");
+      modeDailyBtn.classList.add("btn-secondary");
+
+      const exam = await fetchWeeklyExamData();
+      startWeeklyExam(exam);
+    });
 
     function renderQuestion(idx) {
       const safeIdx = Math.max(0, Math.min(activeQuizList.length - 1, idx));
@@ -1077,7 +1249,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const q = activeQuizList[safeIdx] || QUIZ_QUESTIONS[safeIdx] || QUIZ_QUESTIONS[0];
       selectedOptionIndex = userAnswers[safeIdx]?.selectedIndex ?? (userSelections[safeIdx] ?? null);
 
-      stepBtns.forEach((btn, bIdx) => {
+      const allStepBtns = document.querySelectorAll(".quiz-step-btn");
+      allStepBtns.forEach((btn, bIdx) => {
         btn.classList.toggle("active", bIdx === safeIdx);
         const ans = userAnswers[bIdx];
         if (ans) {
@@ -1091,15 +1264,41 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
-      const answeredCount = Object.keys(userAnswers).length;
-      const score = correctCount * 20;
-      const rate = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
-      if (scoreBadge) {
-        scoreBadge.innerHTML = `Puan: <b style="color: var(--primary);">${score} / 100</b> &bull; Başarı: <b>%${rate}</b>`;
+      const wrongCount = Object.values(userAnswers).filter(a => !a.isCorrect).length;
+      const totalQ = activeQuizList.length;
+
+      if (currentQuizMode === "weekly") {
+        const net = Math.max(0, correctCount - (wrongCount / 3));
+        const score = Math.round(net * 5);
+        if (scoreBadge) {
+          scoreBadge.innerHTML = `LGS Neti: <b style="color: var(--primary);">${net.toFixed(2)} Net</b> &bull; Puan: <b>${score} / 100</b> &bull; Çözülen: <b>${Object.keys(userAnswers).length} / ${totalQ}</b>`;
+        }
+      } else {
+        const score = correctCount * 20;
+        const answeredCount = Object.keys(userAnswers).length;
+        const rate = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+        if (scoreBadge) {
+          scoreBadge.innerHTML = `Puan: <b style="color: var(--primary);">${score} / 100</b> &bull; Başarı: <b>%${rate}</b>`;
+        }
       }
 
       if (topicBadge) topicBadge.textContent = q.unit;
       if (questionText) questionText.textContent = q.question;
+
+      // Varsa SVG Görseli veya Resim
+      const diagramWrap = document.getElementById("quizDiagramWrap");
+      if (diagramWrap) {
+        if (q.diagramSvg) {
+          diagramWrap.style.display = "flex";
+          diagramWrap.innerHTML = q.diagramSvg;
+        } else if (q.imageUrl) {
+          diagramWrap.style.display = "flex";
+          diagramWrap.innerHTML = `<img src="${q.imageUrl}" style="max-height: 180px; max-width: 100%; object-fit: contain;">`;
+        } else {
+          diagramWrap.style.display = "none";
+          diagramWrap.innerHTML = "";
+        }
+      }
 
       const letters = ["A", "B", "C", "D"];
       const isAlreadyAnswered = userAnswers[safeIdx] !== undefined;
@@ -1121,8 +1320,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
       }).join("");
-
-      // Option click handled by Event Delegation on optionsGrid
 
       const allDone = Object.keys(userAnswers).length === activeQuizList.length;
 
@@ -1157,11 +1354,11 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
         if (statusMsg) {
-          statusMsg.textContent = isCorr ? "Tebrikler! Doğru çözdünüz (+20 Puan)." : "Bu soruda takıldınız. Taktik notunu inceleyin.";
+          statusMsg.textContent = isCorr ? "Tebrikler! Doğru çözdünüz." : "Bu soruda takıldınız. Taktik notunu inceleyin.";
         }
 
         if (allDone) {
-          renderQuizCompletion(score, correctCount);
+          renderQuizCompletion();
         }
       } else {
         if (solutionBox) solutionBox.style.display = "none";
@@ -1175,7 +1372,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    function renderQuizCompletion(score, correctCount) {
+    function renderQuizCompletion() {
       const completionCard = document.getElementById("quizCompletionCard");
       if (!completionCard) return;
 
@@ -1184,82 +1381,214 @@ document.addEventListener("DOMContentLoaded", () => {
       const levelVal = document.getElementById("completionLevelVal");
       const iconEl = document.getElementById("completionIcon");
       const titleEl = document.getElementById("completionTitle");
+      const subtitleEl = document.getElementById("completionSubtitle");
       const adviceBox = document.getElementById("completionAdviceBox");
       const emailBtn = document.getElementById("quizShareEmailBtn");
 
-      if (scoreVal) scoreVal.textContent = `${score} / 100`;
-      if (correctVal) correctVal.textContent = `${correctCount} / 5 Doğru`;
+      const totalQ = activeQuizList.length;
+      const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
+      const wrongCount = Object.values(userAnswers).filter(a => !a.isCorrect).length;
+      const emptyCount = Math.max(0, totalQ - correctCount - wrongCount);
 
-      let levelText = "";
-      let adviceHtml = "";
-      let icon = `${correctCount}/5`;
+      if (currentQuizMode === "weekly") {
+        if (printReportBtn) printReportBtn.style.display = "inline-block";
+        const net = Math.max(0, correctCount - (wrongCount / 3));
+        const score = Math.round(net * 5);
 
-      if (score === 100) {
-        levelText = "Galatasaray & Fen Liseleri";
-        icon = "5/5";
-        adviceHtml = `
-          <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #065F46; line-height: 1.6;">
-            <b>Tebrikler! 5'te 5 Tam Başarı (%100).</b><br>
-            Temel ve yeni nesil MEB kazanımlarına tam hakimsin. LGS'de <b>20'de 20 net</b> için sınav anındaki süre turlamasını koruman yeterli. Aşağıdan hedef liselerin durumunu inceleyebilirsin.
+        if (scoreVal) scoreVal.textContent = `${net.toFixed(2)} Net (${score}/100)`;
+        if (correctVal) correctVal.textContent = `${correctCount} D • ${wrongCount} Y • ${emptyCount} B`;
+
+        let levelText = "";
+        if (net >= 17) levelText = "Galatasaray & Fen Liseleri";
+        else if (net >= 14) levelText = "Nitelikli Fen Lisesi";
+        else if (net >= 10) levelText = "Nitelikli Anadolu Lisesi";
+        else if (net >= 6) levelText = "Kazanım Pekiştirme";
+        else levelText = "Temel Güçlendirme";
+
+        if (levelVal) levelVal.textContent = levelText;
+        if (iconEl) iconEl.textContent = `${net.toFixed(1)} Net`;
+        if (titleEl) titleEl.textContent = "Haftalık Özel LGS Deneme Karnesi & Veli Raporu";
+        if (subtitleEl) subtitleEl.textContent = "20 Soruluk Kapsamlı LGS Matematik Başarı Raporu ve Merdiye Hoca Değerlendirmesi";
+
+        const topicStats = {};
+        activeQuizList.forEach((q, idx) => {
+          const t = q.topic || q.unit || "LGS Matematik";
+          if (!topicStats[t]) topicStats[t] = { total: 0, correct: 0, wrong: 0, empty: 0 };
+          topicStats[t].total++;
+          const ans = userAnswers[idx];
+          if (!ans) topicStats[t].empty++;
+          else if (ans.isCorrect) topicStats[t].correct++;
+          else topicStats[t].wrong++;
+        });
+
+        const topicRowsHtml = Object.entries(topicStats).map(([topicName, stat]) => {
+          const tNet = Math.max(0, stat.correct - (stat.wrong / 3));
+          const tPercent = Math.round((stat.correct / stat.total) * 100);
+          const badgeStyle = tPercent >= 80 
+            ? "background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;" 
+            : (tPercent < 50 ? "background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;" : "background:#FEF3C7; color:#92400E; border:1px solid #FDE68A;");
+          return `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 8px 10px; font-weight: 700; color: var(--text-main); font-size: 0.85rem;">${escapeHtml(topicName)}</td>
+              <td style="padding: 8px 10px; text-align: center; font-size: 0.85rem;">${stat.total}</td>
+              <td style="padding: 8px 10px; text-align: center; color: #059669; font-weight: 800; font-size: 0.85rem;">${stat.correct}</td>
+              <td style="padding: 8px 10px; text-align: center; color: #DC2626; font-weight: 800; font-size: 0.85rem;">${stat.wrong}</td>
+              <td style="padding: 8px 10px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">${stat.empty}</td>
+              <td style="padding: 8px 10px; text-align: center; font-weight: 800; font-size: 0.85rem;">${tNet.toFixed(2)}</td>
+              <td style="padding: 8px 10px; text-align: center;">
+                <span class="pdf-badge" style="${badgeStyle} font-size: 0.72rem; padding: 2px 6px;">%${tPercent}</span>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        const weakTopics = Object.entries(topicStats)
+          .filter(([_, s]) => s.wrong > 0 || s.empty > 0)
+          .map(([t, _]) => t);
+
+        const weakNotice = weakTopics.length > 0
+          ? `<div style="margin-top: 12px; padding: 10px 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; font-size: 0.84rem; color: #92400E;">
+               <b>Öncelikli Tekrar Edilmesi Gereken Konular:</b> ${weakTopics.slice(0, 3).join(", ")}. Bu konularda formül pekiştirme ve soru turlaması yapılmalıdır.
+             </div>`
+          : `<div style="margin-top: 12px; padding: 10px 14px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; font-size: 0.84rem; color: #065F46;">
+               <b>Kusursuz Performans:</b> Tüm konularda tam isabet sağlandı! Mevcut çalışma disiplini korunmalıdır.
+             </div>`;
+
+        let adviceHtml = `
+          <div style="background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px;">
+            <div style="font-weight: 900; font-size: 0.95rem; color: var(--text-main); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span>Öğrenci Haftalık Deneme Karnesi (Konu Dağılımı)</span>
+              <span class="pdf-badge gold">LGS Kuralı: 3 Yanlış 1 Doğruyu Götürür</span>
+            </div>
+            
+            <div style="overflow-x: auto; margin-bottom: 12px;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                  <tr style="background: var(--bg-card); border-bottom: 2px solid var(--border-color); font-size: 0.76rem; text-transform: uppercase; color: var(--text-muted);">
+                    <th style="padding: 8px 10px;">LGS Konusu</th>
+                    <th style="padding: 8px 10px; text-align: center;">Soru</th>
+                    <th style="padding: 8px 10px; text-align: center;">Doğru</th>
+                    <th style="padding: 8px 10px; text-align: center;">Yanlış</th>
+                    <th style="padding: 8px 10px; text-align: center;">Boş</th>
+                    <th style="padding: 8px 10px; text-align: center;">Net</th>
+                    <th style="padding: 8px 10px; text-align: center;">Başarı</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topicRowsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            ${weakNotice}
+
+            <div style="margin-top: 16px; padding: 16px; background: #FAF5FF; border: 1.5px solid #E9D5FF; border-radius: 10px;">
+              <div style="font-weight: 900; color: #6B21A8; font-size: 0.92rem; margin-bottom: 8px;">
+                Merdiye Hoca Veli Bilgilendirme Raporu &amp; Koçluk Yorumu:
+              </div>
+              <div style="font-size: 0.86rem; color: #4C1D95; line-height: 1.6;">
+                Öğrencimiz 20 soruluk LGS matematik deneme sınavını <b>${net.toFixed(2)} Net</b> ile tamamlamıştır.
+                ${net >= 16 
+                  ? "Öğrencimiz LGS'de üst dilim (%1-2 bandı) için çok güçlü bir temele sahiptir. Düzenli deneme çözümü ve süre turlaması stratejisiyle sınav anı heyecanını yönetmesi yeterli olacaktır." 
+                  : (net >= 11 
+                    ? "Öğrencimizin temel kavram hakimiyeti iyi seviyededir; ancak yeni nesil kurgulu ve görsel analiz gerektiren sorularda işlem adımlarını hızlandırması ve soru turlama tekniğini pekiştirmesi gerekmektedir." 
+                    : "Öğrencimizin temel matematik kazanımlarında acil pekiştirme ihtiyacı bulunmaktadır. Haftalık planlı 1'e 1 özel ders koçluğu ve odaklı soru föyü takibi ile hedeflenen net sıçraması 2 ayda sağlanabilir.")}
+              </div>
+            </div>
           </div>
         `;
-      } else if (score >= 80) {
-        levelText = "Nitelikli Fen Lisesi";
-        icon = "4/5";
-        adviceHtml = `
-          <div style="background: #FAF8FE; border: 1.5px solid var(--primary-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: var(--text-main); line-height: 1.6;">
-            <b>Güçlü Fen Lisesi Adayısın (%${score}).</b><br>
-            Sadece 1 soruda takılma yaşadın. Sınav taktik çözüm adımlarını gözden geçirerek <b>20'de 20 hedefine</b> kolaylıkla ulaşabilirsin.
-          </div>
-        `;
-      } else if (score >= 60) {
-        levelText = "Nitelikli Anadolu Lisesi";
-        icon = "3/5";
-        adviceHtml = `
-          <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #92400E; line-height: 1.6;">
-            <b>İyi Bir Temelin Var (%${score}).</b><br>
-            Yeni nesil şekil ve grafik sorularında biraz pratik eksikliği görünüyor. Düzenli soru föyü çalışması ve <b>birebir soru takibi</b> ile netlerini hızla <b>16-18 bandına</b> çıkarabilirsin.
-          </div>
-        `;
+
+        if (adviceBox) adviceBox.innerHTML = adviceHtml;
+
+        if (emailBtn) {
+          const subject = encodeURIComponent(`Haftalık LGS Deneme Karnesi (${net.toFixed(2)} Net)`);
+          const body = encodeURIComponent(`Merhaba Merdiye Hocam,\n\nWeb sitenizdeki 20 soruluk Haftalık Özel LGS Denemesini tamamladım.\nSonucum: ${net.toFixed(2)} Net (${correctCount} Doğru, ${wrongCount} Yanlış, ${emptyCount} Boş).\nDeneme Karnemi ve Veli Bilgilendirme Raporumu birlikte değerlendirmek ve 1'e 1 ders koçluğu almak istiyorum.`);
+          emailBtn.href = `mailto:merdiyehocam@gmail.com?subject=${subject}&body=${body}`;
+          emailBtn.textContent = "Karnemi Merdiye Hoca'ya Danış";
+        }
+
       } else {
-        levelText = "Gelişim Desteği Gerekli";
-        icon = `${correctCount}/5`;
-        adviceHtml = `
-          <div style="background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #991B1B; line-height: 1.6;">
-            <b>Temel Konuları Güçlendirme Zamanı (%${score}).</b><br>
-            Kazanım eksiklerin bulunuyor. Haftalık planlı <b>1'e 1 özel ders koçluğu</b> ve özet föy çalışmaları ile 2 ayda <b>12-15 net seviyesine</b> rahatlıkla çıkabilirsin.
-          </div>
-        `;
-      }
+        if (printReportBtn) printReportBtn.style.display = "none";
+        const score = correctCount * 20;
+        if (scoreVal) scoreVal.textContent = `${score} / 100`;
+        if (correctVal) correctVal.textContent = `${correctCount} / 5 Doğru`;
 
-      if (levelVal) levelVal.textContent = levelText;
-      if (iconEl) iconEl.textContent = icon;
-      if (titleEl) titleEl.textContent = `Mini Deneme Sonucu: %${score} Başarı`;
-      if (adviceBox) adviceBox.innerHTML = adviceHtml;
+        let levelText = "";
+        let adviceHtml = "";
+        let icon = `${correctCount}/5`;
 
-      if (emailBtn) {
-        const subject = encodeURIComponent(`LGS Mini Deneme Sonucum (${score}/100)`);
-        const body = encodeURIComponent(`Merhaba Merdiye Hocam,\n\nWeb sitenizdeki LGS mini denemesini tamamladım.\nSkorum: ${score}/100 (${correctCount}/5 Doğru).\nEksik konularım ve 1'e 1 özel ders koçluğunuz hakkında bilgi alabilir miyim?`);
-        emailBtn.href = `mailto:merdiyehocam@gmail.com?subject=${subject}&body=${body}`;
-        emailBtn.textContent = "Sonucumu E-posta ile Danış";
+        if (score === 100) {
+          levelText = "Galatasaray & Fen Liseleri";
+          icon = "5/5";
+          adviceHtml = `
+            <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #065F46; line-height: 1.6;">
+              <b>Tebrikler! 5'te 5 Tam Başarı (%100).</b><br>
+              Temel ve yeni nesil MEB kazanımlarına tam hakimsin. LGS'de <b>20'de 20 net</b> için sınav anındaki süre turlamasını koruman yeterli. Aşağıdan hedef liselerin durumunu inceleyebilirsin.
+            </div>
+          `;
+        } else if (score >= 80) {
+          levelText = "Nitelikli Fen Lisesi";
+          icon = "4/5";
+          adviceHtml = `
+            <div style="background: #FAF8FE; border: 1.5px solid var(--primary-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: var(--text-main); line-height: 1.6;">
+              <b>Güçlü Fen Lisesi Adayısın (%${score}).</b><br>
+              Sadece 1 soruda takılma yaşadın. Sınav taktik çözüm adımlarını gözden geçirerek <b>20'de 20 hedefine</b> kolaylıkla ulaşabilirsin.
+            </div>
+          `;
+        } else if (score >= 60) {
+          levelText = "Nitelikli Anadolu Lisesi";
+          icon = "3/5";
+          adviceHtml = `
+            <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #92400E; line-height: 1.6;">
+              <b>İyi Bir Temelin Var (%${score}).</b><br>
+              Yeni nesil şekil ve grafik sorularında biraz pratik eksikliği görünüyor. Düzenli soru föyü çalışması ve <b>birebir soru takibi</b> ile netlerini hızla <b>16-18 bandına</b> çıkarabilirsin.
+            </div>
+          `;
+        } else {
+          levelText = "Gelişim Desteği Gerekli";
+          icon = `${correctCount}/5`;
+          adviceHtml = `
+            <div style="background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; color: #991B1B; line-height: 1.6;">
+              <b>Temel Konuları Güçlendirme Zamanı (%${score}).</b><br>
+              Kazanım eksiklerin bulunuyor. Haftalık planlı <b>1'e 1 özel ders koçluğu</b> ve özet föy çalışmaları ile 2 ayda <b>12-15 net seviyesine</b> rahatlıkla çıkabilirsin.
+            </div>
+          `;
+        }
+
+        if (levelVal) levelVal.textContent = levelText;
+        if (iconEl) iconEl.textContent = icon;
+        if (titleEl) titleEl.textContent = `Mini Deneme Sonucu: %${score} Başarı`;
+        if (subtitleEl) subtitleEl.textContent = "5 Soruluk Seviye Tespit Sonucunuz ve Merdiye Hoca Değerlendirmesi";
+        if (adviceBox) adviceBox.innerHTML = adviceHtml;
+
+        if (emailBtn) {
+          const subject = encodeURIComponent(`LGS Mini Deneme Sonucum (${score}/100)`);
+          const body = encodeURIComponent(`Merhaba Merdiye Hocam,\n\nWeb sitenizdeki LGS mini denemesini tamamladım.\nSkorum: ${score}/100 (${correctCount}/5 Doğru).\nEksik konularım ve 1'e 1 özel ders koçluğunuz hakkında bilgi alabilir miyim?`);
+          emailBtn.href = `mailto:merdiyehocam@gmail.com?subject=${subject}&body=${body}`;
+          emailBtn.textContent = "Sonucumu E-posta ile Danış";
+        }
       }
 
       completionCard.style.display = "block";
+      setTimeout(() => completionCard.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
     }
+
+    printReportBtn?.addEventListener("click", () => {
+      window.print();
+    });
 
     const simBtn = document.getElementById("quizApplyToSimBtn");
     if (simBtn) {
       simBtn.addEventListener("click", () => {
         const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
         const wrongCount = Object.values(userAnswers).filter(a => !a.isCorrect).length;
-        const scaledCorrect = Math.max(0, Math.min(20, correctCount * 4));
-        const scaledWrong = Math.max(0, Math.min(20 - scaledCorrect, wrongCount * 4));
+        const scaledCorrect = Math.max(0, Math.min(20, currentQuizMode === "weekly" ? correctCount : correctCount * 4));
+        const scaledWrong = Math.max(0, Math.min(20 - scaledCorrect, currentQuizMode === "weekly" ? wrongCount : wrongCount * 4));
         const correctInput = document.getElementById("calcCorrect");
         const wrongInput = document.getElementById("calcWrong");
         if (correctInput) correctInput.value = scaledCorrect;
         if (wrongInput) wrongInput.value = scaledWrong;
         
-        // Trigger live calculator recalculation & event dispatch
         if (correctInput) {
           correctInput.dispatchEvent(new Event("input"));
         }
@@ -1284,21 +1613,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (leadBtn) {
       leadBtn.addEventListener("click", () => {
         const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
-        const score = correctCount * 20;
+        const totalCount = activeQuizList.length;
         const notesEl = document.getElementById("formNotes");
         if (notesEl) {
-          notesEl.value = `Mini LGS Deneme Skoru: ${score}/100 (${correctCount}/5 Doğru). Hedef kazanım analizi ve özel ders planı talep ediyorum.`;
+          notesEl.value = `${currentQuizMode === "weekly" ? "Haftalık 20 Soruluk Deneme" : "Mini LGS Deneme"} Skoru: ${correctCount}/${totalCount} Doğru. Hedef kazanım analizi ve özel ders planı talep ediyorum.`;
         }
         const netEl = document.getElementById("formCurrentNet");
         if (netEl) {
-          if (score >= 80) netEl.value = "17 - 20 Net";
-          else if (score >= 60) netEl.value = "12 - 16 Net";
-          else if (score >= 40) netEl.value = "6 - 11 Net";
+          if (correctCount >= 16) netEl.value = "17 - 20 Net";
+          else if (correctCount >= 11) netEl.value = "12 - 16 Net";
+          else if (correctCount >= 6) netEl.value = "6 - 11 Net";
           else netEl.value = "0 - 5 Net";
         }
         document.getElementById("tutoring")?.scrollIntoView({ behavior: "smooth" });
         document.getElementById("formName")?.focus();
-        showToast("Mini deneme sonucunuz ön başvuru formuna aktarıldı!", "info");
+        showToast("Deneme sonucunuz ön başvuru formuna aktarıldı!", "info");
       });
     }
 
@@ -1315,7 +1644,7 @@ document.addEventListener("DOMContentLoaded", () => {
         userAnswers[currentQuizIndex] = { selectedIndex: selectedOptionIndex, isCorrect };
 
         if (isCorrect) {
-          showToast("Tebrikler, doğru cevap! +20 Puan kazandınız.", "success");
+          showToast("Tebrikler, doğru cevap!", "success");
         } else {
           showToast("Yanlış cevap. Çözüm taktiğini mutlaka inceleyin.", "info");
         }
@@ -1349,13 +1678,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    stepBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const qIdx = parseInt(btn.dataset.qindex, 10);
-        renderQuestion(qIdx);
-      });
-    });
-
+    rebuildStepper(activeQuizList.length);
     renderQuestion(0);
   }
 

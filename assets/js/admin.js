@@ -152,6 +152,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==================== 8. GÜNÜN SORULARI & SORU BANKASI YÖNETİMİ ====================
   let questionList = [];
 
+  function resolveQuestionGrade(q) {
+    if (!q) return "8";
+    if (q.grade) return String(q.grade);
+    const u = String(q.unit || "");
+    const match = u.match(/(?:^|\D)(5|6|7|8)\.\s*sınıf/i);
+    if (match) return match[1];
+    return "8";
+  }
+
   async function loadQuestions() {
     let questions = [];
     try {
@@ -175,68 +184,351 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuestionsTable();
   }
 
-    // Event Delegation for Questions Table
+  // ==========================================
+  // SORU KÜTÜPHANESİ & SINAV MERKEZİ MODÜLÜ
+  // ==========================================
+  const selectedLibraryQuestionIds = new Set();
   const adminQuestionsTbody = document.getElementById("adminQuestionsTableBody");
+  const libHeaderSelectAllCheckbox = document.getElementById("libHeaderSelectAllCheckbox");
+  const libSelectedCountBadge = document.getElementById("libSelectedCountBadge");
+  const libGradeFilter = document.getElementById("libGradeFilter");
+  const libTypeFilter = document.getElementById("libTypeFilter");
+
   if (adminQuestionsTbody) {
     adminQuestionsTbody.addEventListener("click", (e) => {
+      // 1. Silme Butonu
       const delBtn = e.target.closest(".delete-question-btn");
       if (delBtn) {
         const id = delBtn.dataset.id;
         deleteQuestion(id);
+        return;
       }
+
+      // 2. Story Butonu
+      const storyBtn = e.target.closest(".lib-story-btn");
+      if (storyBtn) {
+        const id = storyBtn.dataset.id;
+        const targetQ = questionList.find(q => String(q.id) === String(id));
+        if (targetQ) {
+          const mappedGrade = resolveQuestionGrade(targetQ);
+          const mappedQ = {
+            ...targetQ,
+            grade: mappedGrade,
+            gradeLabel: `${mappedGrade}. Sınıf`,
+            topic: targetQ.unit || "MEB LGS Matematik",
+            difficultyLabel: targetQ.difficulty || "LGS Ayarı",
+            explanation: targetQ.solution || targetQ.explanation || "Adım adım çözüm.",
+            tactic: targetQ.tactic || "Merdiye Hoca Sınav Taktiği",
+            correctIndex: typeof targetQ.correctIndex === "number" ? targetQ.correctIndex : (typeof targetQ.correct_index === "number" ? targetQ.correct_index : 0),
+            approved: true
+          };
+          currentAiQuestions = [mappedQ];
+          openStoryExportModal(0);
+        }
+        return;
+      }
+
+      // 3. Satır Checkbox Seçimi
+      const rowChk = e.target.closest(".lib-row-checkbox");
+      if (rowChk) {
+        const qId = String(rowChk.dataset.id);
+        if (rowChk.checked) {
+          selectedLibraryQuestionIds.add(qId);
+        } else {
+          selectedLibraryQuestionIds.delete(qId);
+        }
+        updateLibrarySelectionBadge();
+      }
+    });
+  }
+
+  function updateLibrarySelectionBadge() {
+    if (libSelectedCountBadge) {
+      libSelectedCountBadge.textContent = `${selectedLibraryQuestionIds.size} Soru Seçildi`;
+    }
+    if (libHeaderSelectAllCheckbox) {
+      const visibleCheckboxes = document.querySelectorAll(".lib-row-checkbox");
+      if (visibleCheckboxes.length > 0) {
+        const allChecked = Array.from(visibleCheckboxes).every(c => c.checked);
+        libHeaderSelectAllCheckbox.checked = allChecked;
+      } else {
+        libHeaderSelectAllCheckbox.checked = false;
+      }
+    }
+  }
+
+  // Tümünü Seç Butonu
+  document.getElementById("libSelectAllBtn")?.addEventListener("click", () => {
+    questionList.forEach(q => selectedLibraryQuestionIds.add(String(q.id)));
+    renderQuestionsTable();
+    showToast(`Kütüphanedeki tüm sorular (${selectedLibraryQuestionIds.size}) seçildi.`, "info");
+  });
+
+  // Seçimleri Kaldır Butonu
+  document.getElementById("libClearSelectionBtn")?.addEventListener("click", () => {
+    selectedLibraryQuestionIds.clear();
+    renderQuestionsTable();
+    showToast("Seçimler kaldırıldı.", "info");
+  });
+
+  // Tablo Başlığı Checkbox (Canlı Görünenleri Seç / Kaldır)
+  libHeaderSelectAllCheckbox?.addEventListener("change", (e) => {
+    const isChecked = e.target.checked;
+    const checkboxes = document.querySelectorAll(".lib-row-checkbox");
+    checkboxes.forEach(c => {
+      c.checked = isChecked;
+      const qId = String(c.dataset.id);
+      if (isChecked) selectedLibraryQuestionIds.add(qId);
+      else selectedLibraryQuestionIds.delete(qId);
+    });
+    updateLibrarySelectionBadge();
+  });
+
+  // Filtre Değişimleri
+  libGradeFilter?.addEventListener("change", renderQuestionsTable);
+  libTypeFilter?.addEventListener("change", renderQuestionsTable);
+
+  // Seçilenlerden A4 Sınavı Oluştur
+  document.getElementById("libCreateExamBtn")?.addEventListener("click", () => {
+    let chosen = questionList.filter(q => selectedLibraryQuestionIds.has(String(q.id)));
+    if (chosen.length === 0) {
+      chosen = getFilteredLibraryQuestions();
+    }
+    if (chosen.length === 0) {
+      showToast("Lütfen sınav kağıdı oluşturmak için en az 1 soru seçin.", "warning");
+      return;
+    }
+
+    currentAiQuestions = chosen.map(q => {
+      const g = resolveQuestionGrade(q);
+      return {
+        ...q,
+        grade: g,
+        gradeLabel: `${g}. Sınıf`,
+        topic: q.unit || "MEB LGS Matematik",
+        difficultyLabel: q.difficulty || "LGS Ayarı",
+        explanation: q.solution || q.explanation || "Adım adım çözüm.",
+        tactic: q.tactic || "Merdiye Hoca Sınav Taktiği",
+        correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0),
+        approved: true
+      };
+    });
+
+    updatePrintPreview();
+    const printModal = document.getElementById("examPrintModal");
+    printModal?.classList.add("active");
+    showToast(`${chosen.length} soru A4 sınav kağıdı baskı önizlemesine aktarıldı.`, "success");
+  });
+
+  // Seçilenlerden Haftalık Online Deneme Yayınla
+  document.getElementById("libPublishWeeklyBtn")?.addEventListener("click", () => {
+    let chosen = questionList.filter(q => selectedLibraryQuestionIds.has(String(q.id)));
+    if (chosen.length === 0) {
+      chosen = getFilteredLibraryQuestions().slice(0, 20);
+    }
+    if (chosen.length === 0) {
+      showToast("Lütfen haftalık deneme yayınlamak için soru seçin.", "warning");
+      return;
+    }
+    openPublishWeeklyModalWithQuestions(chosen);
+  });
+
+  // Seçilen Soruları Toplu Sil
+  document.getElementById("libDeleteSelectedBtn")?.addEventListener("click", async () => {
+    if (selectedLibraryQuestionIds.size === 0) {
+      showToast("Silmek için önce en az 1 soru seçmelisiniz.", "warning");
+      return;
+    }
+    if (!confirm(`Seçili ${selectedLibraryQuestionIds.size} soru soru kütüphanesinden kalıcı olarak silinsin mi?`)) return;
+
+    for (const qId of Array.from(selectedLibraryQuestionIds)) {
+      try {
+        await fetch(`/api/admin/quiz-questions?id=${qId}`, { method: "DELETE" });
+      } catch (_) {}
+    }
+
+    questionList = questionList.filter(q => !selectedLibraryQuestionIds.has(String(q.id)));
+    selectedLibraryQuestionIds.clear();
+    localStorage.setItem("merdiye_custom_questions", JSON.stringify(questionList));
+    renderQuestionsTable();
+    showToast("Seçili sorular başarıyla silindi.", "success");
+  });
+
+  let weeklyQuestionsToPublish = [];
+
+  function openPublishWeeklyModalWithQuestions(questions) {
+    weeklyQuestionsToPublish = Array.isArray(questions) ? questions : [];
+    const modal = document.getElementById("publishWeeklyExamModal");
+    const countInfo = document.getElementById("weeklyExamQuestionsInfo");
+    if (countInfo) {
+      countInfo.textContent = `Toplam ${weeklyQuestionsToPublish.length} adet soru seçildi. (Tam LGS Denemesi için 20 soru önerilir).`;
+    }
+    if (modal) modal.classList.add("active");
+  }
+
+  document.getElementById("closePublishWeeklyModalBtn")?.addEventListener("click", () => {
+    document.getElementById("publishWeeklyExamModal")?.classList.remove("active");
+  });
+
+  document.getElementById("cancelPublishWeeklyBtn")?.addEventListener("click", () => {
+    document.getElementById("publishWeeklyExamModal")?.classList.remove("active");
+  });
+
+  document.getElementById("confirmPublishWeeklyBtn")?.addEventListener("click", async () => {
+    const titleInput = document.getElementById("weeklyExamTitleInput");
+    const diffSelect = document.getElementById("weeklyExamDiffSelect");
+    const durInput = document.getElementById("weeklyExamDurationInput");
+    const btn = document.getElementById("confirmPublishWeeklyBtn");
+
+    const title = titleInput ? titleInput.value.trim() : "Haftalık Özel LGS Matematik Deneme Sınavı";
+    const diff = diffSelect ? diffSelect.value : "yeni_nesil";
+    const duration = parseInt(durInput ? durInput.value : "40", 10) || 40;
+
+    let qList = weeklyQuestionsToPublish;
+    if (!qList || qList.length === 0) {
+      qList = questionList.slice(0, 20);
+    }
+    if (qList.length === 0) {
+      showToast("Yayınlanacak soru bulunamadı.", "warning");
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Yayınlanıyor...";
+    }
+
+    const cleanQuestions = qList.slice(0, 20).map((q, idx) => ({
+      id: q.id || `weekly_q_${idx + 1}`,
+      question: q.question,
+      options: Array.isArray(q.options) ? q.options : ["A", "B", "C", "D"],
+      correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0),
+      explanation: q.solution || q.explanation || "Adım adım çözüm rehberi.",
+      tactic: q.tactic || "Merdiye Hoca Sınav Taktiği: Soru kökünü dikkatle oku, işlem adımlarını kontrol et.",
+      topic: q.unit || q.topic || "LGS Matematik",
+      grade: q.grade || 8,
+      difficulty: q.difficulty || diff,
+      diagramSvg: q.diagramSvg || null,
+      imageUrl: q.imageUrl || null
+    }));
+
+    const weeklyPayload = {
+      id: "weekly_" + Date.now(),
+      title: title,
+      difficulty: diff,
+      durationMinutes: duration,
+      duration_minutes: duration,
+      publishedAt: new Date().toISOString(),
+      active: true,
+      questions: cleanQuestions
+    };
+
+    try {
+      localStorage.setItem("merdiye_weekly_exam", JSON.stringify(weeklyPayload));
+      try {
+        await fetch("/api/admin/weekly-exam", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(weeklyPayload)
+        });
+      } catch (_) {}
+
+      document.getElementById("publishWeeklyExamModal")?.classList.remove("active");
+      showToast(`Haftalık ${cleanQuestions.length} soruluk LGS denemesi başarıyla yayınlandı! Öğrenciler ana sayfadan hemen çözebilir.`, "success");
+    } catch (err) {
+      showToast("Yayınlama hatası: " + err.message, "error");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Haftalık Denemeyi Canlıya Yayınla";
+      }
+    }
+  });
+
+  function getFilteredLibraryQuestions() {
+    const searchVal = (document.getElementById("adminQuestionSearch")?.value || "").toLowerCase().trim();
+    const gradeVal = libGradeFilter?.value || "all";
+    const typeVal = libTypeFilter?.value || "all";
+
+    return questionList.filter(q => {
+      if (searchVal) {
+        const mU = (q.unit || "").toLowerCase().includes(searchVal);
+        const mQ = (q.question || "").toLowerCase().includes(searchVal);
+        if (!mU && !mQ) return false;
+      }
+      if (gradeVal !== "all") {
+        const qGrade = resolveQuestionGrade(q);
+        if (qGrade !== gradeVal) return false;
+      }
+      if (typeVal === "visual") {
+        if (!q.diagramSvg && !q.imageUrl) return false;
+      } else if (typeVal === "text") {
+        if (q.diagramSvg || q.imageUrl) return false;
+      }
+      return true;
     });
   }
 
   function renderQuestionsTable() {
     const tbody = document.getElementById("adminQuestionsTableBody");
     const countBadge = document.getElementById("totalQuestionCountBadge");
-    const searchVal = (document.getElementById("adminQuestionSearch")?.value || "").toLowerCase().trim();
 
     if (countBadge) countBadge.textContent = questionList.length;
     if (!tbody) return;
 
-    let filtered = questionList;
-    if (searchVal) {
-      filtered = filtered.filter(q => 
-        (q.unit || "").toLowerCase().includes(searchVal) || 
-        (q.question || "").toLowerCase().includes(searchVal)
-      );
-    }
+    const filtered = getFilteredLibraryQuestions();
 
     if (filtered.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 28px;">
-            Soru bankasında henüz soru bulunmamaktadır. Yukarıdaki 'Yeni Soru Ekle' veya 'Toplu Soru Yükle' butonunu kullanabilirsiniz.
+          <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 28px;">
+            Soru kütüphanesinde kriterlerinize uygun soru bulunamadı. Yukarıdaki 'AI ile Yeni Soru Üret' veya filtreleri temizleme seçeneklerini kullanabilirsiniz.
           </td>
         </tr>
       `;
+      updateLibrarySelectionBadge();
       return;
     }
 
     const letters = ["A", "B", "C", "D"];
     tbody.innerHTML = filtered.map(q => {
-      const correctLetter = letters[q.correctIndex ?? 0] || "A";
-      const qSnippet = q.question.length > 90 ? q.question.slice(0, 90) + "..." : q.question;
-      const solutionSnippet = (q.solution || q.tactic || "Çözüm mevcut").replace(/<[^>]+>/g, "").slice(0, 75);
+      const cIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+      const correctLetter = letters[cIdx] || "A";
+      const qSnippet = q.question.length > 85 ? q.question.slice(0, 85) + "..." : q.question;
+      const solutionSnippet = (q.solution || q.tactic || "Çözüm mevcut").replace(/<[^>]+>/g, "").slice(0, 70);
+      const isChecked = selectedLibraryQuestionIds.has(String(q.id));
+      const hasVisual = Boolean(q.diagramSvg || q.imageUrl);
 
       return `
-        <tr>
+        <tr class="${isChecked ? 'is-selected-row' : ''}">
+          <td style="text-align: center;">
+            <input type="checkbox" class="lib-row-checkbox" data-id="${q.id}" ${isChecked ? "checked" : ""}>
+          </td>
           <td><b>#${q.id}</b></td>
-          <td><span class="pdf-badge" style="font-size: 0.76rem;">${q.unit || "LGS Matematik"}</span></td>
-          <td style="font-size: 0.88rem; line-height: 1.4;">${qSnippet}</td>
-          <td><span class="pdf-badge gold" style="font-weight: 800;">${correctLetter}</span></td>
-          <td style="font-size: 0.82rem; color: var(--text-muted);">${solutionSnippet}</td>
           <td>
-            <button type="button" class="btn btn-secondary btn-sm delete-question-btn" data-id="${q.id}" style="color: #DC2626; border-color: #FECACA; padding: 4px 8px;" title="Soruyu Sil">
-              Sil
-            </button>
+            <span class="pdf-badge" style="font-size: 0.74rem;">${escapeHtml(q.unit || "LGS Matematik")}</span>
+            ${hasVisual ? '<span class="pdf-badge" style="background:#EDE9FE; color:#6D28D9; border:1px solid #DDD6FE; font-size:0.68rem; margin-top:3px; display:inline-block;">Şekilli</span>' : ''}
+          </td>
+          <td style="font-size: 0.88rem; line-height: 1.45;">
+            ${escapeHtml(qSnippet)}
+          </td>
+          <td><span class="pdf-badge gold" style="font-weight: 800;">${correctLetter}</span></td>
+          <td style="font-size: 0.80rem; color: var(--text-muted);">${escapeHtml(solutionSnippet)}</td>
+          <td>
+            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm lib-story-btn" data-id="${q.id}" style="padding: 3px 8px; font-size: 0.76rem; background: linear-gradient(135deg, #EC4899, #8B5CF6); color: #fff; border: none; font-weight: 700;" title="Story Çıktısı Al">
+                Story
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm delete-question-btn" data-id="${q.id}" style="color: #DC2626; border-color: #FECACA; padding: 3px 8px; font-size: 0.76rem;" title="Soruyu Sil">
+                Sil
+              </button>
+            </div>
           </td>
         </tr>
       `;
     }).join("");
 
-    // Delete handled by event delegation on adminQuestionsTableBody
+    updateLibrarySelectionBadge();
   }
 
   async function deleteQuestion(id) {
@@ -256,6 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {}
 
     questionList = questionList.filter(q => String(q.id) !== String(id));
+    selectedLibraryQuestionIds.delete(String(id));
     localStorage.setItem("merdiye_custom_questions", JSON.stringify(questionList));
     renderQuestionsTable();
   }
@@ -1842,7 +2135,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("examPrintModal"),
     document.getElementById("bankPickerModal"),
     document.getElementById("storyExportModal"),
-    document.getElementById("customVisualModal")
+    document.getElementById("customVisualModal"),
+    document.getElementById("aiRevisionModal"),
+    document.getElementById("publishWeeklyExamModal")
   ].filter(Boolean);
 
   dialogModals.forEach(modalEl => {
@@ -1882,6 +2177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const topicSelect = document.getElementById("aiTopicSelect");
     const countInput = document.getElementById("aiQuestionCountInput");
     const diffSelect = document.getElementById("aiDifficultySelect");
+    const visualModeSelect = document.getElementById("aiVisualModeSelect");
     const lgsPatternSelect = document.getElementById("aiLgsPatternSelect");
     const generateBtn = document.getElementById("generateQuestionsBtn");
     const reviewContainer = document.getElementById("aiReviewContainer");
@@ -1955,7 +2251,7 @@ document.addEventListener("DOMContentLoaded", () => {
     engineRadios.forEach(r => {
       r.addEventListener("change", () => {
         if (geminiRow) {
-          geminiRow.style.display = r.value === "gemini" && r.checked ? "block" : "none";
+          geminiRow.style.display = "none";
         }
       });
     });
@@ -2151,6 +2447,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectedEngine = document.querySelector('input[name="aiEngineMode"]:checked')?.value || "gemini";
         const geminiKey = geminiKeyInput ? geminiKeyInput.value.trim() : "";
         const isGeminiMode = selectedEngine === "gemini";
+        const visualMode = visualModeSelect ? visualModeSelect.value : "auto";
 
         generateBtn.disabled = true;
         generateBtn.textContent = "Sorular Üretiliyor...";
@@ -2162,15 +2459,15 @@ document.addEventListener("DOMContentLoaded", () => {
           let questions = [];
           if (isGeminiMode) {
             try {
-              questions = await window.MH_AI_GENERATOR.generateGeminiQuestions(geminiKey, grade, topic, difficulty, count, pattern);
+              questions = await window.MH_AI_GENERATOR.generateGeminiQuestions(geminiKey, grade, topic, difficulty, count, pattern, visualMode);
               showToast(`${questions.length} adet özgün soru Gemini 2.5 Flash tarafından üretildi.`, "success");
             } catch (geminiErr) {
               console.warn("[AI Generator] Gemini API hatası, yerel motor devreye giriyor:", geminiErr);
               showToast("Gemini API yanıt vermedi, dahili matematik motoruyla üretildi.", "warning");
-              questions = window.MH_AI_GENERATOR.generateLocalQuestions(grade, topic, difficulty, count);
+              questions = window.MH_AI_GENERATOR.generateLocalQuestions(grade, topic, difficulty, count, visualMode);
             }
           } else {
-            questions = window.MH_AI_GENERATOR.generateLocalQuestions(grade, topic, difficulty, count);
+            questions = window.MH_AI_GENERATOR.generateLocalQuestions(grade, topic, difficulty, count, visualMode);
             showToast(`${questions.length} adet özgün MEB sorusu başarıyla üretildi.`, "success");
           }
 
@@ -2234,6 +2531,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 Story Çıktısı
               </button>
 
+              <button type="button" class="btn btn-secondary btn-sm ai-refine-single-btn" data-idx="${idx}" title="AI ile bu soruyu düzelt veya revize et" style="font-weight: 800; padding: 4px 10px; background: #EDE9FE; color: #6D28D9; border: 1.5px solid #DDD6FE;">
+                AI ile Düzelt
+              </button>
+
               <button type="button" class="btn btn-secondary btn-sm ai-add-visual-btn" data-idx="${idx}" title="Bu soruya özel şekil, çizim veya görsel ekle" style="font-weight: 700; padding: 4px 10px;">
                 ${q.diagramSvg || q.imageUrl ? 'Şekli Düzenle' : 'Şekil Ekle'}
               </button>
@@ -2251,13 +2552,19 @@ document.addEventListener("DOMContentLoaded", () => {
           ${q.tableHtml ? `<div class="ai-q-table">${q.tableHtml}</div>` : ''}
 
           <div class="ai-options-grid">
-            ${q.options.map((opt, optIdx) => `
-              <div class="ai-option-item ${optIdx === q.correctIndex ? "is-correct" : ""}">
-                <span class="ai-opt-tag">${letters[optIdx]}</span>
-                <span>${escapeHtml(opt)}</span>
-                ${optIdx === q.correctIndex ? '<span style="margin-left: auto; font-size: 0.74rem; font-weight: 800; color: #059669;">(Doğru Cevap)</span>' : ''}
-              </div>
-            `).join("")}
+            ${(() => {
+              const corIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+              return q.options.map((opt, optIdx) => {
+                const cleanOpt = String(opt || "").replace(/^[A-D]\)\s*/, "");
+                return `
+                  <div class="ai-option-item ${optIdx === corIdx ? "is-correct" : ""}">
+                    <span class="ai-opt-tag">${letters[optIdx]}</span>
+                    <span>${escapeHtml(cleanOpt)}</span>
+                    ${optIdx === corIdx ? '<span style="margin-left: auto; font-size: 0.74rem; font-weight: 800; color: #059669;">(Doğru Cevap)</span>' : ''}
+                  </div>
+                `;
+              }).join("");
+            })()}
           </div>
 
           <div class="ai-solution-tactic-box">
@@ -2287,6 +2594,14 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         }
 
+        // Event listener: AI ile Düzelt / Revize Et
+        const refineBtn = card.querySelector(".ai-refine-single-btn");
+        if (refineBtn) {
+          refineBtn.addEventListener("click", () => {
+            openAiRevisionModal(idx);
+          });
+        }
+
         // Event listener: Özel Şekil / Görsel Ekleme
         const visualBtn = card.querySelector(".ai-add-visual-btn");
         if (visualBtn) {
@@ -2300,6 +2615,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (regenBtn) {
           regenBtn.addEventListener("click", () => {
             const fresh = window.MH_AI_GENERATOR.generateLocalQuestion(q.grade, q.topic, q.difficulty, Math.floor(Math.random() * 200));
+            const visualMode = visualModeSelect ? visualModeSelect.value : "auto";
+            if (visualMode === "visual" || (visualMode === "auto" && q.diagramSvg)) {
+              fresh.diagramSvg = window.MH_AI_GENERATOR.createTopicSvgDiagram(q.topic, q.difficulty);
+            }
             fresh.approved = false;
             currentAiQuestions[idx] = fresh;
             renderAiQuestions();
@@ -2373,8 +2692,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectedEngine === "gemini" && geminiKey) {
           try {
             const curPattern = lgsPatternSelect ? lgsPatternSelect.value : "otomatik";
+            const curVisualMode = visualModeSelect ? visualModeSelect.value : "auto";
             replacementQuestions = await window.MH_AI_GENERATOR.generateGeminiQuestions(
-              geminiKey, curGrade, curTopic, curDiff, unapprovedIndices.length, curPattern
+              geminiKey, curGrade, curTopic, curDiff, unapprovedIndices.length, curPattern, curVisualMode
             );
           } catch (geminiErr) {
             console.warn("[AI Generator] Gemini yeniden üretim hatası, yerel motor kullanılıyor:", geminiErr);
@@ -2382,6 +2702,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
 
+        const curVisualMode = visualModeSelect ? visualModeSelect.value : "auto";
         unapprovedIndices.forEach((idx, step) => {
           const cur = currentAiQuestions[idx];
           let fresh = replacementQuestions[step];
@@ -2389,6 +2710,9 @@ document.addEventListener("DOMContentLoaded", () => {
             fresh = window.MH_AI_GENERATOR.generateLocalQuestion(
               cur.grade, cur.topic, cur.difficulty, step + Math.floor(Math.random() * 50) + 1
             );
+            if (curVisualMode === "visual" || (curVisualMode === "auto" && cur.diagramSvg)) {
+              fresh.diagramSvg = window.MH_AI_GENERATOR.createTopicSvgDiagram(cur.topic, cur.difficulty);
+            }
           }
           fresh.approved = false;
           currentAiQuestions[idx] = fresh;
@@ -2422,17 +2746,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const rowsToSave = approvedList.map(q => ({
-          unit: `${q.grade}. Sınıf - ${q.topic}`,
-          question: q.question,
-          options: q.options,
-          correctIndex: q.correctIndex,
-          correct_index: q.correctIndex,
-          explanation: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
-          solution: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
-          tactic: q.tactic || "",
-          difficulty: q.difficultyLabel || "LGS Ayarı"
-        }));
+        const rowsToSave = approvedList.map(q => {
+          const cIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+          return {
+            unit: `${q.grade || 8}. Sınıf - ${q.topic || 'LGS Matematik'}`,
+            grade: q.grade || "8",
+            topic: q.topic || "LGS Matematik",
+            question: q.question,
+            options: q.options,
+            correctIndex: cIdx,
+            correct_index: cIdx,
+            explanation: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
+            solution: q.explanation + (q.tactic ? "\n\n" + q.tactic : ""),
+            tactic: q.tactic || "",
+            difficulty: q.difficultyLabel || "LGS Ayarı",
+            diagramSvg: q.diagramSvg || null,
+            imageUrl: q.imageUrl || null
+          };
+        });
 
         // 1. Supabase ve LocalStorage Veri Katmanı
         if (window.MH_DB && typeof window.MH_DB.bulkAddQuizQuestions === "function") {
@@ -2645,7 +2976,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const searchTxt = bankPickerSearchInput ? bankPickerSearchInput.value.trim().toLowerCase() : "";
 
       const filtered = questionList.filter((q, i) => {
-        const qGrade = String(q.grade || (q.unit && q.unit.startsWith("8") ? "8" : (q.unit && q.unit.startsWith("7") ? "7" : (q.unit && q.unit.startsWith("6") ? "6" : "5"))));
+        const qGrade = resolveQuestionGrade(q);
         if (gradeFilter !== "all" && qGrade !== gradeFilter) return false;
         if (searchTxt) {
           const matchQ = (q.question || "").toLowerCase().includes(searchTxt);
@@ -2748,7 +3079,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedBankIndices.forEach(idx => {
         const item = questionList[idx];
         if (item) {
-          const gradeVal = item.grade || (item.unit && item.unit.startsWith("8") ? "8" : (item.unit && item.unit.startsWith("7") ? "7" : (item.unit && item.unit.startsWith("6") ? "6" : "5")));
+          const gradeVal = resolveQuestionGrade(item);
           added.push({
             id: item.id || ("bank_" + Date.now() + "_" + idx),
             grade: gradeVal,
@@ -2758,7 +3089,7 @@ document.addEventListener("DOMContentLoaded", () => {
             difficultyLabel: item.difficulty || "LGS Ayarı",
             question: item.question,
             options: item.options || ["A", "B", "C", "D"],
-            correctIndex: typeof item.correctIndex === "number" ? item.correctIndex : 0,
+            correctIndex: typeof item.correctIndex === "number" ? item.correctIndex : (typeof item.correct_index === "number" ? item.correct_index : 0),
             explanation: item.solution || item.explanation || "Adım adım çözüm rehberi.",
             tactic: item.tactic || "Merdiye Hoca Sınav Taktiği: Soru kökünü dikkatle oku, işlem adımlarını kontrol et.",
             diagramSvg: item.diagramSvg || null,
@@ -2790,12 +3121,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const storyQuestionSelector = document.getElementById("storyQuestionSelector");
     const storyTabSlide1Btn = document.getElementById("storyTabSlide1Btn");
     const storyTabSlide2Btn = document.getElementById("storyTabSlide2Btn");
+    const storyTabSlide3Btn = document.getElementById("storyTabSlide3Btn");
+    const downloadStorySlide1Btn = document.getElementById("downloadStorySlide1Btn");
+    const downloadStorySlide2Btn = document.getElementById("downloadStorySlide2Btn");
+    const downloadStorySlide3Btn = document.getElementById("downloadStorySlide3Btn");
+    const downloadStoryAllBtn = document.getElementById("downloadStoryAllBtn");
     const downloadStoryPngBtn = document.getElementById("downloadStoryPngBtn");
     const copyStoryClipboardBtn = document.getElementById("copyStoryClipboardBtn");
     const storyExportCanvas = document.getElementById("storyExportCanvas");
 
     let currentStoryQuestionIdx = 0;
-    let currentStorySlide = 1; // 1: Soru Kartı, 2: Çözüm & Taktik Kartı
+    let currentStorySlide = 1; // 1: Soru Kartı, 2: Altın Taktik, 3: Reels & Anket
 
     function openStoryExportModal(targetIdx = 0) {
       if (currentAiQuestions.length === 0) {
@@ -2804,9 +3140,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       currentStoryQuestionIdx = Math.min(Math.max(0, targetIdx), currentAiQuestions.length - 1);
-      currentStorySlide = 1;
+      setStorySlide(1);
 
-      // Soru Seçiciyi doldur
       if (storyQuestionSelector) {
         storyQuestionSelector.innerHTML = "";
         currentAiQuestions.forEach((q, i) => {
@@ -2822,7 +3157,6 @@ document.addEventListener("DOMContentLoaded", () => {
       storyExportModal?.classList.add("active");
     }
 
-    // Üst toolbar butonu: Doğrudan ilk onaylı soruyu veya soru 1'i açar
     document.getElementById("openStoryModalBtn")?.addEventListener("click", () => {
       openStoryExportModal(0);
     });
@@ -2834,23 +3168,24 @@ document.addEventListener("DOMContentLoaded", () => {
       updateStoryPreview();
     });
 
-    storyTabSlide1Btn?.addEventListener("click", () => {
-      currentStorySlide = 1;
-      storyTabSlide1Btn.classList.remove("btn-secondary");
-      storyTabSlide1Btn.classList.add("btn-primary");
-      storyTabSlide2Btn.classList.remove("btn-primary");
-      storyTabSlide2Btn.classList.add("btn-secondary");
+    function setStorySlide(slideNum) {
+      currentStorySlide = slideNum;
+      [storyTabSlide1Btn, storyTabSlide2Btn, storyTabSlide3Btn].forEach((btn, idx) => {
+        if (!btn) return;
+        if (idx + 1 === slideNum) {
+          btn.classList.remove("btn-secondary");
+          btn.classList.add("btn-primary");
+        } else {
+          btn.classList.remove("btn-primary");
+          btn.classList.add("btn-secondary");
+        }
+      });
       updateStoryPreview();
-    });
+    }
 
-    storyTabSlide2Btn?.addEventListener("click", () => {
-      currentStorySlide = 2;
-      storyTabSlide2Btn.classList.remove("btn-secondary");
-      storyTabSlide2Btn.classList.add("btn-primary");
-      storyTabSlide1Btn.classList.remove("btn-primary");
-      storyTabSlide1Btn.classList.add("btn-secondary");
-      updateStoryPreview();
-    });
+    storyTabSlide1Btn?.addEventListener("click", () => setStorySlide(1));
+    storyTabSlide2Btn?.addEventListener("click", () => setStorySlide(2));
+    storyTabSlide3Btn?.addEventListener("click", () => setStorySlide(3));
 
     function updateStoryPreview() {
       const q = currentAiQuestions[currentStoryQuestionIdx];
@@ -2865,14 +3200,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const slideTypeBadge = document.getElementById("storySlideTypeBadge");
 
       if (gradeTopicTag) gradeTopicTag.textContent = `${q.grade || '8'}. Sınıf • ${q.topic || 'LGS Matematik'}`;
-      if (slideTypeBadge) slideTypeBadge.textContent = currentStorySlide === 1 ? "Slayt 1 / Soru" : "Slayt 2 / Çözüm";
+      if (slideTypeBadge) {
+        if (currentStorySlide === 1) slideTypeBadge.textContent = "Slayt 1 / Soru";
+        else if (currentStorySlide === 2) slideTypeBadge.textContent = "Slayt 2 / Altın Taktik";
+        else slideTypeBadge.textContent = "Slayt 3 / Reels & Anket";
+      }
 
       const letters = ["A", "B", "C", "D"];
 
       if (currentStorySlide === 1) {
         if (questionNumTag) questionNumTag.textContent = `GÜNÜN LGS SORUSU (SORU ${currentStoryQuestionIdx + 1})`;
         if (qText) qText.textContent = q.question;
-        
+
         if (diagramEl) {
           if (q.diagramSvg) {
             diagramEl.style.display = "flex";
@@ -2887,29 +3226,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (optList) {
-          optList.innerHTML = q.options.map((opt, i) => `
-            <div class="story-opt-item">
-              <span class="story-opt-badge">${letters[i]}</span>
-              <span>${escapeHtml(opt)}</span>
+          optList.innerHTML = `
+            ${q.options.map((opt, i) => `
+              <div class="story-opt-item">
+                <span class="story-opt-badge">${letters[i]}</span>
+                <span>${escapeHtml(opt)}</span>
+              </div>
+            `).join("")}
+            <div style="margin-top: 8px; border: 1.5px dashed rgba(255,255,255,0.4); border-radius: 10px; padding: 8px 10px; text-align: center; color: #F5D0FE; font-size: 0.70rem; font-weight: 700;">
+              [Instagram Anket / Quiz Çıkartması Alanı]
             </div>
-          `).join("");
+          `;
         }
 
         if (footerCta) footerCta.textContent = "Cevabını yoruma bırak! • Sola kaydır";
-      } else {
-        // Slayt 2: Çözüm & Taktik
-        if (questionNumTag) questionNumTag.textContent = `SORU ${currentStoryQuestionIdx + 1} ÇÖZÜMÜ & SINAV TAKTİĞİ`;
-        
-        const correctLetter = letters[q.correctIndex || 0];
-        const correctText = q.options[q.correctIndex || 0] || "";
+      } else if (currentStorySlide === 2) {
+        if (questionNumTag) questionNumTag.textContent = `MERDİYE HOCA ALTIN SINAV TAKTİĞİ`;
+
+        const corIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+        const correctLetter = letters[corIdx] || "A";
+        const correctRaw = (q.options && q.options[corIdx]) ? q.options[corIdx] : "";
+        const correctText = String(correctRaw).replace(/^[A-D]\)\s*/, "");
 
         if (qText) {
           qText.innerHTML = `
             <div style="font-size: 0.92rem; font-weight: 900; color: #059669; margin-bottom: 6px;">
               Doğru Cevap: ${correctLetter}) ${escapeHtml(correctText)}
             </div>
-            <div style="font-size: 0.78rem; color: #334155; line-height: 1.45;">
-              ${escapeHtml(q.explanation || 'Adım adım matematiksel çözüm.').replace(/\n/g, '<br>')}
+            <div style="font-size: 0.76rem; color: #334155; line-height: 1.45;">
+              ${escapeHtml(q.explanation || 'Adım adım matematiksel çözüm rehberi.').replace(/\n/g, '<br>')}
             </div>
           `;
         }
@@ -2921,38 +3266,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (optList) {
           optList.innerHTML = `
-            <div style="background: rgba(254, 243, 199, 0.95); border: 1.5px solid #F59E0B; border-radius: 12px; padding: 12px 14px; color: #78350F; font-size: 0.78rem; line-height: 1.45;">
-              <div style="font-weight: 900; color: #B45309; margin-bottom: 4px;">MERDİYE HOCA ALTIN TAKTİĞİ:</div>
-              <b>${escapeHtml(q.tactic || 'Soru köküne dikkat et, işlem basamaklarını kontrollü uygula.')}</b>
+            <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border: 2px solid #F59E0B; border-radius: 12px; padding: 14px 16px; color: #78350F; font-size: 0.82rem; line-height: 1.5; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);">
+              <div style="font-weight: 900; color: #B45309; font-size: 0.85rem; margin-bottom: 6px; letter-spacing: 0.5px;">
+                MERDİYE HOCA ALTIN TAKTİĞİ:
+              </div>
+              <div style="font-weight: 800; color: #78350F;">
+                ${escapeHtml(q.tactic || 'Soru köküne dikkat et, işlem basamaklarını kontrollü uygula.')}
+              </div>
             </div>
           `;
         }
 
         if (footerCta) footerCta.textContent = "Merdiye Hoca ile 20'de 20 Hedefi • Takipte Kal!";
+      } else {
+        if (questionNumTag) questionNumTag.textContent = `LGS REELS / STORY ANKETİ`;
+        if (qText) {
+          qText.innerHTML = `
+            <div style="font-weight: 800; color: #1E1B4B; line-height: 1.4;">
+              ${escapeHtml(q.question).slice(0, 160)}${q.question.length > 160 ? '...' : ''}
+            </div>
+          `;
+        }
+
+        if (diagramEl) {
+          diagramEl.style.display = "none";
+          diagramEl.innerHTML = "";
+        }
+
+        if (optList) {
+          optList.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${q.options.map((opt, i) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.22); border: 2px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 10px 14px; font-weight: 800; color: #FFFFFF;">
+                  <span>${letters[i]}) ${escapeHtml(opt)}</span>
+                  <span style="font-size: 0.72rem; opacity: 0.9; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 999px;">Oy Ver</span>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
+
+        if (footerCta) footerCta.textContent = "Hikayeye Dokun ve Oyunu Kullan!";
       }
     }
 
     // 1080x1920 HD Instagram Story Canvas Renderer
-    async function renderStoryToCanvas() {
+    async function renderStoryToCanvas(targetSlide) {
       const q = currentAiQuestions[currentStoryQuestionIdx];
       if (!q || !storyExportCanvas) return null;
 
+      const slideToRender = typeof targetSlide === "number" ? targetSlide : currentStorySlide;
       const canvas = storyExportCanvas;
       const ctx = canvas.getContext("2d");
       const W = 1080;
       const H = 1920;
 
-      // 1. Arka Plan: Zengin Degrade (Violet / Indigo Gradient)
+      // 1. Arka Plan: Zengin Degrade
       const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-      bgGrad.addColorStop(0, "#1E1B4B");
-      bgGrad.addColorStop(0.35, "#312E81");
-      bgGrad.addColorStop(0.70, "#4C1D95");
-      bgGrad.addColorStop(1, "#6D28D9");
+      if (slideToRender === 1) {
+        bgGrad.addColorStop(0, "#1E1B4B");
+        bgGrad.addColorStop(0.35, "#312E81");
+        bgGrad.addColorStop(0.70, "#4C1D95");
+        bgGrad.addColorStop(1, "#6D28D9");
+      } else if (slideToRender === 2) {
+        bgGrad.addColorStop(0, "#1E1B4B");
+        bgGrad.addColorStop(0.30, "#451A03");
+        bgGrad.addColorStop(0.65, "#78350F");
+        bgGrad.addColorStop(1, "#B45309");
+      } else {
+        bgGrad.addColorStop(0, "#0F172A");
+        bgGrad.addColorStop(0.35, "#1E293B");
+        bgGrad.addColorStop(0.70, "#334155");
+        bgGrad.addColorStop(1, "#475569");
+      }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Dekoratif Daireler
-      ctx.fillStyle = "rgba(124, 58, 237, 0.15)";
+      // Dekoratif Arka Plan Daireleri
+      ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
       ctx.beginPath();
       ctx.arc(W - 100, 200, 320, 0, Math.PI * 2);
       ctx.fill();
@@ -2971,26 +3362,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Slayt Türü Rozeti
       ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-      roundRect(ctx, W - 340, 130, 260, 56, 28);
+      roundRect(ctx, W - 360, 130, 280, 56, 28);
       ctx.fill();
       ctx.fillStyle = "#FFFFFF";
       ctx.font = "800 24px system-ui, sans-serif";
-      ctx.fillText(currentStorySlide === 1 ? "SLAYT 1 / SORU" : "SLAYT 2 / ÇÖZÜM", W - 310, 168);
+      const badgeLabels = { 1: "SLAYT 1 / SORU", 2: "ALTIN TAKTİK", 3: "REELS / ANKET" };
+      ctx.fillText(badgeLabels[slideToRender] || "LGS SORUSU", W - 335, 168);
 
       let curY = 270;
+      const letters = ["A", "B", "C", "D"];
 
-      if (currentStorySlide === 1) {
+      if (slideToRender === 1) {
         // Slayt 1: Soru Kartı
         ctx.fillStyle = "#FFFFFF";
         roundRect(ctx, 70, curY, W - 140, 480, 32);
         ctx.fill();
 
-        // Kart İçi Başlık
         ctx.fillStyle = "#7C3AED";
         ctx.font = "900 26px system-ui, sans-serif";
         ctx.fillText(`LGS 2026 SORU ${currentStoryQuestionIdx + 1} (${q.difficultyLabel || 'LGS Ayarı'})`, 110, curY + 60);
 
-        // Soru Metni (Satır Satır Kaydırma)
         ctx.fillStyle = "#0F172A";
         ctx.font = "700 34px system-ui, sans-serif";
         const maxTextW = W - 220;
@@ -3003,27 +3394,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
         curY += 520;
 
-        // Varsa SVG Görseli Çiz
         if (q.diagramSvg) {
           try {
             const svgImg = await loadSvgToImage(q.diagramSvg);
             if (svgImg) {
               const dw = W - 180;
               const dh = 240;
-              ctx.drawImage(svgImg, 90, curY, dw, dh);
-              curY += dh + 40;
+              ctx.fillStyle = "#FFFFFF";
+              roundRect(ctx, 70, curY, W - 140, dh + 30, 20);
+              ctx.fill();
+              ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+
+              ctx.drawImage(svgImg, 90, curY + 15, dw, dh);
+              curY += dh + 50;
+            }
+          } catch (_) {
+            curY += 20;
+          }
+        } else if (q.imageUrl) {
+          try {
+            const imgEl = await loadImageFromUrl(q.imageUrl);
+            if (imgEl) {
+              const dw = W - 180;
+              const dh = 240;
+              ctx.fillStyle = "#FFFFFF";
+              roundRect(ctx, 70, curY, W - 140, dh + 30, 20);
+              ctx.fill();
+              ctx.drawImage(imgEl, 90, curY + 15, dw, dh);
+              curY += dh + 50;
             }
           } catch (_) {
             curY += 20;
           }
         } else {
-          curY += 40;
+          curY += 30;
         }
 
-        // Şıklar (A, B, C, D)
-        const letters = ["A", "B", "C", "D"];
-        const optH = 95;
-        const optGap = 20;
+        const optH = 92;
+        const optGap = 18;
 
         q.options.forEach((opt, optI) => {
           ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
@@ -3034,7 +3444,6 @@ document.addEventListener("DOMContentLoaded", () => {
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Şık Dairesi
           ctx.fillStyle = "#FFFFFF";
           ctx.beginPath();
           ctx.arc(125, curY + optH / 2, 28, 0, Math.PI * 2);
@@ -3044,62 +3453,136 @@ document.addEventListener("DOMContentLoaded", () => {
           ctx.font = "900 30px system-ui, sans-serif";
           ctx.fillText(letters[optI], 114, curY + optH / 2 + 10);
 
-          // Şık Metni
           ctx.fillStyle = "#FFFFFF";
-          ctx.font = "800 32px system-ui, sans-serif";
-          ctx.fillText(opt, 180, curY + optH / 2 + 10);
+          ctx.font = "800 30px system-ui, sans-serif";
+          const cleanOpt = String(opt || "").replace(/^[A-D]\)\s*/, "");
+          ctx.fillText(cleanOpt, 180, curY + optH / 2 + 10);
 
           curY += optH + optGap;
         });
 
-      } else {
-        // Slayt 2: Çözüm ve Sınav Taktiği
+        // Instagram Anket / Quiz Çıkartma Alanı Rehberi
+        curY += 10;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        roundRect(ctx, 70, curY, W - 140, 80, 16);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#F5D0FE";
+        ctx.font = "800 24px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("[INSTAGRAM ANKET / QUIZ ÇIKARTMASI REHBER ALANI]", W / 2, curY + 48);
+        ctx.textAlign = "start";
+
+      } else if (slideToRender === 2) {
+        // Slayt 2: Merdiye Hoca Altın Taktiği & Çözüm Kartı
         ctx.fillStyle = "#FFFFFF";
-        roundRect(ctx, 70, curY, W - 140, 680, 32);
+        roundRect(ctx, 70, curY, W - 140, 560, 32);
         ctx.fill();
 
         ctx.fillStyle = "#059669";
-        ctx.font = "900 34px system-ui, sans-serif";
-        const letters = ["A", "B", "C", "D"];
-        const corLetter = letters[q.correctIndex || 0];
-        const corText = q.options[q.correctIndex || 0] || "";
+        ctx.font = "900 36px system-ui, sans-serif";
+        const corIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+        const corLetter = letters[corIdx] || "A";
+        const corRaw = (q.options && q.options[corIdx]) ? q.options[corIdx] : "";
+        const corText = String(corRaw).replace(/^[A-D]\)\s*/, "");
         ctx.fillText(`DOĞRU CEVAP: ${corLetter}) ${corText}`, 110, curY + 70);
 
         ctx.fillStyle = "#64748B";
         ctx.font = "800 24px system-ui, sans-serif";
-        ctx.fillText("ADIM ADIM MATEMATİKSEL ÇÖZÜM:", 110, curY + 130);
+        ctx.fillText("ADIM ADIM MATEMATİKSEL ÇÖZÜM REHBERİ:", 110, curY + 130);
 
         ctx.fillStyle = "#1E293B";
         ctx.font = "600 30px system-ui, sans-serif";
         const solLines = wrapText(ctx, q.explanation || "Adım adım çözüm rehberi.", W - 220);
         let solY = curY + 180;
-        solLines.slice(0, 10).forEach(line => {
+        solLines.slice(0, 8).forEach(line => {
           ctx.fillText(line, 110, solY);
           solY += 44;
         });
 
-        curY += 730;
+        curY += 610;
 
-        // Merdiye Hoca Altın Taktiği Kartı
+        // Merdiye Hoca Altın Taktiği Hero Kartı
         ctx.fillStyle = "#FEF3C7";
-        roundRect(ctx, 70, curY, W - 140, 340, 24);
+        roundRect(ctx, 70, curY, W - 140, 480, 28);
         ctx.fill();
 
         ctx.strokeStyle = "#F59E0B";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 5;
         ctx.stroke();
 
         ctx.fillStyle = "#B45309";
-        ctx.font = "900 30px system-ui, sans-serif";
-        ctx.fillText("MERDİYE HOCA ALTIN SINAV TAKTİĞİ:", 110, curY + 70);
+        ctx.font = "900 34px system-ui, sans-serif";
+        ctx.fillText("MERDİYE HOCA ALTIN SINAV TAKTİĞİ:", 110, curY + 75);
 
         ctx.fillStyle = "#78350F";
-        ctx.font = "800 32px system-ui, sans-serif";
+        ctx.font = "800 34px system-ui, sans-serif";
         const tacLines = wrapText(ctx, q.tactic || "Formülü hatırla, çeldiricilere dikkat et!", W - 220);
-        let tacY = curY + 130;
-        tacLines.slice(0, 4).forEach(l => {
+        let tacY = curY + 145;
+        tacLines.slice(0, 6).forEach(l => {
           ctx.fillText(l, 110, tacY);
-          tacY += 48;
+          tacY += 52;
+        });
+
+      } else {
+        // Slayt 3: Reels & Story Çoklu Soru Anketi Şablonu
+        ctx.fillStyle = "#FFFFFF";
+        roundRect(ctx, 70, curY, W - 140, 420, 32);
+        ctx.fill();
+
+        ctx.fillStyle = "#2563EB";
+        ctx.font = "900 28px system-ui, sans-serif";
+        ctx.fillText("LGS GÜNLÜK HIZLI ANKETİ & MEYDAN OKUMA", 110, curY + 60);
+
+        ctx.fillStyle = "#0F172A";
+        ctx.font = "700 34px system-ui, sans-serif";
+        const pollLines = wrapText(ctx, q.question, W - 220);
+        let pY = curY + 120;
+        pollLines.slice(0, 6).forEach(line => {
+          ctx.fillText(line, 110, pY);
+          pY += 46;
+        });
+
+        curY += 460;
+
+        const optH = 110;
+        const optGap = 20;
+
+        q.options.forEach((opt, optI) => {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+          roundRect(ctx, 70, curY, W - 140, optH, 22);
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          ctx.arc(130, curY + optH / 2, 32, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#1E293B";
+          ctx.font = "900 32px system-ui, sans-serif";
+          ctx.fillText(letters[optI], 118, curY + optH / 2 + 11);
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "800 32px system-ui, sans-serif";
+          const cleanOpt = String(opt || "").replace(/^[A-D]\)\s*/, "");
+          ctx.fillText(cleanOpt, 185, curY + optH / 2 + 11);
+
+          // Sağda Oy Ver Rozeti
+          ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+          roundRect(ctx, W - 240, curY + 30, 140, 50, 25);
+          ctx.fill();
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "800 22px system-ui, sans-serif";
+          ctx.fillText("OY VER", W - 208, curY + 62);
+
+          curY += optH + optGap;
         });
       }
 
@@ -3107,7 +3590,12 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.fillStyle = "#F5D0FE";
       ctx.font = "800 34px system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(currentStorySlide === 1 ? "Cevabını Yoruma Yaz! • Sola Kaydır" : "Merdiye Hoca ile 20'de 20 Hedefi!", W / 2, H - 120);
+      const ctaTexts = {
+        1: "Cevabını Yoruma Yaz! • Sola Kaydır",
+        2: "Merdiye Hoca ile 20'de 20 Hedefi!",
+        3: "Hikayeye Dokun ve Oyunu Kullan!"
+      };
+      ctx.fillText(ctaTexts[slideToRender] || "Merdiye Hocam LGS Matematik", W / 2, H - 120);
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
       ctx.font = "700 24px system-ui, sans-serif";
@@ -3118,16 +3606,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function roundRect(ctx, x, y, width, height, radius) {
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, radius);
+        return;
+      }
+      const r = Math.max(0, Math.min(radius || 0, width / 2, height / 2));
       ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + width - radius, y);
-      ctx.quadraticCurveTo(x + width, y + width, y + radius);
-      ctx.lineTo(x + width, y + height - radius);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-      ctx.lineTo(x + radius, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
+      if (r === 0) {
+        ctx.rect(x, y, width, height);
+        return;
+      }
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
       ctx.closePath();
     }
 
@@ -3152,46 +3650,104 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function loadSvgToImage(svgString) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
+        if (!svgString) return resolve(null);
+        let src = svgString;
+        if (!src.includes("xmlns=")) {
+          src = src.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
         const img = new Image();
-        const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+        const svgBlob = new Blob([src], { type: "image/svg+xml;charset=utf-8" });
         const url = URL.createObjectURL(svgBlob);
-        img.onload = () => {
-          resolve(img);
+        const timer = setTimeout(() => {
           URL.revokeObjectURL(url);
+          resolve(null);
+        }, 3500);
+        img.onload = () => {
+          clearTimeout(timer);
+          URL.revokeObjectURL(url);
+          resolve(img);
         };
-        img.onerror = () => resolve(null);
+        img.onerror = () => {
+          clearTimeout(timer);
+          URL.revokeObjectURL(url);
+          resolve(null);
+        };
         img.src = url;
       });
     }
 
-    downloadStoryPngBtn?.addEventListener("click", async () => {
-      downloadStoryPngBtn.disabled = true;
-      downloadStoryPngBtn.textContent = "Story PNG Oluşturuluyor...";
-      try {
-        const canvas = await renderStoryToCanvas();
-        if (!canvas) throw new Error("Canvas oluşturulamadı");
+    function loadImageFromUrl(url) {
+      return new Promise((resolve) => {
+        if (!url) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        const timer = setTimeout(() => resolve(null), 3500);
+        img.onload = () => {
+          clearTimeout(timer);
+          resolve(img);
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          resolve(null);
+        };
+        img.src = url;
+      });
+    }
 
+    async function downloadStorySlide(slideNum, silent = false) {
+      const q = currentAiQuestions[currentStoryQuestionIdx];
+      if (!q) {
+        showToast("İndirilecek soru bulunamadı.", "warning");
+        return;
+      }
+      try {
+        const canvas = await renderStoryToCanvas(slideNum);
+        if (!canvas) throw new Error("Canvas oluşturulamadı");
         const dataUrl = canvas.toDataURL("image/png");
         const a = document.createElement("a");
         a.href = dataUrl;
-        a.download = `merdiye_lgs_story_soru_${currentStoryQuestionIdx + 1}_slayt${currentStorySlide}.png`;
+        const slug = slideNum === 1 ? "soru" : (slideNum === 2 ? "altin_taktik" : "reels_anket");
+        a.download = `merdiye_lgs_story_soru_${currentStoryQuestionIdx + 1}_${slug}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-
-        showToast(`1080x1920 Instagram Story başarıyla indirildi! (Slayt ${currentStorySlide})`, "success");
+        if (!silent) {
+          const nameMap = { 1: "Soru Kartı", 2: "Merdiye Hoca Altın Taktiği Kartı", 3: "Reels / Anket Şablonu" };
+          showToast(`1080x1920 HD ${nameMap[slideNum]} başarıyla indirildi!`, "success");
+        }
       } catch (err) {
         showToast("Story indirme hatası: " + err.message, "error");
+      }
+    }
+
+    downloadStorySlide1Btn?.addEventListener("click", () => downloadStorySlide(1));
+    downloadStorySlide2Btn?.addEventListener("click", () => downloadStorySlide(2));
+    downloadStorySlide3Btn?.addEventListener("click", () => downloadStorySlide(3));
+
+    downloadStoryAllBtn?.addEventListener("click", async () => {
+      downloadStoryAllBtn.disabled = true;
+      downloadStoryAllBtn.textContent = "Tüm Kartlar İndiriliyor...";
+      try {
+        await downloadStorySlide(1, true);
+        await new Promise(r => setTimeout(r, 450));
+        await downloadStorySlide(2, true);
+        await new Promise(r => setTimeout(r, 450));
+        await downloadStorySlide(3, true);
+        showToast("Tüm story ve taktik kartları başarıyla indirildi!", "success");
+      } catch (e) {
+        showToast("Toplu indirme hatası: " + e.message, "error");
       } finally {
-        downloadStoryPngBtn.disabled = false;
-        downloadStoryPngBtn.textContent = "Instagram Story İndir (1080x1920 HD PNG)";
+        downloadStoryAllBtn.disabled = false;
+        downloadStoryAllBtn.textContent = "Tüm Kartları İndir (Soru + Taktik Paketi)";
       }
     });
 
+    downloadStoryPngBtn?.addEventListener("click", () => downloadStorySlide(currentStorySlide));
+
     copyStoryClipboardBtn?.addEventListener("click", async () => {
       try {
-        const canvas = await renderStoryToCanvas();
+        const canvas = await renderStoryToCanvas(currentStorySlide);
         if (!canvas) return;
 
         canvas.toBlob(async (blob) => {
@@ -3309,6 +3865,90 @@ document.addEventListener("DOMContentLoaded", () => {
       renderAiQuestions();
       customVisualModal?.classList.remove("active");
       showToast(`Soru ${visualTargetQuestionIdx + 1} için şekil/görsel başarıyla kaydedildi!`, "success");
+    });
+
+    // =========================================================================
+    // MODÜL 4: AI ile Soru Revize Etme & Düzeltme
+    // =========================================================================
+    const aiRevisionModal = document.getElementById("aiRevisionModal");
+    const closeAiRevisionModalBtn = document.getElementById("closeAiRevisionModalBtn");
+    const cancelAiRevisionBtn = document.getElementById("cancelAiRevisionBtn");
+    const confirmAiRevisionBtn = document.getElementById("confirmAiRevisionBtn");
+    const aiRevisionOriginalPreview = document.getElementById("aiRevisionOriginalPreview");
+    const aiRevisionPromptInput = document.getElementById("aiRevisionPromptInput");
+
+    let targetRevisionQuestionIdx = 0;
+
+    function openAiRevisionModal(idx) {
+      targetRevisionQuestionIdx = idx;
+      const q = currentAiQuestions[idx];
+      if (!q) return;
+
+      if (aiRevisionOriginalPreview) {
+        aiRevisionOriginalPreview.textContent = q.question || "";
+      }
+      if (aiRevisionPromptInput) {
+        aiRevisionPromptInput.value = "";
+      }
+      aiRevisionModal?.classList.add("active");
+    }
+
+    closeAiRevisionModalBtn?.addEventListener("click", () => aiRevisionModal?.classList.remove("active"));
+    cancelAiRevisionBtn?.addEventListener("click", () => aiRevisionModal?.classList.remove("active"));
+
+    document.querySelectorAll(".ai-rev-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const prompt = chip.dataset.prompt || "";
+        if (aiRevisionPromptInput) {
+          aiRevisionPromptInput.value = prompt;
+          aiRevisionPromptInput.focus();
+        }
+      });
+    });
+
+    confirmAiRevisionBtn?.addEventListener("click", async () => {
+      const q = currentAiQuestions[targetRevisionQuestionIdx];
+      if (!q) return;
+
+      const teacherPrompt = aiRevisionPromptInput ? aiRevisionPromptInput.value.trim() : "";
+      if (!teacherPrompt) {
+        showToast("Lütfen düzeltilmesini istediğiniz talimatı girin.", "warning");
+        return;
+      }
+
+      confirmAiRevisionBtn.disabled = true;
+      confirmAiRevisionBtn.textContent = "AI ile Revize Ediliyor...";
+
+      const geminiKey = geminiKeyInput ? geminiKeyInput.value.trim() : "";
+      try {
+        const revised = await window.MH_AI_GENERATOR.refineQuestionWithGemini(geminiKey, q, teacherPrompt);
+        revised.approved = true;
+        currentAiQuestions[targetRevisionQuestionIdx] = revised;
+        renderAiQuestions();
+        aiRevisionModal?.classList.remove("active");
+        showToast(`Soru ${targetRevisionQuestionIdx + 1} başarıyla revize edildi!`, "success");
+      } catch (err) {
+        console.error("[AI Revision] Hata:", err);
+        showToast("Revize sırasında hata oluştu: " + err.message, "error");
+      } finally {
+        confirmAiRevisionBtn.disabled = false;
+        confirmAiRevisionBtn.textContent = "AI ile Soruyu Düzelt ve Yenile";
+      }
+    });
+
+    // =========================================================================
+    // MODÜL 5: AI İnceleme Merkezinden Haftalık Deneme Yayınlama Butonu
+    // =========================================================================
+    document.getElementById("publishFromAiToWeeklyBtn")?.addEventListener("click", () => {
+      let chosen = currentAiQuestions.filter(q => q.approved);
+      if (chosen.length === 0) {
+        chosen = [...currentAiQuestions];
+      }
+      if (chosen.length === 0) {
+        showToast("Önce soru üretmeniz gerekir.", "warning");
+        return;
+      }
+      openPublishWeeklyModalWithQuestions(chosen);
     });
 
   }

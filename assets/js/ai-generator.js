@@ -1299,11 +1299,22 @@
     };
   }
 
-  function generateLocalQuestions(grade, topic, difficulty, count) {
+  function generateLocalQuestions(grade, topic, difficulty, count, visualMode) {
     const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 20);
     const results = [];
     for (let i = 0; i < safeCount; i++) {
-      results.push(generateLocalQuestion(grade, topic, difficulty, i));
+      const q = generateLocalQuestion(grade, topic, difficulty, i);
+      if (visualMode === "visual") {
+        q.diagramSvg = createTopicSvgDiagram(topic, difficulty);
+      } else if (visualMode === "text") {
+        q.diagramSvg = null;
+      } else if (visualMode === "auto") {
+        const tLower = String(topic || "").toLowerCase();
+        if (tLower.includes("üçgen") || tLower.includes("geometri") || tLower.includes("grafik") || tLower.includes("eğim") || tLower.includes("koordinat")) {
+          q.diagramSvg = createTopicSvgDiagram(topic, difficulty);
+        }
+      }
+      results.push(q);
     }
     return results;
   }
@@ -1362,7 +1373,135 @@
     return { success: false, error: lastErr || "Baglanti saglanamadi" };
   }
 
-  async function generateGeminiQuestions(apiKey, grade, topic, difficulty, count, pattern) {
+  // 4b. Vektorel Soru Gorseli & Sekil Uretici (createTopicSvgDiagram)
+  function createTopicSvgDiagram(topic, difficulty) {
+    const t = String(topic || "").toLowerCase();
+    
+    // 1. Ucgenler & Pisagor Teoremi
+    if (t.includes("üçgen") || t.includes("pisagor") || t.includes("ucgen")) {
+      return `<svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <polygon points="60,120 300,120 300,30" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2.5" />
+        <rect x="280" y="100" width="20" height="20" fill="none" stroke="#7C3AED" stroke-width="1.5" />
+        <circle cx="290" cy="110" r="2.5" fill="#7C3AED" />
+        <text x="175" y="135" font-size="13" font-weight="700" fill="#1E1B4B" text-anchor="middle">a = 12 cm</text>
+        <text x="325" y="80" font-size="13" font-weight="700" fill="#1E1B4B">b = 9 cm</text>
+        <text x="160" y="65" font-size="13" font-weight="800" fill="#B45309">c = ?</text>
+        <text x="45" y="130" font-size="13" font-weight="800" fill="#6D28D9">A</text>
+        <text x="310" y="130" font-size="13" font-weight="800" fill="#6D28D9">B</text>
+        <text x="300" y="22" font-size="13" font-weight="800" fill="#6D28D9">C</text>
+      </svg>`;
+    }
+    
+    // 2. Dogrusal Denklemler & Egim
+    if (t.includes("eğim") || t.includes("doğrusal") || t.includes("egim") || t.includes("koordinat")) {
+      return `<svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <line x1="40" y1="120" x2="360" y2="120" stroke="#94A3B8" stroke-width="1.5" />
+        <line x1="80" y1="135" x2="80" y2="15" stroke="#94A3B8" stroke-width="1.5" />
+        <line x1="80" y1="110" x2="320" y2="25" stroke="#7C3AED" stroke-width="3" />
+        <circle cx="80" cy="110" r="4" fill="#6D28D9" />
+        <circle cx="320" cy="25" r="4" fill="#6D28D9" />
+        <text x="365" y="125" font-size="12" font-weight="700" fill="#64748B">x (Zaman/saat)</text>
+        <text x="85" y="20" font-size="12" font-weight="700" fill="#64748B">y (Yol/km)</text>
+        <text x="190" y="55" font-size="12" font-weight="800" fill="#7C3AED">Egim = 3/4</text>
+        <line x1="320" y1="25" x2="320" y2="120" stroke="#CBD5E1" stroke-dasharray="4" stroke-width="1.5" />
+      </svg>`;
+    }
+
+    // 3. Carpanlar ve Katlar / EBOB-EKOK / Raf Kurgusu
+    if (t.includes("çarpan") || t.includes("ebob") || t.includes("ekok") || t.includes("carpan")) {
+      return `<svg viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <rect x="40" y="20" width="320" height="40" rx="4" fill="#F1F5F9" stroke="#64748B" stroke-width="2" />
+        <rect x="42" y="22" width="50" height="36" fill="#DDD6FE" stroke="#7C3AED" stroke-width="1.5" />
+        <rect x="94" y="22" width="50" height="36" fill="#DDD6FE" stroke="#7C3AED" stroke-width="1.5" />
+        <text x="67" y="44" font-size="11" font-weight="700" fill="#5B21B6" text-anchor="middle">12 cm</text>
+        <text x="119" y="44" font-size="11" font-weight="700" fill="#5B21B6" text-anchor="middle">12 cm</text>
+        <text x="250" y="44" font-size="12" font-weight="700" fill="#64748B">... Raf 1</text>
+        <rect x="40" y="70" width="320" height="40" rx="4" fill="#F1F5F9" stroke="#64748B" stroke-width="2" />
+        <rect x="42" y="72" width="70" height="36" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5" />
+        <rect x="114" y="72" width="70" height="36" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5" />
+        <text x="77" y="94" font-size="11" font-weight="700" fill="#92400E" text-anchor="middle">18 cm</text>
+        <text x="149" y="94" font-size="11" font-weight="700" fill="#92400E" text-anchor="middle">18 cm</text>
+        <text x="270" y="94" font-size="12" font-weight="700" fill="#64748B">... Raf 2</text>
+      </svg>`;
+    }
+
+    // 4. Karekoklu Ifadeler / Sayi Dogrusu
+    if (t.includes("karekök") || t.includes("karekok")) {
+      return `<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <line x1="30" y1="75" x2="370" y2="75" stroke="#334155" stroke-width="2" />
+        <line x1="70" y1="65" x2="70" y2="85" stroke="#334155" stroke-width="2" />
+        <line x1="140" y1="65" x2="140" y2="85" stroke="#334155" stroke-width="2" />
+        <line x1="210" y1="65" x2="210" y2="85" stroke="#334155" stroke-width="2" />
+        <line x1="280" y1="65" x2="280" y2="85" stroke="#334155" stroke-width="2" />
+        <line x1="350" y1="65" x2="350" y2="85" stroke="#334155" stroke-width="2" />
+        <text x="70" y="105" font-size="13" font-weight="700" fill="#1E293B" text-anchor="middle">5</text>
+        <text x="140" y="105" font-size="13" font-weight="700" fill="#1E293B" text-anchor="middle">6</text>
+        <text x="210" y="105" font-size="13" font-weight="700" fill="#1E293B" text-anchor="middle">7</text>
+        <text x="280" y="105" font-size="13" font-weight="700" fill="#1E293B" text-anchor="middle">8</text>
+        <text x="350" y="105" font-size="13" font-weight="700" fill="#1E293B" text-anchor="middle">9</text>
+        <circle cx="185" cy="75" r="6" fill="#DC2626" />
+        <text x="185" y="45" font-size="13" font-weight="800" fill="#DC2626" text-anchor="middle">K Noktasi (Karekok 45)</text>
+        <line x1="185" y1="52" x2="185" y2="67" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="2" />
+      </svg>`;
+    }
+
+    // 5. Cebirsel Ifadeler / Geometrik Alan
+    if (t.includes("cebir") || t.includes("özdeşlik") || t.includes("ozdeslik")) {
+      return `<svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <rect x="70" y="20" width="160" height="100" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2" />
+        <rect x="180" y="20" width="50" height="50" fill="#FEE2E2" stroke="#EF4444" stroke-width="2" />
+        <text x="150" y="135" font-size="13" font-weight="700" fill="#1E1B4B" text-anchor="middle">x cm</text>
+        <text x="50" y="75" font-size="13" font-weight="700" fill="#1E1B4B">y cm</text>
+        <text x="205" y="48" font-size="11" font-weight="800" fill="#DC2626" text-anchor="middle">Kesilen</text>
+        <text x="110" y="80" font-size="12" font-weight="800" fill="#6D28D9" text-anchor="middle">Kalan Alan</text>
+      </svg>`;
+    }
+
+    // 6. Veri Analizi / Grafik
+    if (t.includes("veri") || t.includes("grafik") || t.includes("istatistik")) {
+      return `<svg viewBox="0 0 400 135" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <line x1="50" y1="115" x2="350" y2="115" stroke="#64748B" stroke-width="1.5" />
+        <rect x="80" y="45" width="40" height="70" fill="#7C3AED" rx="3" />
+        <rect x="145" y="25" width="40" height="90" fill="#3B82F6" rx="3" />
+        <rect x="210" y="60" width="40" height="55" fill="#10B981" rx="3" />
+        <rect x="275" y="35" width="40" height="80" fill="#F59E0B" rx="3" />
+        <text x="100" y="130" font-size="11" font-weight="700" fill="#475569" text-anchor="middle">A Sinifi</text>
+        <text x="165" y="130" font-size="11" font-weight="700" fill="#475569" text-anchor="middle">B Sinifi</text>
+        <text x="230" y="130" font-size="11" font-weight="700" fill="#475569" text-anchor="middle">C Sinifi</text>
+        <text x="295" y="130" font-size="11" font-weight="700" fill="#475569" text-anchor="middle">D Sinifi</text>
+        <text x="100" y="38" font-size="11" font-weight="800" fill="#7C3AED" text-anchor="middle">70</text>
+        <text x="165" y="18" font-size="11" font-weight="800" fill="#3B82F6" text-anchor="middle">90</text>
+        <text x="230" y="53" font-size="11" font-weight="800" fill="#10B981" text-anchor="middle">55</text>
+        <text x="295" y="28" font-size="11" font-weight="800" fill="#F59E0B" text-anchor="middle">80</text>
+      </svg>`;
+    }
+
+    // 7. Geometrik Cisimler (Silindir, Prizma)
+    if (t.includes("cisim") || t.includes("silindir") || t.includes("prizma") || t.includes("hacim")) {
+      return `<svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <ellipse cx="200" cy="35" rx="70" ry="18" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2" />
+        <line x1="130" y1="35" x2="130" y2="105" stroke="#7C3AED" stroke-width="2" />
+        <line x1="270" y1="35" x2="270" y2="105" stroke="#7C3AED" stroke-width="2" />
+        <ellipse cx="200" cy="105" rx="70" ry="18" fill="#DDD6FE" stroke="#7C3AED" stroke-width="2" />
+        <line x1="200" y1="35" x2="270" y2="35" stroke="#B45309" stroke-width="1.5" stroke-dasharray="3" />
+        <text x="235" y="28" font-size="11" font-weight="800" fill="#B45309">r = 4 cm</text>
+        <text x="285" y="75" font-size="12" font-weight="800" fill="#7C3AED">h = 10 cm</text>
+      </svg>`;
+    }
+
+    // 8. Olasilik / Cember / Temel Geometri Genel Sablon
+    return `<svg viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+      <rect x="50" y="20" width="300" height="90" rx="8" fill="#F8FAFC" stroke="#64748B" stroke-width="2" />
+      <circle cx="110" cy="65" r="30" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2" />
+      <rect x="180" y="40" width="50" height="50" fill="#FEF3C7" stroke="#D97706" stroke-width="2" />
+      <polygon points="280,90 310,40 340,90" fill="#DCFCE7" stroke="#16A34A" stroke-width="2" />
+      <text x="110" y="70" font-size="11" font-weight="800" fill="#7C3AED" text-anchor="middle">r=3</text>
+      <text x="205" y="70" font-size="11" font-weight="800" fill="#D97706" text-anchor="middle">a=5</text>
+      <text x="310" y="80" font-size="11" font-weight="800" fill="#16A34A" text-anchor="middle">h=6</text>
+    </svg>`;
+  }
+
+  async function generateGeminiQuestions(apiKey, grade, topic, difficulty, count, pattern, visualMode) {
     const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 20);
     const candidateModels = [
       "gemini-2.5-flash",
@@ -1410,6 +1549,13 @@
     const diffPrompt = diffDescriptions[difficulty] || diffDescriptions.yeni_nesil;
     const patternPrompt = patternDescriptions[pattern] || patternDescriptions.otomatik;
 
+    let visualInstruction = "- Gorsel/Sekil Destegi (diagramSvg): Eger soru geometri, sayi dogrusu, alan, koordinat veya grafik iceriyorsa, sorunun metniyle tam uyumlu, temiz ve responsive <svg viewBox=\"0 0 400 130\" xmlns=\"http://www.w3.org/2000/svg\">...</svg> kodu olustur. Gerekmiyorsa null veya bos string birak.";
+    if (visualMode === "visual") {
+      visualInstruction = "- ZORUNLU GORSELLI SORU KURALI: Uretilen tum sorular KESINLIKLE gorselli/sekilli bir soru olmalidir. diagramSvg alanina sorunun geometri veya grafik kurgusuna %100 tam uyumlu temiz ve responsive <svg viewBox=\"0 0 400 130\" xmlns=\"http://www.w3.org/2000/svg\">...</svg> kodu ekle.";
+    } else if (visualMode === "text") {
+      visualInstruction = "- ZORUNLU METIN SORUSU KURALI: Uretilen tum sorular sekilsiz, gunluk hayat senaryolu ve metin tabanli problem olmalidir. diagramSvg alani null olmalidir.";
+    }
+
     const promptText = `Sen Merdiye Hoca'sin (Turkiye'nin onde gelen LGS Matematik Ogretmeni).
 2026 MEB Matematik Mufredatina tam uyumlu, pedagojik olarak kusursuz sorular uret.
 Kesin kurallar:
@@ -1421,8 +1567,7 @@ Kesin kurallar:
 - Sifir emoji kurali: Cevabinda ASLA ve KESINLIKLE hicbir emoji, simge veya grafik piktogram kullanma!
 - Her sorunun 4 sikki (A, B, C, D) olmali, sadece tek bir sik kesinlikle dogru olmali, diger 3 sik ogrencilerin dusebilecegi gercekci celdiriciler olmali.
 - Her sorunun ayrintili adim adim cozumu ve Merdiye Hoca Sinav Taktigi bulunmali.
-
-- Gorsel/Sekil Destegi (diagramSvg): Eger soru geometri, sayi dogrusu, alan, koordinat veya grafik iceriyorsa, sorunun metniyle tam uyumlu, temiz ve responsive <svg viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg">...</svg> kodu olustur. Gerekmiyorsa null veya bos string birak.
+${visualInstruction}
 
 CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDUR, BASKA HICBIR ACIKLAMA METNI VEYA MARKDOWN ETIKETI YAZMA:
 [
@@ -1432,7 +1577,7 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     "correctIndex": 0,
     "explanation": "Adim adim matematiksel cozum...",
     "tactic": "Merdiye Hoca Sinav Taktigi: Kisa ve vurucu sinav ipucu...",
-    "diagramSvg": "<svg viewBox=\"0 0 400 130\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>"
+    "diagramSvg": "<svg viewBox=\\"0 0 400 130\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg>"
   }
 ]`;
 
@@ -1456,9 +1601,10 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     for (const keyCandidate of keysToTry) {
       for (const modelName of candidateModels) {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(keyCandidate)}`;
+        let timeoutId = null;
         try {
           const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-          const timeoutId = controller ? setTimeout(() => controller.abort(), 45000) : null;
+          timeoutId = controller ? setTimeout(() => controller.abort(), 45000) : null;
 
           const res = await fetch(endpoint, {
             method: "POST",
@@ -1475,14 +1621,15 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
           } else {
             const errText = await res.text();
             lastError = `Model ${modelName} (${res.status}): ${errText.slice(0, 120)}`;
-            // 401/403 (Gecersiz API Anahtari): Diger modelleri bekleyip zaman kaybetme, derhal sonraki calisan anahtara gec!
-            if (res.status === 401 || res.status === 403) {
+            // 400/401/403 (Gecersiz API Anahtari): Diger modelleri bekleyip zaman kaybetme, derhal sonraki calisan anahtara gec!
+            if (res.status === 400 || res.status === 401 || res.status === 403) {
               break;
             }
           }
         } catch (netErr) {
           lastError = netErr.message;
-          // Zaman asimi veya iptal durumunda diger modele gec
+        } finally {
+          if (timeoutId) clearTimeout(timeoutId);
         }
       }
     }
@@ -1494,11 +1641,21 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) throw new Error("Gemini API'den bos yanit dondu.");
 
-    const cleanedJson = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
-    const parsedList = JSON.parse(cleanedJson);
+    let parsedList = null;
+    try {
+      const arrStart = rawText.indexOf("[");
+      const arrEnd = rawText.lastIndexOf("]");
+      const arrCandidate = (arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart)
+        ? rawText.substring(arrStart, arrEnd + 1)
+        : rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      parsedList = JSON.parse(arrCandidate);
+    } catch (_) {
+      parsedList = null;
+    }
 
     if (!Array.isArray(parsedList) || parsedList.length === 0) {
-      throw new Error("Gemini API yaniti beklenen JSON formatinda degil.");
+      console.warn("[Gemini API] Yanit JSON listesi formatinda degil, yerel ureticiye geciliyor.");
+      return generateLocalQuestions(grade, topic, difficulty, safeCount, visualMode);
     }
 
     const diffLabels = {
@@ -1509,28 +1666,270 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
       lgs_cikmis: "LGS Çıkmış Soru Klonu (MEB)"
     };
 
-    return parsedList.slice(0, safeCount).map((item, idx) => ({
-      id: "ai_" + Date.now() + "_" + (idx + 1),
-      grade: String(grade),
-      gradeLabel: `${grade}. Sinif`,
-      topic: topic,
-      difficulty: difficulty,
-      difficultyLabel: diffLabels[difficulty] || "Orta",
-      question: String(item.question || "").trim(),
+    return parsedList.slice(0, safeCount).map((item, idx) => {
+      let finalSvg = null;
+      if (visualMode === "text") {
+        finalSvg = null;
+      } else if (typeof item.diagramSvg === "string" && item.diagramSvg.includes("<svg")) {
+        finalSvg = item.diagramSvg.trim();
+      } else if (visualMode === "visual") {
+        finalSvg = createTopicSvgDiagram(topic, difficulty);
+      } else {
+        const tLower = String(topic || "").toLowerCase();
+        if (tLower.includes("üçgen") || tLower.includes("geometri") || tLower.includes("grafik") || tLower.includes("eğim") || tLower.includes("koordinat")) {
+          finalSvg = createTopicSvgDiagram(topic, difficulty);
+        }
+      }
+
+      return {
+        id: "ai_" + Date.now() + "_" + (idx + 1),
+        grade: String(grade),
+        gradeLabel: `${grade}. Sınıf`,
+        topic: topic,
+        difficulty: difficulty,
+        difficultyLabel: diffLabels[difficulty] || "Orta",
+        question: String(item.question || "").trim(),
+        options: Array.isArray(item.options) && item.options.length === 4
+          ? item.options.map(o => String(o).trim())
+          : ["A", "B", "C", "D"],
+        correctIndex: typeof item.correctIndex === "number" && item.correctIndex >= 0 && item.correctIndex <= 3
+          ? item.correctIndex
+          : 0,
+        explanation: String(item.explanation || "Detayli adim adim cozum.").trim(),
+        tactic: String(item.tactic || "Merdiye Hoca Sinav Taktigi: Formulu hatirla, soruyu dikkatle oku.").trim(),
+        diagramSvg: finalSvg,
+        tableHtml: typeof item.tableHtml === "string" ? item.tableHtml.trim() : null,
+        approved: true,
+        engine: "Google Gemini 2.5 Flash",
+        createdAt: new Date().toISOString()
+      };
+    });
+  }
+
+  // 5b. Dahili Cerrahi Revize Motoru (Cevrimdisi / Guvenli Yedek)
+  function refineQuestionLocally(originalQuestion, teacherPrompt) {
+    const p = String(teacherPrompt || "").toLowerCase();
+    const letters = ["A", "B", "C", "D"];
+    const baseOpts = Array.isArray(originalQuestion.options) ? [...originalQuestion.options] : ["A", "B", "C", "D"];
+    let curCorrectIdx = typeof originalQuestion.correctIndex === "number"
+      ? originalQuestion.correctIndex
+      : (typeof originalQuestion.correct_index === "number" ? originalQuestion.correct_index : 0);
+    let questionText = String(originalQuestion.question || "");
+    let explanationText = String(originalQuestion.explanation || originalQuestion.solution || "Adım adım çözüm.");
+    let tacticText = String(originalQuestion.tactic || "Merdiye Hoca Sınav Taktiği: Çeldiricileri ele, formülü kontrollü uygula.");
+    let diagramSvg = originalQuestion.diagramSvg || null;
+
+    // 1. Dogru sikki degistirme talebi
+    let targetIdx = -1;
+    if (p.includes("a yap") || p.includes("şıkkı a") || p.includes("sikki a")) targetIdx = 0;
+    else if (p.includes("b yap") || p.includes("şıkkı b") || p.includes("sikki b")) targetIdx = 1;
+    else if (p.includes("c yap") || p.includes("şıkkı c") || p.includes("sikki c")) targetIdx = 2;
+    else if (p.includes("d yap") || p.includes("şıkkı d") || p.includes("sikki d")) targetIdx = 3;
+
+    if (targetIdx !== -1 && targetIdx !== curCorrectIdx && baseOpts.length === 4) {
+      const correctVal = baseOpts[curCorrectIdx];
+      const targetVal = baseOpts[targetIdx];
+      baseOpts[targetIdx] = correctVal;
+      baseOpts[curCorrectIdx] = targetVal;
+      curCorrectIdx = targetIdx;
+      explanationText = `Revize Çözüm: İşlem basamakları incelendiğinde doğru sonucun ${letters[targetIdx]} seçeneği olduğu görülür.`;
+    }
+
+    // 2. Sayilari sadelestir / kucult talebi
+    if (p.includes("küçült") || p.includes("kucult") || p.includes("sadeleştir") || p.includes("sadelestir")) {
+      questionText = questionText.replace(/\b([2-9]\d{1,2})\b/g, (m) => Math.max(2, Math.round(parseInt(m, 10) / 2)));
+      for (let i = 0; i < baseOpts.length; i++) {
+        baseOpts[i] = baseOpts[i].replace(/\b([2-9]\d{1,2})\b/g, (m) => Math.max(2, Math.round(parseInt(m, 10) / 2)));
+      }
+      explanationText += " (Sayılar öğretmen talimatına göre sadeleştirilmiştir).";
+    }
+
+    // 3. Olumsuz soru koku talebi
+    if (p.includes("olumsuz") || p.includes("olamaz") || p.includes("değildir") || p.includes("degildir")) {
+      if (!questionText.includes("olamaz") && !questionText.includes("değildir")) {
+        questionText = questionText.replace(/kaçtır\?|hangisidir\?|hesaplayınız\./i, "aşağıdakilerden hangisi olamaz?");
+      }
+    }
+
+    // 4. Gorsel / Cizim ekleme talebi
+    if (p.includes("görsel") || p.includes("gorsel") || p.includes("şekil") || p.includes("sekil") || p.includes("çizim") || p.includes("cizim")) {
+      diagramSvg = createTopicSvgDiagram(originalQuestion.topic, originalQuestion.difficulty);
+    }
+
+    return {
+      id: originalQuestion.id || ("ai_rev_" + Date.now()),
+      grade: originalQuestion.grade || "8",
+      gradeLabel: originalQuestion.gradeLabel || `${originalQuestion.grade || 8}. Sınıf`,
+      topic: originalQuestion.topic || "LGS Matematik",
+      difficulty: originalQuestion.difficulty || "yeni_nesil",
+      difficultyLabel: originalQuestion.difficultyLabel || "Yeni Nesil",
+      question: questionText.trim(),
+      options: baseOpts,
+      correctIndex: curCorrectIdx,
+      explanation: explanationText.trim(),
+      tactic: tacticText.trim(),
+      diagramSvg: diagramSvg,
+      tableHtml: originalQuestion.tableHtml || null,
+      imageUrl: originalQuestion.imageUrl || null,
+      approved: true,
+      engine: "Dahili Matematik Motoru (Öğretmen Revizesi)",
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  // 5c. Tekil Soruyu Ogretmen Promptu ile AI ile Duzelt / Revize Et (refineQuestionWithGemini)
+  async function refineQuestionWithGemini(apiKey, originalQuestion, teacherPrompt) {
+    if (!originalQuestion || !teacherPrompt) {
+      throw new Error("Mevcut soru ve ogretmen duzeltme promptu gereklidir.");
+    }
+    const candidateModels = [
+      "gemini-2.5-flash",
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-lite"
+    ];
+
+    const rawKeys = [];
+    if (apiKey && typeof apiKey === "string" && apiKey.trim().length > 10) {
+      if (apiKey.trim() === DEFAULT_FALLBACK_KEY) {
+        rawKeys.push(DEFAULT_PRIMARY_KEY);
+        rawKeys.push(DEFAULT_FALLBACK_KEY);
+      } else {
+        rawKeys.push(apiKey.trim());
+        rawKeys.push(DEFAULT_PRIMARY_KEY);
+      }
+    } else {
+      rawKeys.push(DEFAULT_PRIMARY_KEY);
+      rawKeys.push(DEFAULT_FALLBACK_KEY);
+    }
+    const keysToTry = rawKeys.filter((k, idx, arr) => arr.indexOf(k) === idx);
+
+    const promptText = `Sen Merdiye Hoca'sin (Turkiye'nin onde gelen LGS Matematik Ogretmeni).
+Asagidaki MEB LGS Matematik sorusunu, ogretmenin verdigi revizyon talimatina gore DUZELT VE YENIDEN YAZ.
+
+MEVCUT SORU:
+${JSON.stringify({
+  grade: originalQuestion.grade || "8",
+  topic: originalQuestion.topic || "",
+  question: originalQuestion.question || "",
+  options: originalQuestion.options || [],
+  correctIndex: originalQuestion.correctIndex || 0,
+  explanation: originalQuestion.explanation || "",
+  tactic: originalQuestion.tactic || ""
+}, null, 2)}
+
+OGRETMENIN DUZELTME TALIMATI (PROMPT):
+"${teacherPrompt}"
+
+KESIN KURALLAR:
+1. Ogretmenin talimatini harfiyen uygula (sayilari kucult/buyut, sik degistir, hikayeyi guncelle, soruyu olumsuz yap vb.).
+2. Soru 4 sikli (A, B, C, D) olmali, sadece tek bir kesin dogru cevabi olmali.
+3. Sifir emoji kurali: Kesinlikle hicbir emoji kullanma.
+4. Adim adim cozum ve Merdiye Hoca Sinav Taktigi bolumlerini yeni soruya gore guncelle.
+5. Eger soru gorselli ise ya da ogretmen sekil istediyse, temiz ve responsive <svg viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg">...</svg> kodu olustur.
+
+CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA TEK BIR NESNE OLARAK DONDUR (baska hicbir yazi veya markdown olmamali):
+{
+  "question": "Revize edilmis soru metni...",
+  "options": ["Sik 1", "Sik 2", "Sik 3", "Sik 4"],
+  "correctIndex": 0,
+  "explanation": "Guncellenmis adim adim cozum...",
+  "tactic": "Merdiye Hoca Sinav Taktigi: Guncel ipucu...",
+  "diagramSvg": "<svg viewBox=\\"0 0 400 130\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg>"
+}`;
+
+    const requestBody = {
+      contents: [{ parts: [{ text: promptText }] }],
+      generationConfig: {
+        temperature: 0.3,
+        responseMimeType: "application/json"
+      }
+    };
+
+    let data = null;
+    let lastError = null;
+
+    keyLoop:
+    for (const keyCandidate of keysToTry) {
+      for (const modelName of candidateModels) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(keyCandidate)}`;
+        let timeoutId = null;
+        try {
+          const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+          timeoutId = controller ? setTimeout(() => controller.abort(), 45000) : null;
+
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+            signal: controller ? controller.signal : undefined
+          });
+
+          if (timeoutId) clearTimeout(timeoutId);
+
+          if (res.ok) {
+            data = await res.json();
+            break keyLoop;
+          } else {
+            const errText = await res.text();
+            lastError = `Model ${modelName} (${res.status}): ${errText.slice(0, 120)}`;
+            if (res.status === 400 || res.status === 401 || res.status === 403) break;
+          }
+        } catch (netErr) {
+          lastError = netErr.message;
+          break;
+        } finally {
+          if (timeoutId) clearTimeout(timeoutId);
+        }
+      }
+    }
+
+    if (!data) {
+      console.warn(`[AI Revision] Gemini baglantisi saglanamadi (${lastError || "Cevrimdisi"}). Yerel cerrahi motorla revize ediliyor.`);
+      return refineQuestionLocally(originalQuestion, teacherPrompt);
+    }
+
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) {
+      return refineQuestionLocally(originalQuestion, teacherPrompt);
+    }
+
+    let item = null;
+    try {
+      const objStart = rawText.indexOf("{");
+      const objEnd = rawText.lastIndexOf("}");
+      const objCandidate = (objStart !== -1 && objEnd !== -1 && objEnd > objStart)
+        ? rawText.substring(objStart, objEnd + 1)
+        : rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      item = JSON.parse(objCandidate);
+    } catch (_) {
+      return refineQuestionLocally(originalQuestion, teacherPrompt);
+    }
+
+    return {
+      id: originalQuestion.id || ("ai_rev_" + Date.now()),
+      grade: originalQuestion.grade || "8",
+      gradeLabel: originalQuestion.gradeLabel || `${originalQuestion.grade || 8}. Sınıf`,
+      topic: originalQuestion.topic || "LGS Matematik",
+      difficulty: originalQuestion.difficulty || "yeni_nesil",
+      difficultyLabel: originalQuestion.difficultyLabel || "Yeni Nesil",
+      question: String(item.question || originalQuestion.question).trim(),
       options: Array.isArray(item.options) && item.options.length === 4
         ? item.options.map(o => String(o).trim())
-        : ["A", "B", "C", "D"],
+        : originalQuestion.options,
       correctIndex: typeof item.correctIndex === "number" && item.correctIndex >= 0 && item.correctIndex <= 3
         ? item.correctIndex
-        : 0,
-      explanation: String(item.explanation || "Detayli adim adim cozum.").trim(),
-      tactic: String(item.tactic || "Merdiye Hoca Sinav Taktigi: Formulu hatirla, soruyu dikkatle oku.").trim(),
-      diagramSvg: (typeof item.diagramSvg === "string" && item.diagramSvg.includes("<svg")) ? item.diagramSvg.trim() : createTopicSvgDiagram(topic, difficulty),
-      tableHtml: typeof item.tableHtml === "string" ? item.tableHtml.trim() : null,
+        : (originalQuestion.correctIndex || 0),
+      explanation: String(item.explanation || originalQuestion.explanation).trim(),
+      tactic: String(item.tactic || originalQuestion.tactic).trim(),
+      diagramSvg: (typeof item.diagramSvg === "string" && item.diagramSvg.includes("<svg"))
+        ? item.diagramSvg.trim()
+        : (originalQuestion.diagramSvg || null),
+      tableHtml: originalQuestion.tableHtml || null,
+      imageUrl: originalQuestion.imageUrl || null,
       approved: true,
-      engine: "Google Gemini 2.5 Flash",
-      createdAt: new Date().toISOString()
-    }));
+      engine: "Google Gemini 2.5 Flash (Revize)",
+      updatedAt: new Date().toISOString()
+    };
   }
 
   // 6. A4 Ogretmen Sinav & Calisma Kagidi HTML Cikti Olusturucu
@@ -1592,10 +1991,11 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
       `;
 
       q.options.forEach((optText, optIdx) => {
+        const cleanOpt = String(optText || "").replace(/^[A-D]\)\s*/, "");
         html += `
           <div class="exam-option-line">
             <span class="exam-opt-letter">${letters[optIdx]})</span>
-            <span class="exam-opt-content">${escapeHtml(optText)}</span>
+            <span class="exam-opt-content">${escapeHtml(cleanOpt)}</span>
           </div>
         `;
       });
@@ -1645,7 +2045,8 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
       `;
 
       questions.forEach((q) => {
-        const letter = letters[q.correctIndex] || "A";
+        const cIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+        const letter = letters[cIdx] || "A";
         html += `<td class="matrix-key-cell">${letter}</td>`;
       });
 
@@ -1662,7 +2063,8 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
 
       questions.forEach((q, idx) => {
         const qNum = idx + 1;
-        const letter = letters[q.correctIndex] || "A";
+        const cIdx = typeof q.correctIndex === "number" ? q.correctIndex : (typeof q.correct_index === "number" ? q.correct_index : 0);
+        const letter = letters[cIdx] || "A";
         html += `
           <div class="teacher-sol-item">
             <div class="teacher-sol-title">
@@ -1699,6 +2101,8 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     generateLocalQuestion,
     generateLocalQuestions,
     generateGeminiQuestions,
+    refineQuestionWithGemini,
+    createTopicSvgDiagram,
     testGeminiConnection,
     buildPrintableExamHtml
   };
