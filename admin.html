@@ -6,7 +6,7 @@
   <title>Merdiye Hocam | Yönetim Paneli &amp; Sosyal Medya Merkezi</title>
   
   <link rel="icon" type="image/svg+xml" href="assets/images/logo-icon.svg">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261106_3">
   <style>
     /* Admin Panel Dedicated Styles (White & Lila) */
     .admin-layout {
@@ -1104,7 +1104,8 @@
         box-shadow: none !important;
       }
       #examPrintModal .modal-dialog,
-      #examPrintModal.active .modal-dialog {
+      #examPrintModal.active .modal-dialog,
+      .exam-print-modal-dialog {
         position: static !important;
         max-width: 100% !important;
         width: 100% !important;
@@ -1114,6 +1115,8 @@
         padding: 0 !important;
         margin: 0 !important;
         overflow: visible !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
         max-height: none !important;
         height: auto !important;
       }
@@ -2269,9 +2272,9 @@
 
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <button type="button" id="cancelExamPrintBtn" class="btn btn-secondary btn-sm">Kapat</button>
-            <button type="button" id="openExamInNewTabBtn" class="btn btn-secondary btn-sm" style="font-weight: 700;">
-              Yeni Sekmede Aç &amp; Yazdır
-            </button>
+            <a href="exam-print.html?autoprint=1" target="_blank" id="openExamInNewTabBtn" class="btn btn-secondary btn-sm" style="font-weight: 800; display: inline-flex; align-items: center; text-decoration: none;">
+              Yeni Sekmede Aç &amp; Yazdır (Önerilen)
+            </a>
             <button type="button" id="triggerBrowserPrintBtn" class="btn btn-primary btn-sm" style="background: #0F172A; border-color: #0F172A; font-weight: 800;">
               Yazdır / PDF Olarak Kaydet (A4)
             </button>
@@ -2299,7 +2302,7 @@
     }
   </script>
   <script src="assets/js/supabase-client.js"></script>
-  <script src="assets/js/ai-generator.js"></script>
-  <script src="assets/js/admin.js"></script>
+  <script src="assets/js/ai-generator.js?v=20261106_3"></script>
+  <script src="assets/js/admin.js?v=20261106_3"></script>
 </body>
 </html>

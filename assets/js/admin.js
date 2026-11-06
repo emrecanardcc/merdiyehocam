@@ -2323,6 +2323,24 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
 
+    function syncExamPrintStorage(sheetHtml, options, count) {
+      const payload = {
+        html: sheetHtml,
+        title: options.examTitle,
+        questionCount: count,
+        schoolName: options.schoolName,
+        gradeText: options.gradeText,
+        topicText: options.topicText,
+        timestamp: Date.now()
+      };
+      try {
+        localStorage.setItem("merdiye_exam_print_data", JSON.stringify(payload));
+        sessionStorage.setItem("merdiye_exam_print_data", JSON.stringify(payload));
+      } catch (err) {
+        console.warn("Could not save exam print data to storage:", err);
+      }
+    }
+
     function updatePrintPreview() {
       if (!printableArea) return;
 
@@ -2339,10 +2357,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const options = getPrintOptions(questionsToPrint);
-      printableArea.innerHTML = window.MH_AI_GENERATOR.buildPrintableExamHtml(questionsToPrint, options);
+      const sheetHtml = window.MH_AI_GENERATOR.buildPrintableExamHtml(questionsToPrint, options);
+      printableArea.innerHTML = sheetHtml;
+      syncExamPrintStorage(sheetHtml, options, questionsToPrint.length);
+
+      const newTabBtn = document.getElementById("openExamInNewTabBtn");
+      if (newTabBtn) {
+        newTabBtn.setAttribute("href", "exam-print.html?autoprint=1");
+        newTabBtn.setAttribute("target", "_blank");
+      }
     }
 
-    // Kusursuz A4 Çıktı & Bağımsız Yazdırma Penceresi (Asla Boş PDF Üretmez)
+    // Kusursuz A4 Çıktı & Bağımsız Yazdırma Motoru (Asla Boş PDF Üretmez)
     function executeCleanA4Print() {
       updatePrintPreview();
       const questionsToPrint = getQuestionsForPrint();
@@ -2354,162 +2380,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const options = getPrintOptions(questionsToPrint);
       const sheetHtml = window.MH_AI_GENERATOR.buildPrintableExamHtml(questionsToPrint, options);
+      syncExamPrintStorage(sheetHtml, options, questionsToPrint.length);
 
-      // 1. Yöntem: Bağımsız temiz yazdırma penceresi (Admin paneli stilleriyle çakışmaz)
+      // 1. En Güvenilir Yöntem: Bağımsız A4 exam-print.html sayfasını yeni sekmede aç ve yazdır
       try {
-        const printWin = window.open("", "_blank", "width=850,height=950");
+        const printWin = window.open("exam-print.html?autoprint=1", "_blank");
         if (printWin) {
-          printWin.document.open();
-          printWin.document.write(`<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <title>${escapeHtml(options.examTitle)}</title>
-  <style>
-    @page { size: A4 portrait; margin: 12mm 14mm 14mm 14mm; }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      background: #FFFFFF !important;
-      color: #000000 !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      font-size: 10pt;
-      line-height: 1.45;
-      overflow: visible !important;
-    }
-    .exam-sheet-root { width: 100%; max-width: 100%; }
-    .exam-header-box {
-      border: 2px solid #1E1B4B;
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      background: #FAF8FE;
-    }
-    .exam-header-top { text-align: center; margin-bottom: 6px; }
-    .exam-logo-text { font-size: 8pt; font-weight: 800; color: #7C3AED; letter-spacing: 1px; display: block; }
-    .exam-school-name { font-size: 11pt; font-weight: 900; color: #1E1B4B; text-transform: uppercase; margin: 2px 0; }
-    .exam-main-title { font-size: 10pt; font-weight: 800; color: #4338CA; border-bottom: 1.5px solid #DDD6FE; padding-bottom: 4px; }
-    .exam-student-info-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 6px 12px;
-      font-size: 8.5pt;
-      padding: 6px 0;
-      border-bottom: 1px dashed #CBD5E1;
-    }
-    .exam-info-cell { color: #334155; }
-    .exam-grade-cell { font-size: 9pt; font-weight: 800; color: #7C3AED; }
-    .exam-instructions-line { font-size: 7.5pt; color: #64748B; font-style: italic; margin-top: 4px; text-align: center; }
-
-    /* İki Sütunlu Sayfa Düzeni */
-    .exam-questions-container.two-column-layout {
-      columns: 2;
-      column-gap: 22px;
-      column-rule: 1px dashed #CBD5E1;
-      width: 100%;
-    }
-    .exam-question-item {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
-      display: inline-block;
-      width: 100%;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px dotted #E2E8F0;
-    }
-    .exam-question-item:last-child { border-bottom: none; }
-    .exam-question-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
-    .exam-q-num {
-      background: #1E1B4B;
-      color: #FFFFFF;
-      font-weight: 900;
-      font-size: 8pt;
-      padding: 2px 7px;
-      border-radius: 4px;
-      flex-shrink: 0;
-    }
-    .exam-q-unit-tag { font-size: 7pt; color: #64748B; font-weight: 700; text-transform: uppercase; }
-    .exam-q-text { font-size: 9.5pt; color: #0F172A; line-height: 1.45; margin-bottom: 8px; text-align: justify; }
-    .exam-q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; margin-bottom: 8px; font-size: 8.5pt; }
-    .exam-q-opt { display: flex; gap: 4px; align-items: baseline; }
-    .exam-opt-lbl { font-weight: 800; color: #1E1B4B; }
-    .exam-opt-txt { color: #1E293B; }
-    .exam-scratch-area {
-      border: 1px dashed #CBD5E1;
-      background: #F8FAFC;
-      border-radius: 4px;
-      height: 60px;
-      position: relative;
-      margin-top: 4px;
-    }
-    .exam-scratch-lbl {
-      position: absolute;
-      top: 3px;
-      right: 6px;
-      font-size: 6.5pt;
-      color: #94A3B8;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    /* Öğretmen Cevap Anahtarı Sayfası */
-    .exam-page-break {
-      page-break-before: always !important;
-      break-before: page !important;
-      height: 0;
-      margin: 0;
-      border: none;
-    }
-    .exam-teacher-key-sheet {
-      page-break-before: always !important;
-      break-before: page !important;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 2px solid #7C3AED;
-    }
-    .exam-teacher-key-header { text-align: center; margin-bottom: 12px; }
-    .exam-teacher-key-header h3 { font-size: 11pt; font-weight: 900; color: #7C3AED; }
-    .exam-teacher-key-header p { font-size: 8pt; color: #64748B; font-weight: 700; }
-    .exam-matrix-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 8pt; text-align: center; }
-    .exam-matrix-table th, .exam-matrix-table td { border: 1px solid #CBD5E1; padding: 4px 6px; }
-    .exam-matrix-table th { background: #F1F5F9; font-weight: 800; color: #1E1B4B; }
-    .exam-matrix-table td b { color: #7C3AED; font-weight: 900; }
-    .teacher-sol-item {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
-      margin-bottom: 10px;
-      padding: 8px 10px;
-      background: #FAF8FE;
-      border-left: 3px solid #7C3AED;
-      border-radius: 4px;
-      font-size: 8pt;
-    }
-    .teacher-sol-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .teacher-sol-ans { color: #7C3AED; font-weight: 800; }
-    .teacher-sol-explanation { color: #334155; line-height: 1.4; margin-bottom: 4px; }
-    .teacher-sol-tactic { color: #B45309; font-size: 7.5pt; font-weight: 700; }
-  </style>
-</head>
-<body>
-  ${sheetHtml}
-  <script>
-    window.addEventListener("load", function () {
-      setTimeout(function () {
-        window.focus();
-        window.print();
-      }, 350);
-    });
-  <\/script>
-</body>
-</html>`);
-          printWin.document.close();
-          showToast("A4 sınav kağıdı yazdırma penceresinde açıldı.", "success");
+          showToast("A4 sınav kağıdı yazdırma sayfası yeni sekmede açıldı.", "success");
           return;
         }
       } catch (e) {
-        console.warn("[Print] Pencere açma engellendi, dahili pencere tetikleniyor:", e);
+        console.warn("[Print] Pencere açma engellendi:", e);
       }
 
-      // 2. Yöntem (Yedek): Popup engellenirse mevcut sayfadan yazdır
+      // 2. Yedek Yöntem: Tarayıcı popup'ı engellerse sayfadan doğrudan yazdır
       window.print();
     }
 
