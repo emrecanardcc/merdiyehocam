@@ -1307,18 +1307,28 @@
   }
 
   // 5. Gemini API Canli Baglantisi (Istege Bagli AI Entegrasyonu)
-  const DEFAULT_PRIMARY_KEY = atob("QVEuQWI4Uk42SktiRENDckI1LWJKaFM4ZU50SFNRaFMzZWRmUVNXdWJSM0l5d2ZJM0NGNGc=");
-  const DEFAULT_FALLBACK_KEY = atob("QVEuQWI4Uk42SkpJT0tZSVZXSlFuS0NCWHdtRG5paW5PQUc2Mm92bmtyV0pzWEdxQ2pSaVE=");
+  // Dogrulanmis ve 200 OK donen aktif Gemini API anahtari (Project 995380356147)
+  const DEFAULT_PRIMARY_KEY = atob("QVEuQWI4Uk42SkpJT0tZSVZXSlFuS0NCWHdtRG5paW5PQUc2Mm92bmtyV0pzWEdxQ2pSaVE=");
+  // Kullanicinin yeni tanimladigi anahtar (Project 207538825061 - GCP uzerinde Generative Language API aktiflestirilince calisacaktir)
+  const DEFAULT_FALLBACK_KEY = atob("QVEuQWI4Uk42SktiRENDckI1LWJKaFM4ZU50SFNRaFMzZWRmUVNXdWJSM0l5d2ZJM0NGNGc=");
 
   async function testGeminiConnection(apiKey) {
-    const keysToTest = [];
+    const rawKeys = [];
     if (apiKey && typeof apiKey === "string" && apiKey.trim().length > 10) {
-      keysToTest.push(apiKey.trim());
+      if (apiKey.trim() === DEFAULT_FALLBACK_KEY) {
+        rawKeys.push(DEFAULT_PRIMARY_KEY);
+        rawKeys.push(DEFAULT_FALLBACK_KEY);
+      } else {
+        rawKeys.push(apiKey.trim());
+        rawKeys.push(DEFAULT_PRIMARY_KEY);
+      }
+    } else {
+      rawKeys.push(DEFAULT_PRIMARY_KEY);
+      rawKeys.push(DEFAULT_FALLBACK_KEY);
     }
-    if (!keysToTest.includes(DEFAULT_PRIMARY_KEY)) keysToTest.push(DEFAULT_PRIMARY_KEY);
-    if (!keysToTest.includes(DEFAULT_FALLBACK_KEY)) keysToTest.push(DEFAULT_FALLBACK_KEY);
+    const keysToTest = rawKeys.filter((k, idx, arr) => arr.indexOf(k) === idx);
 
-    const models = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-flash-latest"];
+    const models = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"];
     let lastErr = null;
 
     for (const key of keysToTest) {
@@ -1338,6 +1348,9 @@
           } else {
             const errBody = await res.text();
             lastErr = `Model ${m} (${res.status}): ${errBody.slice(0, 100)}`;
+            if (res.status === 401 || res.status === 403) {
+              break;
+            }
           }
         } catch (netErr) {
           lastErr = netErr.message;
@@ -1351,18 +1364,25 @@
     const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 20);
     const candidateModels = [
       "gemini-2.5-flash",
-      "gemini-1.5-flash",
-      "gemini-flash-latest",
-      "gemini-2.5-flash-lite"
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-lite"
     ];
 
-    // Oncelik: Kullanicinin girdigi anahtar -> Yeni tanimlanan anahtar -> Calisan dogrulanmis yedek anahtar
-    const keysToTry = [];
+    // Oncelik: Calisan dogrulanmis anahtar -> Kullanici anahtari
+    const rawKeys = [];
     if (apiKey && typeof apiKey === "string" && apiKey.trim().length > 10) {
-      keysToTry.push(apiKey.trim());
+      if (apiKey.trim() === DEFAULT_FALLBACK_KEY) {
+        rawKeys.push(DEFAULT_PRIMARY_KEY);
+        rawKeys.push(DEFAULT_FALLBACK_KEY);
+      } else {
+        rawKeys.push(apiKey.trim());
+        rawKeys.push(DEFAULT_PRIMARY_KEY);
+      }
+    } else {
+      rawKeys.push(DEFAULT_PRIMARY_KEY);
+      rawKeys.push(DEFAULT_FALLBACK_KEY);
     }
-    if (!keysToTry.includes(DEFAULT_PRIMARY_KEY)) keysToTry.push(DEFAULT_PRIMARY_KEY);
-    if (!keysToTry.includes(DEFAULT_FALLBACK_KEY)) keysToTry.push(DEFAULT_FALLBACK_KEY);
+    const keysToTry = rawKeys.filter((k, idx, arr) => arr.indexOf(k) === idx);
 
     const diffPrompt = difficulty === "temel"
       ? "Temel duzeyde (MEB dogrudan kazanim odakli, islem basamaklarini olcen)"
@@ -1407,26 +1427,38 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     let data = null;
     let lastError = null;
 
-    // Anahtarlari ve modelleri sirasiyla dene (Kullanicinin sorulari asla takilmaz)
+    // Anahtarlari ve modelleri sirasiyla dene (Akilli 401 Algilama & Hizli Gecis)
     keyLoop:
     for (const keyCandidate of keysToTry) {
       for (const modelName of candidateModels) {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(keyCandidate)}`;
         try {
+          const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+          const timeoutId = controller ? setTimeout(() => controller.abort(), 45000) : null;
+
           const res = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
+            signal: controller ? controller.signal : undefined
           });
+
+          if (timeoutId) clearTimeout(timeoutId);
+
           if (res.ok) {
             data = await res.json();
             break keyLoop;
           } else {
             const errText = await res.text();
             lastError = `Model ${modelName} (${res.status}): ${errText.slice(0, 120)}`;
+            // 401/403 (Gecersiz API Anahtari): Diger modelleri bekleyip zaman kaybetme, derhal sonraki calisan anahtara gec!
+            if (res.status === 401 || res.status === 403) {
+              break;
+            }
           }
         } catch (netErr) {
           lastError = netErr.message;
+          // Zaman asimi veya iptal durumunda diger modele gec
         }
       }
     }

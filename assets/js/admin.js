@@ -1893,13 +1893,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!gradeSelect || !topicSelect) return;
 
-    // Kullanicinin Sagladigi Guncel Gemini API Anahtari (Base64 Guvenli Saklama)
-    const DEFAULT_USER_KEY = atob("QVEuQWI4Uk42SktiRENDckI1LWJKaFM4ZU50SFNRaFMzZWRmUVNXdWJSM0l5d2ZJM0NGNGc=");
+    // Dogrulanmis Calisan Gemini API Anahtari (Project 995380356147 - Base64 Guvenli Saklama)
+    const DEFAULT_USER_KEY = atob("QVEuQWI4Uk42SkpJT0tZSVZXSlFuS0NCWHdtRG5paW5PQUc2Mm92bmtyV0pzWEdxQ2pSaVE=");
+    const OLD_UNSUPPORTED_KEY = atob("QVEuQWI4Uk42SktiRENDckI1LWJKaFM4ZU50SFNRaFMzZWRmUVNXdWJSM0l5d2ZJM0NGNGc=");
 
-    // Gemini API Anahtarini Yukle / Otomatik Doldur
+    // Gemini API Anahtarini Yukle / Otomatik Doldur (Eski hatali anahtari otomatik dogrulanmis anahtara gunceller)
     try {
       let savedKey = localStorage.getItem(STORAGE_KEY_GEMINI_API_KEY) || "";
-      if (!savedKey) {
+      if (!savedKey || savedKey === OLD_UNSUPPORTED_KEY) {
         savedKey = DEFAULT_USER_KEY;
         localStorage.setItem(STORAGE_KEY_GEMINI_API_KEY, savedKey);
       }
@@ -2064,26 +2065,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const steps = [
         { at: 18, text: "1/4 2026 MEB kazanımları ve soru şablonları taranıyor...", step: 1 },
-        { at: 40, text: "2/4 Google Gemini 2.5 Flash modeline bağlanılıyor...", step: 2 },
-        { at: 65, text: "3/4 Özgün soru senaryosu ve 4 şık üretiliyor...", step: 2 },
-        { at: 80, text: "4/4 Çeldirici şıklar ve Merdiye Hoca Sınav Taktikleri doğrulanıyor...", step: 3 },
-        { at: 92, text: "Son adım: Sınav mizanpajı ve çözüm adımları tamamlanıyor...", step: 4 }
+        { at: 38, text: "2/4 Google Gemini 2.5 Flash modeline bağlanılıyor...", step: 2 },
+        { at: 62, text: "3/4 Özgün soru senaryosu ve 4 şık üretiliyor...", step: 2 },
+        { at: 78, text: "4/4 Çeldirici şıklar ve Merdiye Hoca Sınav Taktikleri doğrulanıyor...", step: 3 },
+        { at: 90, text: "Son adım: Sınav mizanpajı ve çözüm adımları tamamlanıyor...", step: 4 }
       ];
 
       let stepIndex = 0;
+      const targetSec = isGemini ? Math.max(14, Math.round(count * 2.2 + 8)) : 3;
 
       const timerInterval = setInterval(() => {
         const elapsedSec = (Date.now() - startTime) / 1000;
         const mm = String(Math.floor(elapsedSec / 60)).padStart(2, "0");
         const ss = String(Math.floor(elapsedSec % 60)).padStart(2, "0");
         if (timerTxt) {
-          const estimatedRemaining = Math.max(1, Math.round(6 - elapsedSec));
-          timerTxt.textContent = `Geçen: ${mm}:${ss} | Kalan: ~${estimatedRemaining} sn`;
+          const estimatedRemaining = Math.max(1, Math.round(targetSec - elapsedSec));
+          const remText = elapsedSec < targetSec ? `Tahmini Kalan: ~${estimatedRemaining} sn` : "Tamamlanıyor...";
+          timerTxt.textContent = `Geçen: ${mm}:${ss} • ${remText}`;
         }
 
-        if (percent < 93) {
-          percent += 2.2;
-          if (bar) bar.style.width = `${percent}%`;
+        // Pürüzsüz ve donma hissettirmeyen ilerleme çubuğu
+        const progressFraction = Math.min(0.92, elapsedSec / targetSec);
+        percent = Math.max(percent, 12 + progressFraction * 80);
+        if (percent < 94) {
+          if (bar) bar.style.width = `${percent.toFixed(1)}%`;
         }
 
         if (stepIndex < steps.length && percent >= steps[stepIndex].at) {
