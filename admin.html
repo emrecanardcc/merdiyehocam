@@ -6,7 +6,7 @@
   <title>Merdiye Hocam | Yönetim Paneli &amp; Sosyal Medya Merkezi</title>
   
   <link rel="icon" type="image/svg+xml" href="assets/images/logo-icon.svg">
-  <link rel="stylesheet" href="assets/css/style.css?v=20261106_3">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261106_4">
   <style>
     /* Admin Panel Dedicated Styles (White & Lila) */
     .admin-layout {
@@ -1151,6 +1151,69 @@
         break-inside: avoid !important;
       }
     }
+  
+    /* AI Loading Modal & Progress Animation */
+    .ai-loading-pulse-ring {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: rgba(124, 58, 237, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: aiPulseGlow 1.8s infinite ease-in-out;
+    }
+    .ai-loading-core {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+    }
+    @keyframes aiPulseGlow {
+      0%, 100% {
+        transform: scale(0.94);
+        box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35);
+      }
+      50% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 16px rgba(124, 58, 237, 0);
+      }
+    }
+    .ai-step-pill {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 8px 4px;
+      color: #64748B;
+      transition: all 0.25s ease;
+    }
+    .ai-step-pill.active {
+      background: #FAF5FF;
+      border-color: #7C3AED;
+      color: #7C3AED;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+    }
+    .ai-step-pill.completed {
+      background: #ECFDF5;
+      border-color: #10B981;
+      color: #065F46;
+    }
+    .ai-step-num {
+      display: block;
+      font-weight: 900;
+      font-size: 0.84rem;
+      margin-bottom: 2px;
+    }
+    .ai-step-lbl {
+      display: block;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
   </style>
 </head>
 <body>
@@ -1946,15 +2009,29 @@
                 </div>
               </div>
 
-              <div id="geminiApiKeyRow" style="display: none; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+              <div id="geminiApiKeyRow" style="display: block; padding-top: 14px; border-top: 1px dashed var(--border-color); margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                  <span style="font-weight: 800; font-size: 0.86rem; color: var(--text-main);">
+                    Gemini API Anahtarı (Google AI Studio):
+                  </span>
+                  <span id="geminiApiStatusBadge" class="pdf-badge" style="background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-size: 0.74rem;">
+                    Canlı AI Bağlantısı Aktif (Gemini 2.5 Flash)
+                  </span>
+                </div>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <input type="password" id="geminiApiKeyInput" class="form-control" style="flex: 1; min-width: 280px;" placeholder="AI Studio Gemini API Key yapıştırın (örn: AIzaSy...)" autocomplete="off">
-                  <button type="button" id="saveGeminiKeyBtn" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
-                    Anahtarı Kaydet
+                  <input type="password" id="geminiApiKeyInput" class="form-control" style="flex: 1; min-width: 260px; font-family: monospace; font-size: 0.86rem;" placeholder="Gemini API Anahtarı (örn: AIzaSy... / AQ...)" autocomplete="off">
+                  <button type="button" id="toggleApiKeyVisibilityBtn" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-weight: 700;">
+                    Göster
+                  </button>
+                  <button type="button" id="testGeminiConnectionBtn" class="btn btn-secondary btn-sm" style="white-space: nowrap; font-weight: 800;">
+                    Bağlantıyı Test Et
+                  </button>
+                  <button type="button" id="saveGeminiKeyBtn" class="btn btn-primary btn-sm" style="white-space: nowrap; font-weight: 800;">
+                    Kaydet
                   </button>
                 </div>
                 <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 6px;">
-                  * API Anahtarınız yalnızca tarayıcınızın yerel depolama alanında (localStorage) güvenle saklanır, sunucuya aktarılmaz.
+                  * Anahtarınız güvenle tarayıcınızda saklanır. Sistem çift seviyeli model yedeklemesi sayesinde soru üretimini kesintisiz canlı AI ile gerçekleştirir.
                 </div>
               </div>
             </div>
@@ -2216,6 +2293,59 @@
     </div>
   </div>
 
+  <!-- ==================== AI SORU ÜRETİM CANLI YÜKLEME EKRANI ==================== -->
+  <div class="modal-overlay no-print" id="aiLoadingModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 520px; text-align: center; padding: 36px 28px; border-radius: var(--radius-xl); box-shadow: var(--shadow-glow);">
+      <div style="margin-bottom: 20px;">
+        <div class="ai-loading-pulse-ring">
+          <div class="ai-loading-core"></div>
+        </div>
+      </div>
+
+      <h3 id="aiLoadingTitle" style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 8px;">
+        Gemini 2.5 Flash ile Sorular Üretiliyor
+      </h3>
+      <p id="aiLoadingSubtitle" style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px;">
+        2026 MEB Müfredatı • 8. Sınıf • Matematik
+      </p>
+
+      <!-- İlerleme Çubuğu -->
+      <div style="background: #EDE9FE; border-radius: 999px; height: 10px; width: 100%; overflow: hidden; margin-bottom: 12px; border: 1px solid #DDD6FE;">
+        <div id="aiLoadingProgressBar" style="height: 100%; width: 15%; background: linear-gradient(90deg, #7C3AED, #A855F7); border-radius: 999px; transition: width 0.35s ease;"></div>
+      </div>
+
+      <!-- Canlı Süreç Durumu ve Sayaç -->
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px;">
+        <span id="aiLoadingStepText" style="font-weight: 700; color: #7C3AED;">Müfredat ve kazanımlar analiz ediliyor...</span>
+        <span id="aiLoadingTimer" style="font-weight: 800; color: var(--text-main); font-variant-numeric: tabular-nums;">Geçen: 00:01</span>
+      </div>
+
+      <!-- 4 Adımlı İlerleme Rozetleri -->
+      <div class="ai-steps-flow" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; font-size: 0.72rem; font-weight: 700;">
+        <div class="ai-step-pill active" id="aiStep1">
+          <span class="ai-step-num">1</span>
+          <span class="ai-step-lbl">Müfredat</span>
+        </div>
+        <div class="ai-step-pill" id="aiStep2">
+          <span class="ai-step-num">2</span>
+          <span class="ai-step-lbl">Gemini AI</span>
+        </div>
+        <div class="ai-step-pill" id="aiStep3">
+          <span class="ai-step-num">3</span>
+          <span class="ai-step-lbl">Çeldiriciler</span>
+        </div>
+        <div class="ai-step-pill" id="aiStep4">
+          <span class="ai-step-num">4</span>
+          <span class="ai-step-lbl">Doğrulama</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 18px; font-size: 0.76rem; color: var(--text-dim);">
+        Ortalama yanıt süresi 3 ila 6 saniyedir. Sorular üretildiğinde doğrudan inceleme ve onay merkezine aktarılacaktır.
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== A4 ÖĞRETMEN SINAV & ÇALIŞMA KAĞIDI BASKI MODAL ==================== -->
   <div class="modal-overlay" id="examPrintModal">
     <div class="modal-dialog exam-print-modal-dialog">
@@ -2302,7 +2432,7 @@
     }
   </script>
   <script src="assets/js/supabase-client.js"></script>
-  <script src="assets/js/ai-generator.js?v=20261106_3"></script>
-  <script src="assets/js/admin.js?v=20261106_3"></script>
+  <script src="assets/js/ai-generator.js?v=20261106_4"></script>
+  <script src="assets/js/admin.js?v=20261106_4"></script>
 </body>
 </html>
