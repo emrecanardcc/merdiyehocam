@@ -590,6 +590,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (targetTab === "questionsTab") {
         loadQuestions();
       }
+
+      if (window.innerWidth <= 900) {
+        item.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        const adminMain = document.querySelector(".admin-main");
+        if (adminMain) {
+          adminMain.scrollIntoView({ behavior: "smooth" });
+        }
+      }
     });
   });
 
@@ -970,8 +978,8 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: "pdf-10", unit: "5. Ünite", term: "2. Dönem", category: "term2", title: "Pisagor Bağıntısı ve Özel Üçgenler", filename: "10_Pisagor_Bagintisi_ve_Ozel_Ucgenler.pdf", file_size: "105 KB", badge: "En Çok Soru Çıkan" },
       { id: "pdf-11", unit: "5. Ünite", term: "2. Dönem", category: "term2", title: "Eşlik ve Benzerlik Kuralları", filename: "11_Eslik_ve_Benzerlik.pdf", file_size: "104 KB", badge: "Şekil Yorumlama" },
       { id: "pdf-12", unit: "6. Ünite", term: "2. Dönem", category: "term2", title: "Geometrik Cisimler (Prizma, Silindir, Koni)", filename: "12_Geometrik_Cisimler.pdf", file_size: "105 KB", badge: "LGS Son Ünite" },
-      { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", badge: " EN ÇOK İNDİRİLEN" },
-      { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", badge: " 2025/2026 PROVA" }
+      { id: "pdf-13", unit: "Tüm Konular", term: "Genel Tekrar", category: "summary", title: "LGS Matematik Altın Formüller & Sınav Taktikleri", filename: "13_LGS_Matematik_Altin_Formuller_Kitapcigi.pdf", file_size: "106 KB", badge: "EN ÇOK İNDİRİLEN" },
+      { id: "pdf-14", unit: "Genel Deneme", term: "Deneme Sınavı", category: "trial", title: "LGS Matematik Yeni Nesil Pro Deneme - 1", filename: "14_LGS_Matematik_Yeni_Nesil_Pro_Deneme_1.pdf", file_size: "104 KB", badge: "2025/2026 PROVA" }
     ];
     updatePdfMap();
     renderAdminPDFTable();

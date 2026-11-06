@@ -1497,6 +1497,20 @@ button, input, select, textarea {
   border-color: #FECACA;
 }
 
+.quiz-step-btn.active.correct {
+  background: #059669 !important;
+  color: #FFFFFF !important;
+  border-color: #047857 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35) !important;
+}
+
+.quiz-step-btn.active.wrong {
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
+  border-color: #B91C1C !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35) !important;
+}
+
 .quiz-header-meta {
   display: flex;
   justify-content: space-between;
@@ -2789,10 +2803,21 @@ button, input, select, textarea {
     text-align: center !important;
     padding: 11px 8px !important;
     font-size: 0.84rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     border-radius: 0 !important;
     border: none !important;
     border-right: 1px solid var(--border-color) !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+    background: #FFFFFF !important;
+    color: var(--text-muted) !important;
+    transition: background 0.2s ease, color 0.2s ease !important;
+  }
+  .sim-mode-tab.active {
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
   }
   .sim-mode-tab:last-child {
     border-right: none !important;
@@ -3005,6 +3030,8 @@ button, input, select, textarea {
     background: #CBD5E1 !important;
     border-radius: 999px !important;
     margin: 0 auto 10px !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
   .modal-close {
     top: 10px !important;

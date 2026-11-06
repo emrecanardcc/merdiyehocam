@@ -223,17 +223,29 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeCatalog = [];
   const pdfMap = new Map();
 
+  function normalizeText(str) {
+    return (str || "")
+      .toLowerCase()
+      .replace(/ı/g, "i")
+      .replace(/ğ/g, "g")
+      .replace(/ü/g, "u")
+      .replace(/ş/g, "s")
+      .replace(/ö/g, "o")
+      .replace(/ç/g, "c");
+  }
+
   function setCatalog(items) {
     pdfMap.clear();
     activeCatalog = (items || []).map(item => {
       const topics = Array.isArray(item.topics) ? item.topics : [];
       const topicsStr = topics.join(" ");
-      const searchCorpus = (
+      const rawCorpus = (
         (item.title || "") + " " +
         (item.subtitle || "") + " " +
         (item.unit || "") + " " +
         topicsStr
-      ).toLowerCase();
+      );
+      const searchCorpus = normalizeText(rawCorpus);
 
       const isGold = String(item.badge || "").toLowerCase().indexOf("altın") !== -1;
       const badgeClass = isGold ? "pdf-badge gold" : "pdf-badge";
@@ -274,12 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.MH_DB && typeof window.MH_DB.getPdfs === "function") {
         const dbCatalog = await window.MH_DB.getPdfs();
         if (Array.isArray(dbCatalog) && dbCatalog.length > 0) {
-          activeCatalog = dbCatalog.map(item => ({
-            ...item,
-            fileUrl: item.file_url || item.fileUrl || `assets/pdf/${item.filename}`,
-            fileSize: item.file_size || item.fileSize || "105 KB"
-          }));
-          renderPDFs();
+          setCatalog(dbCatalog);
           return;
         }
       }
@@ -290,12 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          activeCatalog = data.map(item => ({
-            ...item,
-            fileUrl: item.file_url || item.fileUrl || `assets/pdf/${item.filename}`,
-            fileSize: item.file_size || item.fileSize || "105 KB"
-          }));
-          renderPDFs();
+          setCatalog(data);
           return;
         }
       }
@@ -309,12 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (resJson.ok) {
         const data = await resJson.json();
         if (Array.isArray(data) && data.length > 0) {
-          activeCatalog = data.map(item => ({
-            ...item,
-            fileUrl: item.file_url || item.fileUrl || `assets/pdf/${item.filename}`,
-            fileSize: item.file_size || item.fileSize || "105 KB"
-          }));
-          renderPDFs();
+          setCatalog(data);
           return;
         }
       }
@@ -352,7 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPDFs() {
     if (!pdfGrid) return;
 
-    const query = searchQuery.trim().toLowerCase();
+    const query = normalizeText(searchQuery.trim());
     const hasQuery = query.length > 0;
     const isAll = currentCategory === "all";
     const isPopular = currentCategory === "popular";
@@ -362,7 +359,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const item = activeCatalog[i];
       const matchCat = isAll ? true : (isPopular ? item.popular : item.category === currentCategory);
       if (!matchCat) continue;
-      if (hasQuery && item._searchCorpus.indexOf(query) === -1) continue;
+      const corpus = item._searchCorpus || normalizeText((item.title || "") + " " + (item.subtitle || "") + " " + (item.unit || ""));
+      if (hasQuery && corpus.indexOf(query) === -1) continue;
       filtered.push(item);
     }
 
@@ -568,6 +566,17 @@ document.addEventListener("DOMContentLoaded", () => {
     modalOverlay.addEventListener("click", (e) => {
       if (e.target === modalOverlay) modalOverlay.classList.remove("active");
     });
+
+    const sheetHandle = modalOverlay.querySelector(".mobile-sheet-handle");
+    if (sheetHandle) {
+      sheetHandle.addEventListener("click", () => modalOverlay.classList.remove("active"));
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalOverlay.classList.contains("active")) {
+        modalOverlay.classList.remove("active");
+      }
+    });
   }
 
   // Search & Filter Listeners
@@ -667,7 +676,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!correctInput || !wrongInput || !netDisplay) return;
 
-    function recalculate() {
+    function recalculate(source) {
       let correct = parseInt(correctInput.value, 10);
       let wrong = parseInt(wrongInput.value, 10);
 
@@ -678,18 +687,29 @@ document.addEventListener("DOMContentLoaded", () => {
         correct = 20;
         correctInput.value = 20;
       }
-      if (correct + wrong > 20) {
-        wrong = 20 - correct;
-        wrongInput.value = wrong;
+      if (wrong > 20) {
+        wrong = 20;
+        wrongInput.value = 20;
       }
 
+      if (correct + wrong > 20) {
+        if (source === "wrong") {
+          correct = Math.max(0, 20 - wrong);
+          correctInput.value = correct;
+        } else {
+          wrong = Math.max(0, 20 - correct);
+          wrongInput.value = wrong;
+        }
+      }
+
+      const emptyCount = Math.max(0, 20 - (correct + wrong));
       const netRaw = correct - (wrong / 3.0);
       const net = Math.max(0.0, parseFloat(netRaw.toFixed(2)));
       const estimatedMathScore = parseFloat((net * 4.3).toFixed(1));
 
       netDisplay.textContent = net.toFixed(2);
       if (scoreDisplay) {
-        scoreDisplay.textContent = `+${estimatedMathScore} Puan LGS Etkisi`;
+        scoreDisplay.textContent = `+${estimatedMathScore} Puan LGS Etkisi (${correct} D, ${wrong} Y, ${emptyCount} B)`;
       }
       if (typeof renderSchoolSimulator === "function") {
         renderSchoolSimulator(net);
@@ -712,8 +732,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    correctInput.addEventListener("input", recalculate);
-    wrongInput.addEventListener("input", recalculate);
+    correctInput.addEventListener("input", () => recalculate("correct"));
+    wrongInput.addEventListener("input", () => recalculate("wrong"));
     recalculate();
   }
 
@@ -918,6 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentQuizIndex = 0;
   const userAnswers = {};
+  const userSelections = {};
   let activeQuizList = [...QUIZ_QUESTIONS];
 
   async function initQuiz() {
@@ -938,6 +959,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!questionText || !optionsGrid) return;
 
+    let selectedOptionIndex = null;
+
     optionsGrid.addEventListener("click", (e) => {
       const card = e.target.closest(".quiz-option-card");
       if (!card || card.classList.contains("disabled")) return;
@@ -945,14 +968,16 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let i = 0; i < allCards.length; i++) allCards[i].classList.remove("selected");
       card.classList.add("selected");
       selectedOptionIndex = parseInt(card.dataset.optindex, 10);
+      userSelections[currentQuizIndex] = selectedOptionIndex;
       if (statusMsg) statusMsg.textContent = "Şıkkı işaretlediniz. 'Cevabı Kontrol Et' butonuna basınız.";
     });
 
     // Günlük soruları dinamik olarak API'den veya Supabase'den çek
+    let questionsLoaded = false;
     try {
       if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
         const dbQuestions = await window.MH_DB.getQuizQuestions();
-        if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
+        if (Array.isArray(dbQuestions) && dbQuestions.length >= 5) {
           activeQuizList = dbQuestions.slice(0, 5).map((q, idx) => ({
             id: q.id || idx + 1,
             unit: q.unit || `Soru ${idx + 1}`,
@@ -962,15 +987,18 @@ document.addEventListener("DOMContentLoaded", () => {
             solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
             tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
           }));
+          questionsLoaded = true;
         }
       }
+    } catch (e) {}
 
-      if (activeQuizList.length === 0) {
+    if (!questionsLoaded) {
+      try {
         const res = await fetch("/api/quiz-questions/daily");
         if (res.ok) {
           const dailyQuestions = await res.json();
-          if (Array.isArray(dailyQuestions) && dailyQuestions.length > 0) {
-            activeQuizList = dailyQuestions.map((q, idx) => ({
+          if (Array.isArray(dailyQuestions) && dailyQuestions.length >= 5) {
+            activeQuizList = dailyQuestions.slice(0, 5).map((q, idx) => ({
               id: q.id || idx + 1,
               unit: q.unit || `Soru ${idx + 1}`,
               question: q.question,
@@ -979,10 +1007,13 @@ document.addEventListener("DOMContentLoaded", () => {
               solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
               tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
             }));
+            questionsLoaded = true;
           }
         }
-      }
-    } catch (e) {
+      } catch (e) {}
+    }
+
+    if (!questionsLoaded) {
       // Çevrimdışı / GitHub Pages için güne göre deterministik soru seçimi
       const todayStr = new Date().toISOString().slice(0, 10);
       let hash = 0;
@@ -997,12 +1028,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }).slice(0, 5);
     }
 
-    let selectedOptionIndex = null;
-
     function renderQuestion(idx) {
       currentQuizIndex = idx;
       const q = activeQuizList[idx] || QUIZ_QUESTIONS[idx];
-      selectedOptionIndex = userAnswers[idx]?.selectedIndex ?? null;
+      selectedOptionIndex = userAnswers[idx]?.selectedIndex ?? (userSelections[idx] ?? null);
 
       stepBtns.forEach((btn, bIdx) => {
         btn.classList.toggle("active", bIdx === idx);
@@ -1010,12 +1039,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (ans) {
           btn.classList.toggle("correct", ans.isCorrect);
           btn.classList.toggle("wrong", !ans.isCorrect);
-          const iconSpan = btn.querySelector("span");
-          if (iconSpan) iconSpan.textContent = ans.isCorrect ? " [Doğru]" : " [Yanlış]";
         } else {
           btn.classList.remove("correct", "wrong");
-          const iconSpan = btn.querySelector("span");
-          if (iconSpan) iconSpan.textContent = "";
         }
       });
 
@@ -1161,7 +1186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (simBtn) {
       simBtn.addEventListener("click", () => {
         const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
-        const projectedMathNet = Math.max(8.0, Math.min(20.0, parseFloat((correctCount * 3.8).toFixed(1))));
+        const projectedMathNet = Math.max(0.0, Math.min(20.0, parseFloat((correctCount * 4.0).toFixed(1))));
         const correctInput = document.getElementById("calcCorrect");
         const wrongInput = document.getElementById("calcWrong");
         if (correctInput) correctInput.value = Math.round(projectedMathNet);
@@ -1237,6 +1262,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
         for (const k in userAnswers) delete userAnswers[k];
+        for (const k in userSelections) delete userSelections[k];
         const completionCard = document.getElementById("quizCompletionCard");
         if (completionCard) completionCard.style.display = "none";
         showToast("Test sıfırlandı. İyi denemeler!", "info");
@@ -1282,11 +1308,34 @@ document.addEventListener("DOMContentLoaded", () => {
   // 9. Özel Ders Ön Başvuru Formu & E-posta Bildirimi
   function initTutoringForm() {
     const form = document.getElementById("tutoringForm");
+    const phoneInput = document.getElementById("formPhone");
+    const nameInput = document.getElementById("formName");
+
+    // Canlı telefon formatlama: 05XX XXX XX XX
+    if (phoneInput) {
+      phoneInput.addEventListener("input", (e) => {
+        let val = e.target.value.replace(/\D/g, "");
+        if (val.startsWith("90")) val = val.slice(2);
+        if (val.length > 0 && !val.startsWith("0")) val = "0" + val;
+        val = val.slice(0, 11);
+        let formatted = "";
+        if (val.length <= 4) {
+          formatted = val;
+        } else if (val.length <= 7) {
+          formatted = `${val.slice(0, 4)} ${val.slice(4)}`;
+        } else if (val.length <= 9) {
+          formatted = `${val.slice(0, 4)} ${val.slice(4, 7)} ${val.slice(7)}`;
+        } else {
+          formatted = `${val.slice(0, 4)} ${val.slice(4, 7)} ${val.slice(7, 9)} ${val.slice(9, 11)}`;
+        }
+        e.target.value = formatted;
+      });
+    }
 
     function getFormData() {
-      const name = document.getElementById("formName")?.value.trim() || "";
+      const name = nameInput?.value.trim() || "";
       const role = document.getElementById("formRole")?.value || "Öğrenci";
-      const phone = document.getElementById("formPhone")?.value.trim() || "";
+      const phone = phoneInput?.value.trim() || "";
       const city = document.getElementById("formCity")?.value.trim() || "";
       const currentNet = document.getElementById("formCurrentNet")?.value || "0-5 Net";
       const targetSchool = document.getElementById("formTargetSchool")?.value.trim() || "Fen Lisesi";
@@ -1300,9 +1349,24 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         const data = getFormData();
 
-        if (!data.name || !data.phone) {
-          showToast("Lütfen zorunlu alanları doldurunuz.", "info");
+        if (!data.name || data.name.length < 2) {
+          showToast("Lütfen ad ve soyadınızı eksiksiz giriniz.", "info");
+          nameInput?.focus();
           return;
+        }
+
+        const digits = data.phone.replace(/\D/g, "");
+        if (digits.length < 10) {
+          showToast("Lütfen geçerli bir telefon numarası giriniz (Örn: 05XX XXX XX XX).", "info");
+          phoneInput?.focus();
+          return;
+        }
+
+        const submitBtn = form.querySelector("button[type='submit']");
+        const originalBtnText = submitBtn ? submitBtn.textContent : "Başvuru Talebini Gönder";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Kaydediliyor...";
         }
 
         try {
@@ -1335,6 +1399,12 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
           saveLocalLead(data);
           showToast("Başvurunuz kaydedildi! Merdiye Hocam en kısa sürede iletişime geçecektir.", "success");
+          form.reset();
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+          }
         }
       });
     }
@@ -1402,30 +1472,50 @@ document.addEventListener("DOMContentLoaded", () => {
   // 12b. Mobile Bottom App Bar Navigation & Active Section Tracking
   function initMobileNavigation() {
     const mobileBar = document.getElementById("mobileBottomBar");
-    if (!mobileBar) return;
+    const mobileItems = mobileBar ? mobileBar.querySelectorAll(".mobile-bar-item") : [];
+    const desktopLinks = document.querySelectorAll(".nav-link");
 
-    const items = mobileBar.querySelectorAll(".mobile-bar-item");
     const sections = ["hero", "pdf-portal", "mini-quiz", "calculator", "tutoring"];
     const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean);
 
-    mobileBar.addEventListener("click", (e) => {
-      const item = e.target.closest(".mobile-bar-item");
-      if (!item) return;
-      items.forEach(i => i.classList.remove("active"));
-      item.classList.add("active");
-    });
+    function setActiveSection(targetId) {
+      if (!targetId) return;
+      mobileItems.forEach(item => {
+        item.classList.toggle("active", item.getAttribute("data-tab") === targetId);
+      });
+      desktopLinks.forEach(link => {
+        const href = link.getAttribute("href");
+        if (href === `#${targetId}`) {
+          link.classList.add("active");
+        } else if (href && href.startsWith("#")) {
+          link.classList.remove("active");
+        }
+      });
+    }
 
-    if ("IntersectionObserver" in window) {
+    if (mobileBar) {
+      mobileBar.addEventListener("click", (e) => {
+        const item = e.target.closest(".mobile-bar-item");
+        if (!item) return;
+        const targetId = item.getAttribute("data-tab");
+        if (targetId) setActiveSection(targetId);
+      });
+    }
+
+    if ("IntersectionObserver" in window && sectionEls.length > 0) {
       const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const currentId = entry.target.id;
-            items.forEach(item => {
-              item.classList.toggle("active", item.getAttribute("data-tab") === currentId);
-            });
+        const visible = entries.filter(e => e.isIntersecting);
+        if (visible.length > 0) {
+          visible.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+          const topEntry = visible[0];
+          if (topEntry && topEntry.target && topEntry.target.id) {
+            setActiveSection(topEntry.target.id);
           }
-        });
-      }, { threshold: 0.35 });
+        }
+      }, {
+        rootMargin: "-15% 0px -40% 0px",
+        threshold: [0.15, 0.35, 0.6]
+      });
 
       sectionEls.forEach(sec => observer.observe(sec));
     }
