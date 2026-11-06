@@ -1839,7 +1839,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("adminPdfModal"),
     document.getElementById("questionModal"),
     document.getElementById("uploadQuestionsModal"),
-    document.getElementById("examPrintModal")
+    document.getElementById("examPrintModal"),
+    document.getElementById("bankPickerModal"),
+    document.getElementById("storyExportModal"),
+    document.getElementById("customVisualModal")
   ].filter(Boolean);
 
   dialogModals.forEach(modalEl => {
@@ -2221,19 +2224,31 @@ document.addEventListener("DOMContentLoaded", () => {
               ${q.saved ? '<span class="pdf-badge" style="background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; font-size: 0.74rem;">Sisteme Kaydedildi</span>' : ''}
             </div>
 
-            <div class="ai-card-actions">
+            <div class="ai-card-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <label class="ai-approve-toggle" title="Bu soruyu onayla">
                 <input type="checkbox" class="ai-card-approve-checkbox" data-idx="${idx}" ${q.approved ? "checked" : ""}>
                 <span>${q.approved ? "Onaylandı" : "Onayla"}</span>
               </label>
 
-              <button type="button" class="btn btn-secondary btn-sm ai-regenerate-single-btn" data-idx="${idx}" title="Sadece bu soruyu aynı konudan yeniden üret">
+              <button type="button" class="btn btn-secondary btn-sm ai-story-single-btn" data-idx="${idx}" title="Bu soruyu Instagram Story veya WhatsApp Durum kartı olarak kaydet" style="background: linear-gradient(135deg, #EC4899, #8B5CF6); color: #FFFFFF; border: none; font-weight: 800; padding: 4px 10px;">
+                Story Çıktısı
+              </button>
+
+              <button type="button" class="btn btn-secondary btn-sm ai-add-visual-btn" data-idx="${idx}" title="Bu soruya özel şekil, çizim veya görsel ekle" style="font-weight: 700; padding: 4px 10px;">
+                ${q.diagramSvg || q.imageUrl ? 'Şekli Düzenle' : 'Şekil Ekle'}
+              </button>
+
+              <button type="button" class="btn btn-secondary btn-sm ai-regenerate-single-btn" data-idx="${idx}" title="Sadece bu soruyu aynı konudan yeniden üret" style="font-weight: 700; padding: 4px 10px;">
                 Soruyu Değiştir
               </button>
             </div>
           </div>
 
           <div class="ai-q-text">${escapeHtml(q.question).replace(/\n/g, "<br>")}</div>
+
+          ${q.diagramSvg ? `<div class="ai-q-diagram">${q.diagramSvg}</div>` : ''}
+          ${q.imageUrl ? `<div class="ai-q-diagram"><img src="${q.imageUrl}" style="max-height: 180px; max-width: 100%; object-fit: contain; border-radius: 6px;"></div>` : ''}
+          ${q.tableHtml ? `<div class="ai-q-table">${q.tableHtml}</div>` : ''}
 
           <div class="ai-options-grid">
             ${q.options.map((opt, optIdx) => `
@@ -2261,6 +2276,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const labelSpan = card.querySelector(".ai-approve-toggle span");
             if (labelSpan) labelSpan.textContent = q.approved ? "Onaylandı" : "Onayla";
             updateReviewStats();
+          });
+        }
+
+        // Event listener: Instagram Story Çıktısı
+        const storyBtn = card.querySelector(".ai-story-single-btn");
+        if (storyBtn) {
+          storyBtn.addEventListener("click", () => {
+            openStoryExportModal(idx);
+          });
+        }
+
+        // Event listener: Özel Şekil / Görsel Ekleme
+        const visualBtn = card.querySelector(".ai-add-visual-btn");
+        if (visualBtn) {
+          visualBtn.addEventListener("click", () => {
+            openCustomVisualModal(idx);
           });
         }
 
@@ -2588,6 +2619,698 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("openExamInNewTabBtn")?.addEventListener("click", () => {
       executeCleanA4Print();
     });
+
+    // =========================================================================
+    // MODÜL 1: Soru Bankasından Soru Seç & Sınav Havuzuna Dahil Et
+    // =========================================================================
+    const bankPickerModal = document.getElementById("bankPickerModal");
+    const openBankPickerModalBtn = document.getElementById("openBankPickerModalBtn");
+    const closeBankPickerModalBtn = document.getElementById("closeBankPickerModalBtn");
+    const cancelBankPickerBtn = document.getElementById("cancelBankPickerBtn");
+    const confirmBankPickerAddBtn = document.getElementById("confirmBankPickerAddBtn");
+    const bankPickerGradeFilter = document.getElementById("bankPickerGradeFilter");
+    const bankPickerSearchInput = document.getElementById("bankPickerSearchInput");
+    const bankPickerList = document.getElementById("bankPickerList");
+    const bankPickerSelectedCountTxt = document.getElementById("bankPickerSelectedCountTxt");
+    const bankPickerSelectAllBtn = document.getElementById("bankPickerSelectAllBtn");
+    const bankPickerClearAllBtn = document.getElementById("bankPickerClearAllBtn");
+
+    let selectedBankIndices = new Set();
+
+    function renderBankPickerItems() {
+      if (!bankPickerList) return;
+      bankPickerList.innerHTML = "";
+
+      const gradeFilter = bankPickerGradeFilter ? bankPickerGradeFilter.value : "all";
+      const searchTxt = bankPickerSearchInput ? bankPickerSearchInput.value.trim().toLowerCase() : "";
+
+      const filtered = questionList.filter((q, i) => {
+        const qGrade = String(q.grade || (q.unit && q.unit.startsWith("8") ? "8" : (q.unit && q.unit.startsWith("7") ? "7" : (q.unit && q.unit.startsWith("6") ? "6" : "5"))));
+        if (gradeFilter !== "all" && qGrade !== gradeFilter) return false;
+        if (searchTxt) {
+          const matchQ = (q.question || "").toLowerCase().includes(searchTxt);
+          const matchU = (q.unit || "").toLowerCase().includes(searchTxt);
+          if (!matchQ && !matchU) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        bankPickerList.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+            Seçilen filtrelere uygun soru bulunamadı. Soru Bankası sekmesinden soru ekleyebilir veya filtreleri temizleyebilirsiniz.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((q, filteredIdx) => {
+        const realIdx = questionList.indexOf(q);
+        const item = document.createElement("div");
+        item.style.cssText = "display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: 8px; transition: all 0.2s;";
+        
+        const isChecked = selectedBankIndices.has(realIdx);
+        if (isChecked) {
+          item.style.borderColor = "var(--primary)";
+          item.style.background = "var(--primary-soft)";
+        }
+
+        const letters = ["A", "B", "C", "D"];
+        const correctOpt = Array.isArray(q.options) && q.correctIndex !== undefined ? q.options[q.correctIndex] : "";
+
+        item.innerHTML = `
+          <input type="checkbox" style="margin-top: 4px; transform: scale(1.2); cursor: pointer;" ${isChecked ? "checked" : ""}>
+          <div style="flex: 1; font-size: 0.84rem;">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+              <span class="pdf-badge gold" style="font-size: 0.72rem;">${escapeHtml(q.unit || "MEB Soru Havuzu")}</span>
+              <span class="pdf-badge" style="font-size: 0.70rem; background: var(--bg-card);">${escapeHtml(q.difficulty || "LGS")}</span>
+            </div>
+            <div style="font-weight: 700; color: var(--text-main); line-height: 1.45; margin-bottom: 6px;">
+              ${escapeHtml(q.question)}
+            </div>
+            ${correctOpt ? `<div style="font-size: 0.78rem; color: #059669; font-weight: 800;">Doğru Cevap: ${escapeHtml(correctOpt)}</div>` : ''}
+          </div>
+        `;
+
+        const chk = item.querySelector("input[type='checkbox']");
+        chk.addEventListener("change", () => {
+          if (chk.checked) {
+            selectedBankIndices.add(realIdx);
+            item.style.borderColor = "var(--primary)";
+            item.style.background = "var(--primary-soft)";
+          } else {
+            selectedBankIndices.delete(realIdx);
+            item.style.borderColor = "var(--border-color)";
+            item.style.background = "var(--bg-white)";
+          }
+          if (bankPickerSelectedCountTxt) {
+            bankPickerSelectedCountTxt.textContent = `${selectedBankIndices.size} soru seçildi`;
+          }
+        });
+
+        bankPickerList.appendChild(item);
+      });
+
+      if (bankPickerSelectedCountTxt) {
+        bankPickerSelectedCountTxt.textContent = `${selectedBankIndices.size} soru seçildi`;
+      }
+    }
+
+    openBankPickerModalBtn?.addEventListener("click", () => {
+      selectedBankIndices.clear();
+      renderBankPickerItems();
+      bankPickerModal?.classList.add("active");
+    });
+
+    closeBankPickerModalBtn?.addEventListener("click", () => bankPickerModal?.classList.remove("active"));
+    cancelBankPickerBtn?.addEventListener("click", () => bankPickerModal?.classList.remove("active"));
+
+    bankPickerGradeFilter?.addEventListener("change", renderBankPickerItems);
+    bankPickerSearchInput?.addEventListener("input", renderBankPickerItems);
+
+    bankPickerSelectAllBtn?.addEventListener("click", () => {
+      questionList.forEach((_, idx) => selectedBankIndices.add(idx));
+      renderBankPickerItems();
+    });
+
+    bankPickerClearAllBtn?.addEventListener("click", () => {
+      selectedBankIndices.clear();
+      renderBankPickerItems();
+    });
+
+    confirmBankPickerAddBtn?.addEventListener("click", () => {
+      if (selectedBankIndices.size === 0) {
+        showToast("Lütfen sınava eklemek için en az bir soru seçin.", "warning");
+        return;
+      }
+
+      const added = [];
+      selectedBankIndices.forEach(idx => {
+        const item = questionList[idx];
+        if (item) {
+          const gradeVal = item.grade || (item.unit && item.unit.startsWith("8") ? "8" : (item.unit && item.unit.startsWith("7") ? "7" : (item.unit && item.unit.startsWith("6") ? "6" : "5")));
+          added.push({
+            id: item.id || ("bank_" + Date.now() + "_" + idx),
+            grade: gradeVal,
+            gradeLabel: `${gradeVal}. Sınıf`,
+            topic: item.unit || "Matematik Kazanımı",
+            difficulty: item.difficulty || "yeni_nesil",
+            difficultyLabel: item.difficulty || "LGS Ayarı",
+            question: item.question,
+            options: item.options || ["A", "B", "C", "D"],
+            correctIndex: typeof item.correctIndex === "number" ? item.correctIndex : 0,
+            explanation: item.solution || item.explanation || "Adım adım çözüm rehberi.",
+            tactic: item.tactic || "Merdiye Hoca Sınav Taktiği: Soru kökünü dikkatle oku, işlem adımlarını kontrol et.",
+            diagramSvg: item.diagramSvg || null,
+            imageUrl: item.imageUrl || null,
+            approved: true,
+            engine: "Soru Bankası & Havuz"
+          });
+        }
+      });
+
+      currentAiQuestions = currentAiQuestions.concat(added);
+      renderAiQuestions();
+      bankPickerModal?.classList.remove("active");
+
+      if (reviewContainer) {
+        reviewContainer.style.display = "flex";
+        reviewContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      showToast(`${added.length} adet soru soru bankasından sınav havuzuna eklendi!`, "success");
+    });
+
+
+    // =========================================================================
+    // MODÜL 2: 9:16 Instagram Story Çıktısı (1080x1920 HD PNG)
+    // =========================================================================
+    const storyExportModal = document.getElementById("storyExportModal");
+    const closeStoryExportModalBtn = document.getElementById("closeStoryExportModalBtn");
+    const storyQuestionSelector = document.getElementById("storyQuestionSelector");
+    const storyTabSlide1Btn = document.getElementById("storyTabSlide1Btn");
+    const storyTabSlide2Btn = document.getElementById("storyTabSlide2Btn");
+    const downloadStoryPngBtn = document.getElementById("downloadStoryPngBtn");
+    const copyStoryClipboardBtn = document.getElementById("copyStoryClipboardBtn");
+    const storyExportCanvas = document.getElementById("storyExportCanvas");
+
+    let currentStoryQuestionIdx = 0;
+    let currentStorySlide = 1; // 1: Soru Kartı, 2: Çözüm & Taktik Kartı
+
+    function openStoryExportModal(targetIdx = 0) {
+      if (currentAiQuestions.length === 0) {
+        showToast("Önce soru üretmeniz veya soru bankasından soru seçmeniz gerekir.", "info");
+        return;
+      }
+
+      currentStoryQuestionIdx = Math.min(Math.max(0, targetIdx), currentAiQuestions.length - 1);
+      currentStorySlide = 1;
+
+      // Soru Seçiciyi doldur
+      if (storyQuestionSelector) {
+        storyQuestionSelector.innerHTML = "";
+        currentAiQuestions.forEach((q, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `Soru ${i + 1} (${q.topic ? q.topic.slice(0, 28) : 'LGS Sorusu'})`;
+          if (i === currentStoryQuestionIdx) opt.selected = true;
+          storyQuestionSelector.appendChild(opt);
+        });
+      }
+
+      updateStoryPreview();
+      storyExportModal?.classList.add("active");
+    }
+
+    // Üst toolbar butonu: Doğrudan ilk onaylı soruyu veya soru 1'i açar
+    document.getElementById("openStoryModalBtn")?.addEventListener("click", () => {
+      openStoryExportModal(0);
+    });
+
+    closeStoryExportModalBtn?.addEventListener("click", () => storyExportModal?.classList.remove("active"));
+
+    storyQuestionSelector?.addEventListener("change", (e) => {
+      currentStoryQuestionIdx = parseInt(e.target.value, 10) || 0;
+      updateStoryPreview();
+    });
+
+    storyTabSlide1Btn?.addEventListener("click", () => {
+      currentStorySlide = 1;
+      storyTabSlide1Btn.classList.remove("btn-secondary");
+      storyTabSlide1Btn.classList.add("btn-primary");
+      storyTabSlide2Btn.classList.remove("btn-primary");
+      storyTabSlide2Btn.classList.add("btn-secondary");
+      updateStoryPreview();
+    });
+
+    storyTabSlide2Btn?.addEventListener("click", () => {
+      currentStorySlide = 2;
+      storyTabSlide2Btn.classList.remove("btn-secondary");
+      storyTabSlide2Btn.classList.add("btn-primary");
+      storyTabSlide1Btn.classList.remove("btn-primary");
+      storyTabSlide1Btn.classList.add("btn-secondary");
+      updateStoryPreview();
+    });
+
+    function updateStoryPreview() {
+      const q = currentAiQuestions[currentStoryQuestionIdx];
+      if (!q) return;
+
+      const gradeTopicTag = document.getElementById("storyGradeTopicTag");
+      const questionNumTag = document.getElementById("storyQuestionNumTag");
+      const qText = document.getElementById("storyPreviewQuestionText");
+      const diagramEl = document.getElementById("storyPreviewDiagram");
+      const optList = document.getElementById("storyPreviewOptionsList");
+      const footerCta = document.getElementById("storyFooterCtaText");
+      const slideTypeBadge = document.getElementById("storySlideTypeBadge");
+
+      if (gradeTopicTag) gradeTopicTag.textContent = `${q.grade || '8'}. Sınıf • ${q.topic || 'LGS Matematik'}`;
+      if (slideTypeBadge) slideTypeBadge.textContent = currentStorySlide === 1 ? "Slayt 1 / Soru" : "Slayt 2 / Çözüm";
+
+      const letters = ["A", "B", "C", "D"];
+
+      if (currentStorySlide === 1) {
+        if (questionNumTag) questionNumTag.textContent = `GÜNÜN LGS SORUSU (SORU ${currentStoryQuestionIdx + 1})`;
+        if (qText) qText.textContent = q.question;
+        
+        if (diagramEl) {
+          if (q.diagramSvg) {
+            diagramEl.style.display = "flex";
+            diagramEl.innerHTML = q.diagramSvg;
+          } else if (q.imageUrl) {
+            diagramEl.style.display = "flex";
+            diagramEl.innerHTML = `<img src="${q.imageUrl}" style="max-height: 100px; max-width: 100%; object-fit: contain;">`;
+          } else {
+            diagramEl.style.display = "none";
+            diagramEl.innerHTML = "";
+          }
+        }
+
+        if (optList) {
+          optList.innerHTML = q.options.map((opt, i) => `
+            <div class="story-opt-item">
+              <span class="story-opt-badge">${letters[i]}</span>
+              <span>${escapeHtml(opt)}</span>
+            </div>
+          `).join("");
+        }
+
+        if (footerCta) footerCta.textContent = "Cevabını yoruma bırak! • Sola kaydır";
+      } else {
+        // Slayt 2: Çözüm & Taktik
+        if (questionNumTag) questionNumTag.textContent = `SORU ${currentStoryQuestionIdx + 1} ÇÖZÜMÜ & SINAV TAKTİĞİ`;
+        
+        const correctLetter = letters[q.correctIndex || 0];
+        const correctText = q.options[q.correctIndex || 0] || "";
+
+        if (qText) {
+          qText.innerHTML = `
+            <div style="font-size: 0.92rem; font-weight: 900; color: #059669; margin-bottom: 6px;">
+              Doğru Cevap: ${correctLetter}) ${escapeHtml(correctText)}
+            </div>
+            <div style="font-size: 0.78rem; color: #334155; line-height: 1.45;">
+              ${escapeHtml(q.explanation || 'Adım adım matematiksel çözüm.').replace(/\n/g, '<br>')}
+            </div>
+          `;
+        }
+
+        if (diagramEl) {
+          diagramEl.style.display = "none";
+          diagramEl.innerHTML = "";
+        }
+
+        if (optList) {
+          optList.innerHTML = `
+            <div style="background: rgba(254, 243, 199, 0.95); border: 1.5px solid #F59E0B; border-radius: 12px; padding: 12px 14px; color: #78350F; font-size: 0.78rem; line-height: 1.45;">
+              <div style="font-weight: 900; color: #B45309; margin-bottom: 4px;">MERDİYE HOCA ALTIN TAKTİĞİ:</div>
+              <b>${escapeHtml(q.tactic || 'Soru köküne dikkat et, işlem basamaklarını kontrollü uygula.')}</b>
+            </div>
+          `;
+        }
+
+        if (footerCta) footerCta.textContent = "Merdiye Hoca ile 20'de 20 Hedefi • Takipte Kal!";
+      }
+    }
+
+    // 1080x1920 HD Instagram Story Canvas Renderer
+    async function renderStoryToCanvas() {
+      const q = currentAiQuestions[currentStoryQuestionIdx];
+      if (!q || !storyExportCanvas) return null;
+
+      const canvas = storyExportCanvas;
+      const ctx = canvas.getContext("2d");
+      const W = 1080;
+      const H = 1920;
+
+      // 1. Arka Plan: Zengin Degrade (Violet / Indigo Gradient)
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, "#1E1B4B");
+      bgGrad.addColorStop(0.35, "#312E81");
+      bgGrad.addColorStop(0.70, "#4C1D95");
+      bgGrad.addColorStop(1, "#6D28D9");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Dekoratif Daireler
+      ctx.fillStyle = "rgba(124, 58, 237, 0.15)";
+      ctx.beginPath();
+      ctx.arc(W - 100, 200, 320, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(100, H - 250, 280, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Üst Logo & Başlık
+      ctx.fillStyle = "#E9D5FF";
+      ctx.font = "900 32px system-ui, sans-serif";
+      ctx.fillText("MERDİYE HOCAM MATEMATİK AKADEMİSİ", 80, 140);
+
+      ctx.fillStyle = "#FDE68A";
+      ctx.font = "800 36px system-ui, sans-serif";
+      ctx.fillText(`${q.grade || '8'}. Sınıf • ${q.topic || 'LGS Matematik'}`, 80, 195);
+
+      // Slayt Türü Rozeti
+      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+      roundRect(ctx, W - 340, 130, 260, 56, 28);
+      ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "800 24px system-ui, sans-serif";
+      ctx.fillText(currentStorySlide === 1 ? "SLAYT 1 / SORU" : "SLAYT 2 / ÇÖZÜM", W - 310, 168);
+
+      let curY = 270;
+
+      if (currentStorySlide === 1) {
+        // Slayt 1: Soru Kartı
+        ctx.fillStyle = "#FFFFFF";
+        roundRect(ctx, 70, curY, W - 140, 480, 32);
+        ctx.fill();
+
+        // Kart İçi Başlık
+        ctx.fillStyle = "#7C3AED";
+        ctx.font = "900 26px system-ui, sans-serif";
+        ctx.fillText(`LGS 2026 SORU ${currentStoryQuestionIdx + 1} (${q.difficultyLabel || 'LGS Ayarı'})`, 110, curY + 60);
+
+        // Soru Metni (Satır Satır Kaydırma)
+        ctx.fillStyle = "#0F172A";
+        ctx.font = "700 34px system-ui, sans-serif";
+        const maxTextW = W - 220;
+        const lines = wrapText(ctx, q.question, maxTextW);
+        let textY = curY + 120;
+        lines.slice(0, 8).forEach(line => {
+          ctx.fillText(line, 110, textY);
+          textY += 46;
+        });
+
+        curY += 520;
+
+        // Varsa SVG Görseli Çiz
+        if (q.diagramSvg) {
+          try {
+            const svgImg = await loadSvgToImage(q.diagramSvg);
+            if (svgImg) {
+              const dw = W - 180;
+              const dh = 240;
+              ctx.drawImage(svgImg, 90, curY, dw, dh);
+              curY += dh + 40;
+            }
+          } catch (_) {
+            curY += 20;
+          }
+        } else {
+          curY += 40;
+        }
+
+        // Şıklar (A, B, C, D)
+        const letters = ["A", "B", "C", "D"];
+        const optH = 95;
+        const optGap = 20;
+
+        q.options.forEach((opt, optI) => {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+          roundRect(ctx, 70, curY, W - 140, optH, 20);
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Şık Dairesi
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          ctx.arc(125, curY + optH / 2, 28, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#6D28D9";
+          ctx.font = "900 30px system-ui, sans-serif";
+          ctx.fillText(letters[optI], 114, curY + optH / 2 + 10);
+
+          // Şık Metni
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "800 32px system-ui, sans-serif";
+          ctx.fillText(opt, 180, curY + optH / 2 + 10);
+
+          curY += optH + optGap;
+        });
+
+      } else {
+        // Slayt 2: Çözüm ve Sınav Taktiği
+        ctx.fillStyle = "#FFFFFF";
+        roundRect(ctx, 70, curY, W - 140, 680, 32);
+        ctx.fill();
+
+        ctx.fillStyle = "#059669";
+        ctx.font = "900 34px system-ui, sans-serif";
+        const letters = ["A", "B", "C", "D"];
+        const corLetter = letters[q.correctIndex || 0];
+        const corText = q.options[q.correctIndex || 0] || "";
+        ctx.fillText(`DOĞRU CEVAP: ${corLetter}) ${corText}`, 110, curY + 70);
+
+        ctx.fillStyle = "#64748B";
+        ctx.font = "800 24px system-ui, sans-serif";
+        ctx.fillText("ADIM ADIM MATEMATİKSEL ÇÖZÜM:", 110, curY + 130);
+
+        ctx.fillStyle = "#1E293B";
+        ctx.font = "600 30px system-ui, sans-serif";
+        const solLines = wrapText(ctx, q.explanation || "Adım adım çözüm rehberi.", W - 220);
+        let solY = curY + 180;
+        solLines.slice(0, 10).forEach(line => {
+          ctx.fillText(line, 110, solY);
+          solY += 44;
+        });
+
+        curY += 730;
+
+        // Merdiye Hoca Altın Taktiği Kartı
+        ctx.fillStyle = "#FEF3C7";
+        roundRect(ctx, 70, curY, W - 140, 340, 24);
+        ctx.fill();
+
+        ctx.strokeStyle = "#F59E0B";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.fillStyle = "#B45309";
+        ctx.font = "900 30px system-ui, sans-serif";
+        ctx.fillText("MERDİYE HOCA ALTIN SINAV TAKTİĞİ:", 110, curY + 70);
+
+        ctx.fillStyle = "#78350F";
+        ctx.font = "800 32px system-ui, sans-serif";
+        const tacLines = wrapText(ctx, q.tactic || "Formülü hatırla, çeldiricilere dikkat et!", W - 220);
+        let tacY = curY + 130;
+        tacLines.slice(0, 4).forEach(l => {
+          ctx.fillText(l, 110, tacY);
+          tacY += 48;
+        });
+      }
+
+      // Alt CTA Banner
+      ctx.fillStyle = "#F5D0FE";
+      ctx.font = "800 34px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(currentStorySlide === 1 ? "Cevabını Yoruma Yaz! • Sola Kaydır" : "Merdiye Hoca ile 20'de 20 Hedefi!", W / 2, H - 120);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.font = "700 24px system-ui, sans-serif";
+      ctx.fillText("LGS Matematik Başarı Platformu & Merdiye Hocam", W / 2, H - 75);
+      ctx.textAlign = "start";
+
+      return canvas;
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+      if (!text) return [];
+      const words = String(text).split(" ");
+      const lines = [];
+      let currentLine = words[0] || "";
+
+      for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = ctx.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+          currentLine += " " + word;
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      lines.push(currentLine);
+      return lines;
+    }
+
+    function loadSvgToImage(svgString) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(svgBlob);
+        img.onload = () => {
+          resolve(img);
+          URL.revokeObjectURL(url);
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    downloadStoryPngBtn?.addEventListener("click", async () => {
+      downloadStoryPngBtn.disabled = true;
+      downloadStoryPngBtn.textContent = "Story PNG Oluşturuluyor...";
+      try {
+        const canvas = await renderStoryToCanvas();
+        if (!canvas) throw new Error("Canvas oluşturulamadı");
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = `merdiye_lgs_story_soru_${currentStoryQuestionIdx + 1}_slayt${currentStorySlide}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showToast(`1080x1920 Instagram Story başarıyla indirildi! (Slayt ${currentStorySlide})`, "success");
+      } catch (err) {
+        showToast("Story indirme hatası: " + err.message, "error");
+      } finally {
+        downloadStoryPngBtn.disabled = false;
+        downloadStoryPngBtn.textContent = "Instagram Story İndir (1080x1920 HD PNG)";
+      }
+    });
+
+    copyStoryClipboardBtn?.addEventListener("click", async () => {
+      try {
+        const canvas = await renderStoryToCanvas();
+        if (!canvas) return;
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+            showToast("Story görseli panoya kopyalandı! (Ctrl + V ile yapıştırabilirsiniz)", "success");
+          } catch (e) {
+            showToast("Panoya kopyalama bu tarayıcıda desteklenmiyor, lütfen 'İndir' butonunu kullanın.", "info");
+          }
+        }, "image/png");
+      } catch (e) {
+        showToast("Kopyalama hatası: " + e.message, "error");
+      }
+    });
+
+
+    // =========================================================================
+    // MODÜL 3: Öğretmen Özel Şekil / Görsel Ekleme & Düzenleme
+    // =========================================================================
+    const customVisualModal = document.getElementById("customVisualModal");
+    const closeCustomVisualModalBtn = document.getElementById("closeCustomVisualModalBtn");
+    const cancelCustomVisualBtn = document.getElementById("cancelCustomVisualBtn");
+    const saveCustomVisualBtn = document.getElementById("saveCustomVisualBtn");
+    const removeCustomVisualBtn = document.getElementById("removeCustomVisualBtn");
+    const customVisualFileInput = document.getElementById("customVisualFileInput");
+    const customVisualSvgInput = document.getElementById("customVisualSvgInput");
+    const customVisualPreviewWrap = document.getElementById("customVisualPreviewWrap");
+    const customVisualPreviewBox = document.getElementById("customVisualPreviewBox");
+
+    let visualTargetQuestionIdx = 0;
+    let pendingVisualData = { type: null, data: null };
+
+    function openCustomVisualModal(idx) {
+      visualTargetQuestionIdx = idx;
+      const q = currentAiQuestions[idx];
+      if (!q) return;
+
+      pendingVisualData = {
+        type: q.imageUrl ? 'image' : (q.diagramSvg ? 'svg' : null),
+        data: q.imageUrl || q.diagramSvg || null
+      };
+
+      if (customVisualFileInput) customVisualFileInput.value = "";
+      if (customVisualSvgInput) customVisualSvgInput.value = q.diagramSvg || "";
+
+      updateCustomVisualPreview();
+      customVisualModal?.classList.add("active");
+    }
+
+    function updateCustomVisualPreview() {
+      if (!customVisualPreviewWrap || !customVisualPreviewBox) return;
+      if (pendingVisualData.type === 'image' && pendingVisualData.data) {
+        customVisualPreviewWrap.style.display = "block";
+        customVisualPreviewBox.innerHTML = `<img src="${pendingVisualData.data}" style="max-height: 160px; max-width: 100%; object-fit: contain;">`;
+      } else if (pendingVisualData.type === 'svg' && pendingVisualData.data) {
+        customVisualPreviewWrap.style.display = "block";
+        customVisualPreviewBox.innerHTML = pendingVisualData.data;
+      } else {
+        customVisualPreviewWrap.style.display = "none";
+        customVisualPreviewBox.innerHTML = "";
+      }
+    }
+
+    customVisualFileInput?.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (loadEvt) => {
+        pendingVisualData = { type: 'image', data: loadEvt.target.result };
+        if (customVisualSvgInput) customVisualSvgInput.value = "";
+        updateCustomVisualPreview();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    customVisualSvgInput?.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      if (val.includes("<svg")) {
+        pendingVisualData = { type: 'svg', data: val };
+        updateCustomVisualPreview();
+      } else {
+        pendingVisualData = { type: null, data: null };
+        updateCustomVisualPreview();
+      }
+    });
+
+    closeCustomVisualModalBtn?.addEventListener("click", () => customVisualModal?.classList.remove("active"));
+    cancelCustomVisualBtn?.addEventListener("click", () => customVisualModal?.classList.remove("active"));
+
+    removeCustomVisualBtn?.addEventListener("click", () => {
+      const q = currentAiQuestions[visualTargetQuestionIdx];
+      if (q) {
+        q.diagramSvg = null;
+        q.imageUrl = null;
+        renderAiQuestions();
+        showToast("Soruya ait şekil kaldırıldı.", "info");
+      }
+      customVisualModal?.classList.remove("active");
+    });
+
+    saveCustomVisualBtn?.addEventListener("click", () => {
+      const q = currentAiQuestions[visualTargetQuestionIdx];
+      if (!q) return;
+
+      if (pendingVisualData.type === 'image') {
+        q.imageUrl = pendingVisualData.data;
+        q.diagramSvg = null;
+      } else if (pendingVisualData.type === 'svg') {
+        q.diagramSvg = pendingVisualData.data;
+        q.imageUrl = null;
+      }
+
+      renderAiQuestions();
+      customVisualModal?.classList.remove("active");
+      showToast(`Soru ${visualTargetQuestionIdx + 1} için şekil/görsel başarıyla kaydedildi!`, "success");
+    });
+
   }
 
   // 9. Başlatma: AI Soru Üreticiyi beklemeden hemen başlat

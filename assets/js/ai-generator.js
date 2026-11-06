@@ -1422,6 +1422,8 @@ Kesin kurallar:
 - Her sorunun 4 sikki (A, B, C, D) olmali, sadece tek bir sik kesinlikle dogru olmali, diger 3 sik ogrencilerin dusebilecegi gercekci celdiriciler olmali.
 - Her sorunun ayrintili adim adim cozumu ve Merdiye Hoca Sinav Taktigi bulunmali.
 
+- Gorsel/Sekil Destegi (diagramSvg): Eger soru geometri, sayi dogrusu, alan, koordinat veya grafik iceriyorsa, sorunun metniyle tam uyumlu, temiz ve responsive <svg viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg">...</svg> kodu olustur. Gerekmiyorsa null veya bos string birak.
+
 CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDUR, BASKA HICBIR ACIKLAMA METNI VEYA MARKDOWN ETIKETI YAZMA:
 [
   {
@@ -1429,7 +1431,8 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
     "options": ["Sik 1", "Sik 2", "Sik 3", "Sik 4"],
     "correctIndex": 0,
     "explanation": "Adim adim matematiksel cozum...",
-    "tactic": "Merdiye Hoca Sinav Taktigi: Kisa ve vurucu sinav ipucu..."
+    "tactic": "Merdiye Hoca Sinav Taktigi: Kisa ve vurucu sinav ipucu...",
+    "diagramSvg": "<svg viewBox=\"0 0 400 130\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>"
   }
 ]`;
 
@@ -1522,6 +1525,8 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
         : 0,
       explanation: String(item.explanation || "Detayli adim adim cozum.").trim(),
       tactic: String(item.tactic || "Merdiye Hoca Sinav Taktigi: Formulu hatirla, soruyu dikkatle oku.").trim(),
+      diagramSvg: (typeof item.diagramSvg === "string" && item.diagramSvg.includes("<svg")) ? item.diagramSvg.trim() : createTopicSvgDiagram(topic, difficulty),
+      tableHtml: typeof item.tableHtml === "string" ? item.tableHtml.trim() : null,
       approved: true,
       engine: "Google Gemini 2.5 Flash",
       createdAt: new Date().toISOString()
@@ -1580,6 +1585,9 @@ CIKTIYI SADECE VE SADECE ASAGIDAKI JSON FORMATINDA GECERLI BIR DIZI OLARAK DONDU
             <span class="exam-q-badge">${escapeHtml(q.difficultyLabel || "LGS Ayarı")}</span>
           </div>
           <div class="exam-q-text">${escapeHtml(q.question).replace(/\n/g, "<br>")}</div>
+          ${q.diagramSvg ? `<div class="exam-q-diagram" style="margin: 8px 0; text-align: center;">${q.diagramSvg}</div>` : ''}
+          ${q.imageUrl ? `<div class="exam-q-diagram" style="margin: 8px 0; text-align: center;"><img src="${q.imageUrl}" style="max-height: 140px; max-width: 100%; object-fit: contain;"></div>` : ''}
+          ${q.tableHtml ? `<div class="exam-q-table" style="margin: 8px 0;">${q.tableHtml}</div>` : ''}
           <div class="exam-options-grid">
       `;
 
