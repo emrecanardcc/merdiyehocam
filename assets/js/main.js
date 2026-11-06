@@ -225,6 +225,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function normalizeText(str) {
     return (str || "")
+      .toString()
+      .replace(/İ/g, "i")
+      .replace(/I/g, "i")
       .toLowerCase()
       .replace(/ı/g, "i")
       .replace(/ğ/g, "g")
@@ -237,7 +240,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function setCatalog(items) {
     pdfMap.clear();
     activeCatalog = (items || []).map(item => {
-      const topics = Array.isArray(item.topics) ? item.topics : [];
+      let topics = item.topics;
+      if (typeof topics === "string") {
+        try { topics = JSON.parse(topics); } catch (e) { topics = [topics]; }
+      }
+      if (!Array.isArray(topics)) topics = [];
       const topicsStr = topics.join(" ");
       const rawCorpus = (
         (item.title || "") + " " +
@@ -680,8 +687,14 @@ document.addEventListener("DOMContentLoaded", () => {
       let correct = parseInt(correctInput.value, 10);
       let wrong = parseInt(wrongInput.value, 10);
 
-      if (isNaN(correct) || correct < 0) correct = 0;
-      if (isNaN(wrong) || wrong < 0) wrong = 0;
+      if (isNaN(correct) || correct < 0) {
+        if (!isNaN(correct) && correct < 0) correctInput.value = 0;
+        correct = 0;
+      }
+      if (isNaN(wrong) || wrong < 0) {
+        if (!isNaN(wrong) && wrong < 0) wrongInput.value = 0;
+        wrong = 0;
+      }
 
       if (correct > 20) {
         correct = 20;
@@ -858,6 +871,15 @@ document.addEventListener("DOMContentLoaded", () => {
         schoolView.style.display = "block";
         renderSchoolSimulator(lastCalculatedNet);
       });
+
+      [tabCalc, tabSchool].forEach(tab => {
+        tab.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            tab.click();
+          }
+        });
+      });
     }
 
     const schoolFilterWrap = document.querySelector(".school-filters-wrapper");
@@ -969,6 +991,9 @@ document.addEventListener("DOMContentLoaded", () => {
       card.classList.add("selected");
       selectedOptionIndex = parseInt(card.dataset.optindex, 10);
       userSelections[currentQuizIndex] = selectedOptionIndex;
+      if (stepBtns[currentQuizIndex] && !userAnswers[currentQuizIndex]) {
+        stepBtns[currentQuizIndex].classList.add("has-selection");
+      }
       if (statusMsg) statusMsg.textContent = "Şıkkı işaretlediniz. 'Cevabı Kontrol Et' butonuna basınız.";
     });
 
@@ -978,15 +1003,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.MH_DB && typeof window.MH_DB.getQuizQuestions === "function") {
         const dbQuestions = await window.MH_DB.getQuizQuestions();
         if (Array.isArray(dbQuestions) && dbQuestions.length >= 5) {
-          activeQuizList = dbQuestions.slice(0, 5).map((q, idx) => ({
-            id: q.id || idx + 1,
-            unit: q.unit || `Soru ${idx + 1}`,
-            question: q.question,
-            options: q.options,
-            correctIndex: q.correctIndex,
-            solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
-            tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
-          }));
+          activeQuizList = dbQuestions.slice(0, 5).map((q, idx) => {
+            const rawOpts = q.options;
+            const parsedOpts = Array.isArray(rawOpts) ? rawOpts : (typeof rawOpts === "string" ? JSON.parse(rawOpts || "[]") : []);
+            let cIdx = typeof q.correctIndex === "number" ? q.correctIndex : parseInt(q.correctIndex, 10);
+            if (isNaN(cIdx)) {
+              const map = { A: 0, B: 1, C: 2, D: 3 };
+              cIdx = map[String(q.correctIndex || "").trim().toUpperCase()] ?? 0;
+            }
+            return {
+              id: q.id || idx + 1,
+              unit: q.unit || `Soru ${idx + 1}`,
+              question: q.question || q.question_text,
+              options: parsedOpts.length === 4 ? parsedOpts : QUIZ_QUESTIONS[idx % QUIZ_QUESTIONS.length].options,
+              correctIndex: cIdx,
+              solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
+              tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
+            };
+          });
           questionsLoaded = true;
         }
       }
@@ -998,15 +1032,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.ok) {
           const dailyQuestions = await res.json();
           if (Array.isArray(dailyQuestions) && dailyQuestions.length >= 5) {
-            activeQuizList = dailyQuestions.slice(0, 5).map((q, idx) => ({
-              id: q.id || idx + 1,
-              unit: q.unit || `Soru ${idx + 1}`,
-              question: q.question,
-              options: q.options,
-              correctIndex: q.correctIndex,
-              solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
-              tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
-            }));
+            activeQuizList = dailyQuestions.slice(0, 5).map((q, idx) => {
+              const rawOpts = q.options;
+              const parsedOpts = Array.isArray(rawOpts) ? rawOpts : (typeof rawOpts === "string" ? JSON.parse(rawOpts || "[]") : []);
+              let cIdx = typeof q.correctIndex === "number" ? q.correctIndex : parseInt(q.correctIndex, 10);
+              if (isNaN(cIdx)) {
+                const map = { A: 0, B: 1, C: 2, D: 3 };
+                cIdx = map[String(q.correctIndex || "").trim().toUpperCase()] ?? 0;
+              }
+              return {
+                id: q.id || idx + 1,
+                unit: q.unit || `Soru ${idx + 1}`,
+                question: q.question || q.question_text,
+                options: parsedOpts.length === 4 ? parsedOpts : QUIZ_QUESTIONS[idx % QUIZ_QUESTIONS.length].options,
+                correctIndex: cIdx,
+                solution: q.solution || q.explanation || "Doğru seçenek formül ve işlem adımlarıyla doğrulanmıştır.",
+                tactic: q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü ve verilen sayısal değerleri ilk adımda belirleyin!"
+              };
+            });
             questionsLoaded = true;
           }
         }
@@ -1029,18 +1072,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderQuestion(idx) {
-      currentQuizIndex = idx;
-      const q = activeQuizList[idx] || QUIZ_QUESTIONS[idx];
-      selectedOptionIndex = userAnswers[idx]?.selectedIndex ?? (userSelections[idx] ?? null);
+      const safeIdx = Math.max(0, Math.min(activeQuizList.length - 1, idx));
+      currentQuizIndex = safeIdx;
+      const q = activeQuizList[safeIdx] || QUIZ_QUESTIONS[safeIdx] || QUIZ_QUESTIONS[0];
+      selectedOptionIndex = userAnswers[safeIdx]?.selectedIndex ?? (userSelections[safeIdx] ?? null);
 
       stepBtns.forEach((btn, bIdx) => {
-        btn.classList.toggle("active", bIdx === idx);
+        btn.classList.toggle("active", bIdx === safeIdx);
         const ans = userAnswers[bIdx];
         if (ans) {
           btn.classList.toggle("correct", ans.isCorrect);
           btn.classList.toggle("wrong", !ans.isCorrect);
+          btn.classList.remove("has-selection");
         } else {
           btn.classList.remove("correct", "wrong");
+          btn.classList.toggle("has-selection", userSelections[bIdx] !== undefined);
         }
       });
 
@@ -1056,20 +1102,21 @@ document.addEventListener("DOMContentLoaded", () => {
       if (questionText) questionText.textContent = q.question;
 
       const letters = ["A", "B", "C", "D"];
-      const isAlreadyAnswered = userAnswers[idx] !== undefined;
+      const isAlreadyAnswered = userAnswers[safeIdx] !== undefined;
+      const cIdx = typeof q.correctIndex === "number" ? q.correctIndex : (parseInt(q.correctIndex, 10) || 0);
 
       optionsGrid.innerHTML = q.options.map((opt, oIdx) => {
         let cardClass = "quiz-option-card";
         if (selectedOptionIndex === oIdx) cardClass += " selected";
         if (isAlreadyAnswered) {
           cardClass += " disabled";
-          if (oIdx === q.correctIndex) cardClass += " correct-answer";
-          else if (selectedOptionIndex === oIdx && !userAnswers[idx].isCorrect) cardClass += " wrong-answer";
+          if (oIdx === cIdx) cardClass += " correct-answer";
+          else if (selectedOptionIndex === oIdx && !userAnswers[safeIdx].isCorrect) cardClass += " wrong-answer";
         }
 
         return `
           <div class="${cardClass}" data-optindex="${oIdx}">
-            <div class="quiz-option-letter">${letters[oIdx]}</div>
+            <div class="quiz-option-letter">${letters[oIdx] || ""}</div>
             <div style="font-weight: 700; font-size: 0.95rem;">${opt.replace(/^[A-D]\)\s*/, "")}</div>
           </div>
         `;
@@ -1077,28 +1124,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Option click handled by Event Delegation on optionsGrid
 
+      const allDone = Object.keys(userAnswers).length === activeQuizList.length;
+
       if (isAlreadyAnswered) {
-        const isCorr = userAnswers[idx].isCorrect;
+        const isCorr = userAnswers[safeIdx].isCorrect;
         if (solutionBox) solutionBox.style.display = "block";
-        if (solutionText) solutionText.innerHTML = q.solution;
-        if (tacticText) tacticText.textContent = q.tactic;
+        if (solutionText) solutionText.innerHTML = q.solution || q.explanation || "";
+        if (tacticText) tacticText.textContent = q.tactic || "Merdiye Hoca Uyarısı: Soru kökünü dikkatle okuyun!";
         if (resultHeading) {
           resultHeading.textContent = isCorr ? "Doğru Cevap" : "Yanlış Cevap - Detaylı Çözümü İnceleyin";
           resultHeading.style.color = isCorr ? "#059669" : "#DC2626";
         }
         if (resultPill) {
-          resultPill.textContent = `Doğru Şık: ${letters[q.correctIndex]}`;
+          resultPill.textContent = `Doğru Şık: ${letters[cIdx] || "A"}`;
           resultPill.className = isCorr ? "pdf-badge" : "pdf-badge gold";
         }
         if (checkBtn) checkBtn.style.display = "none";
         if (nextBtn) {
-          nextBtn.style.display = idx < activeQuizList.length - 1 ? "inline-block" : "none";
+          if (safeIdx < activeQuizList.length - 1) {
+            nextBtn.style.display = "inline-block";
+            nextBtn.textContent = "Sonraki Soru";
+          } else if (!allDone) {
+            const firstUnanswered = activeQuizList.findIndex((_, i) => userAnswers[i] === undefined);
+            if (firstUnanswered !== -1) {
+              nextBtn.style.display = "inline-block";
+              nextBtn.textContent = `Soru ${firstUnanswered + 1}'e Git`;
+            } else {
+              nextBtn.style.display = "none";
+            }
+          } else {
+            nextBtn.style.display = "none";
+          }
         }
         if (statusMsg) {
           statusMsg.textContent = isCorr ? "Tebrikler! Doğru çözdünüz (+20 Puan)." : "Bu soruda takıldınız. Taktik notunu inceleyin.";
         }
 
-        const allDone = Object.keys(userAnswers).length === activeQuizList.length;
         if (allDone) {
           renderQuizCompletion(score, correctCount);
         }
@@ -1106,7 +1167,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (solutionBox) solutionBox.style.display = "none";
         if (checkBtn) checkBtn.style.display = "inline-block";
         if (nextBtn) nextBtn.style.display = "none";
-        if (statusMsg) statusMsg.textContent = "Bir şık seçin ve 'Cevabı Kontrol Et' butonuna tıklayın.";
+        if (statusMsg) {
+          statusMsg.textContent = selectedOptionIndex !== null
+            ? "Şıkkı işaretlediniz. 'Cevabı Kontrol Et' butonuna basınız."
+            : "Bir şık seçin ve 'Cevabı Kontrol Et' butonuna tıklayın.";
+        }
       }
     }
 
@@ -1186,11 +1251,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (simBtn) {
       simBtn.addEventListener("click", () => {
         const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
-        const projectedMathNet = Math.max(0.0, Math.min(20.0, parseFloat((correctCount * 4.0).toFixed(1))));
+        const wrongCount = Object.values(userAnswers).filter(a => !a.isCorrect).length;
+        const scaledCorrect = Math.max(0, Math.min(20, correctCount * 4));
+        const scaledWrong = Math.max(0, Math.min(20 - scaledCorrect, wrongCount * 4));
         const correctInput = document.getElementById("calcCorrect");
         const wrongInput = document.getElementById("calcWrong");
-        if (correctInput) correctInput.value = Math.round(projectedMathNet);
-        if (wrongInput) wrongInput.value = Math.max(0, 20 - Math.round(projectedMathNet));
+        if (correctInput) correctInput.value = scaledCorrect;
+        if (wrongInput) wrongInput.value = scaledWrong;
+        
+        // Trigger live calculator recalculation & event dispatch
+        if (correctInput) {
+          correctInput.dispatchEvent(new Event("input"));
+        }
         
         const tabSchool = document.getElementById("tabModeSchool");
         const tabCalc = document.getElementById("tabModeCalc");
@@ -1201,10 +1273,10 @@ document.addEventListener("DOMContentLoaded", () => {
           tabCalc.classList.remove("active");
           calcView.style.display = "none";
           schoolView.style.display = "block";
-          renderSchoolSimulator(projectedMathNet);
+          renderSchoolSimulator(lastCalculatedNet);
         }
         document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
-        showToast(`Tahmini ${projectedMathNet} net ile liseler simüle edildi!`, "success");
+        showToast(`Tahmini ${lastCalculatedNet.toFixed(2)} net ile liseler simüle edildi!`, "success");
       });
     }
 
@@ -1238,7 +1310,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const q = activeQuizList[currentQuizIndex] || QUIZ_QUESTIONS[currentQuizIndex];
-        const isCorrect = selectedOptionIndex === q.correctIndex;
+        const cIdx = typeof q.correctIndex === "number" ? q.correctIndex : (parseInt(q.correctIndex, 10) || 0);
+        const isCorrect = selectedOptionIndex === cIdx;
         userAnswers[currentQuizIndex] = { selectedIndex: selectedOptionIndex, isCorrect };
 
         if (isCorrect) {
@@ -1255,6 +1328,11 @@ document.addEventListener("DOMContentLoaded", () => {
       nextBtn.addEventListener("click", () => {
         if (currentQuizIndex < activeQuizList.length - 1) {
           renderQuestion(currentQuizIndex + 1);
+        } else {
+          const firstUnanswered = activeQuizList.findIndex((_, i) => userAnswers[i] === undefined);
+          if (firstUnanswered !== -1) {
+            renderQuestion(firstUnanswered);
+          }
         }
       });
     }
@@ -1267,6 +1345,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (completionCard) completionCard.style.display = "none";
         showToast("Test sıfırlandı. İyi denemeler!", "info");
         renderQuestion(0);
+        document.getElementById("mini-quiz")?.scrollIntoView({ behavior: "smooth" });
       });
     }
 
@@ -1337,7 +1416,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const role = document.getElementById("formRole")?.value || "Öğrenci";
       const phone = phoneInput?.value.trim() || "";
       const city = document.getElementById("formCity")?.value.trim() || "";
-      const currentNet = document.getElementById("formCurrentNet")?.value || "0-5 Net";
+      const currentNet = document.getElementById("formCurrentNet")?.value || "0 - 5 Net";
       const targetSchool = document.getElementById("formTargetSchool")?.value.trim() || "Fen Lisesi";
       const notes = document.getElementById("formNotes")?.value.trim() || "";
 
@@ -1356,8 +1435,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const digits = data.phone.replace(/\D/g, "");
-        if (digits.length < 10) {
-          showToast("Lütfen geçerli bir telefon numarası giriniz (Örn: 05XX XXX XX XX).", "info");
+        const normalized = digits.startsWith("0") ? digits : "0" + digits;
+        if (normalized.length !== 11 || !normalized.startsWith("05")) {
+          showToast("Lütfen geçerli bir cep telefonu giriniz (Örn: 05XX XXX XX XX).", "info");
           phoneInput?.focus();
           return;
         }
@@ -1478,6 +1558,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const sections = ["hero", "pdf-portal", "mini-quiz", "calculator", "tutoring"];
     const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean);
 
+    let isProgrammaticScroll = false;
+    let scrollTimeout = null;
+
     function setActiveSection(targetId) {
       if (!targetId) return;
       mobileItems.forEach(item => {
@@ -1493,20 +1576,43 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    function lockProgrammaticScroll() {
+      isProgrammaticScroll = true;
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isProgrammaticScroll = false;
+      }, 750);
+    }
+
     if (mobileBar) {
       mobileBar.addEventListener("click", (e) => {
         const item = e.target.closest(".mobile-bar-item");
         if (!item) return;
         const targetId = item.getAttribute("data-tab");
-        if (targetId) setActiveSection(targetId);
+        if (targetId) {
+          lockProgrammaticScroll();
+          setActiveSection(targetId);
+        }
       });
     }
 
+    desktopLinks.forEach(link => {
+      link.addEventListener("click", () => {
+        const href = link.getAttribute("href");
+        if (href && href.startsWith("#")) {
+          const targetId = href.slice(1);
+          lockProgrammaticScroll();
+          setActiveSection(targetId);
+        }
+      });
+    });
+
     if ("IntersectionObserver" in window && sectionEls.length > 0) {
       const observer = new IntersectionObserver((entries) => {
+        if (isProgrammaticScroll) return;
         const visible = entries.filter(e => e.isIntersecting);
         if (visible.length > 0) {
-          visible.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+          visible.sort((a, b) => b.intersectionRect.height - a.intersectionRect.height);
           const topEntry = visible[0];
           if (topEntry && topEntry.target && topEntry.target.id) {
             setActiveSection(topEntry.target.id);

@@ -1830,6 +1830,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Global Dialog Modal Dismiss (Backdrop Tap & Escape Key)
+  const dialogModals = [
+    document.getElementById("adminPdfModal"),
+    document.getElementById("questionModal"),
+    document.getElementById("uploadQuestionsModal")
+  ].filter(Boolean);
+
+  dialogModals.forEach(modalEl => {
+    modalEl.addEventListener("click", (e) => {
+      if (e.target === modalEl) modalEl.classList.remove("active");
+    });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      dialogModals.forEach(modalEl => {
+        if (modalEl.classList.contains("active")) {
+          modalEl.classList.remove("active");
+        }
+      });
+    }
+  });
+
   // 9. Başlatma
   checkAdminAuth().then(isAuthed => {
     if (isAuthed) {

@@ -1511,6 +1511,12 @@ button, input, select, textarea {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35) !important;
 }
 
+.quiz-step-btn.has-selection:not(.active):not(.correct):not(.wrong) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
 .quiz-header-meta {
   display: flex;
   justify-content: space-between;

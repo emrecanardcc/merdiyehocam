@@ -343,6 +343,93 @@
     </div>
   </section>
 
+  <!-- ==================== LGS NET HESAPLAYICI & HEDEF LİSE SİMÜLATÖRÜ ==================== -->
+  <section class="section section-alt" id="calculator">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">NET &amp; HEDEF LİSE ANALİZİ</span>
+        <h2 class="section-title">LGS Net Hesaplayıcı &amp; Hedef Lise Simülatörü</h2>
+        <p class="section-desc">
+          Doğru ve yanlış sayılarını girerek netini öğren; <b>3 yanlışın 1 doğruyu götürdüğü</b> LGS kuralına göre hedeflenen liseler için gereken neti canlı simüle et.
+        </p>
+      </div>
+
+      <!-- Simülatör Mod Sekmeleri -->
+      <div class="sim-mode-tabs" role="tablist">
+        <div class="sim-mode-tab active" id="tabModeCalc" data-tab-target="calcView" role="button" tabindex="0" aria-label="Net ve Puan Analizi">
+          Net &amp; Puan Analizi
+        </div>
+        <div class="sim-mode-tab" id="tabModeSchool" data-tab-target="schoolView" role="button" tabindex="0" aria-label="Hedef Lise Simülatörü">
+          Hedef Lise Simülatörü
+        </div>
+      </div>
+
+      <!-- Mod 1: Net Hesaplayıcı Görünümü -->
+      <div id="calcView">
+        <div class="calc-wrapper">
+          <div class="calc-grid">
+            <div class="calc-input-box">
+              <label for="calcCorrect">Doğru Sayısı (0 - 20)</label>
+              <input type="number" id="calcCorrect" class="calc-number-input" min="0" max="20" value="16">
+            </div>
+
+            <div class="calc-input-box">
+              <label for="calcWrong">Yanlış Sayısı (0 - 20)</label>
+              <input type="number" id="calcWrong" class="calc-number-input" min="0" max="20" value="3">
+            </div>
+          </div>
+
+          <div class="calc-result-box">
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+              Hesaplanan LGS Matematik Neti
+            </div>
+            <div class="calc-net-number" id="calcNetDisplay">15.00</div>
+            <div class="calc-score-sub" id="calcScoreDisplay">+64.5 Puan LGS Etkisi</div>
+
+            <div class="calc-feedback">
+              <div id="calcAdvice" style="margin-bottom: 8px;">
+                <b>Çok Başarılı!</b> Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına odaklan.
+              </div>
+              <div id="calcRecommendation" style="font-weight: 700;">
+                <b>Önerilen Föy:</b> Cebirsel İfadeler ve Özdeşlikler Föyü
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mod 2: Hedef Lise Simülatörü Görünümü -->
+      <div id="schoolView" style="display: none;">
+        <div style="background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-sm); max-width: 1000px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+            <div>
+              <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text-main);">
+                Mevcut Netine Göre Liselerin Durumu
+              </h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                Hesaplanan Matematik Neti: <b id="simNetHighlight" style="color: var(--primary);">15.00 Net</b> (Tahmini Genel LGS Puanı: <b id="simScoreHighlight" style="color: var(--primary);">482.5</b>)
+              </p>
+            </div>
+
+            <!-- Şehir Filtresi -->
+            <div class="school-filter-bar" style="margin-bottom: 0;">
+              <button class="school-filter-chip active" data-school-city="all">Tüm Şehirler</button>
+              <button class="school-filter-chip" data-school-city="İstanbul">İstanbul</button>
+              <button class="school-filter-chip" data-school-city="Ankara">Ankara</button>
+              <button class="school-filter-chip" data-school-city="İzmir">İzmir</button>
+              <button class="school-filter-chip" data-school-city="Bursa">Bursa</button>
+            </div>
+          </div>
+
+          <!-- Canlı Lise Kartları Izgarası -->
+          <div class="school-grid" id="schoolGrid">
+            <!-- JS ile dinamik oluşturulur -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ==================== 1'E 1 ÖZEL DERS ==================== -->
   <section class="section" id="tutoring">
     <div class="container">
@@ -468,93 +555,6 @@
               </a>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== LGS NET HESAPLAYICI & HEDEF LİSE SİMÜLATÖRÜ ==================== -->
-  <section class="section section-alt" id="calculator">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">NET &amp; HEDEF LİSE ANALİZİ</span>
-        <h2 class="section-title">LGS Net Hesaplayıcı &amp; Hedef Lise Simülatörü</h2>
-        <p class="section-desc">
-          Doğru ve yanlış sayılarını girerek netini öğren; <b>3 yanlışın 1 doğruyu götürdüğü</b> LGS kuralına göre hedeflenen liseler için gereken neti canlı simüle et.
-        </p>
-      </div>
-
-      <!-- Simülatör Mod Sekmeleri -->
-      <div class="sim-mode-tabs" role="tablist">
-        <div class="sim-mode-tab active" id="tabModeCalc" data-tab-target="calcView" role="button" tabindex="0" aria-label="Net ve Puan Analizi">
-          Net &amp; Puan Analizi
-        </div>
-        <div class="sim-mode-tab" id="tabModeSchool" data-tab-target="schoolView" role="button" tabindex="0" aria-label="Hedef Lise Simülatörü">
-          Hedef Lise Simülatörü
-        </div>
-      </div>
-
-      <!-- Mod 1: Net Hesaplayıcı Görünümü -->
-      <div id="calcView">
-        <div class="calc-wrapper">
-          <div class="calc-grid">
-            <div class="calc-input-box">
-              <label for="calcCorrect">Doğru Sayısı (0 - 20)</label>
-              <input type="number" id="calcCorrect" class="calc-number-input" min="0" max="20" value="16">
-            </div>
-
-            <div class="calc-input-box">
-              <label for="calcWrong">Yanlış Sayısı (0 - 20)</label>
-              <input type="number" id="calcWrong" class="calc-number-input" min="0" max="20" value="3">
-            </div>
-          </div>
-
-          <div class="calc-result-box">
-            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-              Hesaplanan LGS Matematik Neti
-            </div>
-            <div class="calc-net-number" id="calcNetDisplay">15.00</div>
-            <div class="calc-score-sub" id="calcScoreDisplay">+64.5 Puan LGS Etkisi</div>
-
-            <div class="calc-feedback">
-              <div id="calcAdvice" style="margin-bottom: 8px;">
-                <b>Çok Başarılı!</b> Nitelikli liseler için sağlam bir konumdasın. 20'de 20'ye ulaşmak için şekil ve modelleme sorularına odaklan.
-              </div>
-              <div id="calcRecommendation" style="font-weight: 700;">
-                <b>Önerilen Föy:</b> Cebirsel İfadeler ve Özdeşlikler Föyü
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mod 2: Hedef Lise Simülatörü Görünümü -->
-      <div id="schoolView" style="display: none;">
-        <div style="background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-sm); max-width: 1000px; margin: 0 auto;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
-            <div>
-              <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text-main);">
-                Mevcut Netine Göre Liselerin Durumu
-              </h3>
-              <p style="font-size: 0.88rem; color: var(--text-muted);">
-                Hesaplanan Matematik Neti: <b id="simNetHighlight" style="color: var(--primary);">15.00 Net</b> (Tahmini Genel LGS Puanı: <b id="simScoreHighlight" style="color: var(--primary);">482.5</b>)
-              </p>
-            </div>
-
-            <!-- Şehir Filtresi -->
-            <div class="school-filter-bar" style="margin-bottom: 0;">
-              <button class="school-filter-chip active" data-school-city="all">Tüm Şehirler</button>
-              <button class="school-filter-chip" data-school-city="İstanbul">İstanbul</button>
-              <button class="school-filter-chip" data-school-city="Ankara">Ankara</button>
-              <button class="school-filter-chip" data-school-city="İzmir">İzmir</button>
-              <button class="school-filter-chip" data-school-city="Bursa">Bursa</button>
-            </div>
-          </div>
-
-          <!-- Canlı Lise Kartları Izgarası -->
-          <div class="school-grid" id="schoolGrid">
-            <!-- JS ile dinamik oluşturulur -->
-          </div>
         </div>
       </div>
     </div>
